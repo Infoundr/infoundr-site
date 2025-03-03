@@ -1,3 +1,4 @@
+import React from 'react';
 import { ButtonProps } from '../../types';
 
 const Button: React.FC<ButtonProps> = ({ 
@@ -6,10 +7,10 @@ const Button: React.FC<ButtonProps> = ({
   onClick, 
   className = '' 
 }) => {
-  const baseStyles = "px-4 py-2 rounded-md font-medium transition-colors";
+  const baseStyles = "px-6 py-2.5 rounded-full font-medium transition-all duration-200";
   const variantStyles = {
-    primary: "bg-primary text-white hover:bg-primary-dark",
-    secondary: "bg-secondary text-gray-800 hover:bg-gray-200"
+    primary: "bg-[#6B46C1] hover:bg-[#553C9A] text-white shadow-lg hover:shadow-xl",
+    secondary: "bg-white text-gray-800 hover:bg-gray-100 border border-gray-200"
   };
 
   return (
