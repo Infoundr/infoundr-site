@@ -1,0 +1,27 @@
+{
+  "canisters": {
+    "infoundr-site-backend": {
+      "candid": "src/infoundr-site-backend/infoundr-site-backend.did",
+      "package": "infoundr-site-backend",
+      "type": "rust"
+    },
+    "infoundr-site-frontend": {
+      "dependencies": [
+        "infoundr-site-backend"
+      ],
+      "source": [
+        "src/infoundr-site-frontend/dist"
+      ],
+      "type": "assets",
+      "workspace": "infoundr-site-frontend"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "output_env_file": ".env",
+  "version": 1
+}

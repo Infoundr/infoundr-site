@@ -1,0 +1,5 @@
+[workspace]
+members = [
+    "src/infoundr-site-backend"
+]
+resolver = "2"
