@@ -1,19 +1,19 @@
 {
   "canisters": {
-    "infoundr-site-backend": {
-      "candid": "src/infoundr-site-backend/infoundr-site-backend.did",
-      "package": "infoundr-site-backend",
+    "backend": {
+      "candid": "src/backend/backend.did",
+      "package": "backend",
       "type": "rust"
     },
-    "infoundr-site-frontend": {
+    "frontend": {
       "dependencies": [
-        "infoundr-site-backend"
+        "backend"
       ],
       "source": [
-        "src/infoundr-site-frontend/dist"
+        "src/frontend/dist"
       ],
       "type": "assets",
-      "workspace": "infoundr-site-frontend"
+      "workspace": "frontend"
     }
   },
   "defaults": {
