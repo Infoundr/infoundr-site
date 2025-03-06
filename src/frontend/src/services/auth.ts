@@ -104,7 +104,7 @@ export async function logout() {
   await authClient.logout();
 }
 
-export async function isAuthenticated() {
+export async function checkIsAuthenticated() {
   const authClient = await initializeAuthClient();
   return authClient.isAuthenticated();
 } 

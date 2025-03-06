@@ -6,7 +6,10 @@ import Features from './components/home/Features';
 import Pricing from './components/home/Pricing';
 import Footer from './components/layout/Footer';
 import WaitlistModal from './components/common/WaitlistModal';
-import { isAuthenticated } from './services/auth';
+import { checkIsAuthenticated } from './services/auth';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import AdminPanel from './pages/AdminPanel';
+// import Home from './pages/Home';
 
 const App: React.FC = () => {
   const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
@@ -15,7 +18,7 @@ const App: React.FC = () => {
   // Check initial auth state
   React.useEffect(() => {
     const checkAuth = async () => {
-      const auth = await isAuthenticated();
+      const auth = await checkIsAuthenticated(); 
       setIsUserAuthenticated(auth);
     };
     checkAuth();
@@ -26,25 +29,31 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="relative">
-      <NavBar 
-        onGetStartedClick={() => setIsWaitlistModalOpen(true)} 
-        isAuthenticated={isUserAuthenticated}
-        onAuthChange={handleAuthenticationChange}
-      />
-      <main>
-        <Hero />
-        <AIAssistants />
-        <Features />
-        <Pricing />
-      </main>
-      <Footer />
-      <WaitlistModal 
-        isOpen={isWaitlistModalOpen}
-        onClose={() => setIsWaitlistModalOpen(false)}
-        onAuthSuccess={() => setIsUserAuthenticated(true)}
-      />
-    </div>
+    <Router>
+      <Routes>
+        {/* <Route path="/" element={<Home />} /> */}
+        <Route path="/admin" element={<AdminPanel />} />
+      </Routes>
+      <div className="relative">
+        <NavBar 
+          onGetStartedClick={() => setIsWaitlistModalOpen(true)} 
+          isAuthenticated={isUserAuthenticated}
+          onAuthChange={handleAuthenticationChange}
+        />
+        <main>
+          <Hero />
+          <AIAssistants />
+          <Features />
+          <Pricing />
+        </main>
+        <Footer />
+        <WaitlistModal 
+          isOpen={isWaitlistModalOpen}
+          onClose={() => setIsWaitlistModalOpen(false)}
+          onAuthSuccess={() => setIsUserAuthenticated(true)}
+        />
+      </div>
+    </Router>
   );
 };
 
