@@ -12,7 +12,8 @@ const Pricing: React.FC = () => {
         '5 Team Members'
       ],
       buttonText: 'Get Started',
-      buttonVariant: 'secondary' as const
+      buttonVariant: 'dark' as const,
+      buttonClassName: 'bg-[#111827] text-white'
     },
     {
       name: 'Professional',
@@ -23,7 +24,8 @@ const Pricing: React.FC = () => {
         'Unlimited Team Members'
       ],
       buttonText: 'Get Started',
-      buttonVariant: 'primary' as const
+      buttonVariant: 'secondary' as const,
+      featured: true
     },
     {
       name: 'Enterprise',
@@ -34,31 +36,52 @@ const Pricing: React.FC = () => {
         'Custom Integration'
       ],
       buttonText: 'Contact Sales',
-      buttonVariant: 'secondary' as const
+      buttonVariant: 'dark' as const,
+      buttonClassName: 'bg-[#111827] text-white'
     }
   ];
 
   return (
-    <section className="py-16">
-      <h2 className="text-center text-3xl font-bold mb-4">Simple, Transparent Pricing</h2>
-      <p className="text-center mb-12">Choose the plan that works best for your business</p>
-      <div className="grid grid-cols-3 gap-8 px-8">
-        {plans.map((plan) => (
-          <div key={plan.name} className="border rounded-lg p-8">
-            <h3 className="text-xl font-bold mb-4">{plan.name}</h3>
-            <div className="text-3xl font-bold mb-6">
-              ${plan.price}<span className="text-base font-normal">/mo</span>
+    <section id="pricing" className="py-12 sm:py-16 bg-[#E5E7EB]">
+      <div className="container mx-auto max-w-7xl px-4 sm:px-6">
+        <h2 className="text-center text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">
+          Simple, Transparent Pricing
+        </h2>
+        <p className="text-center text-gray-600 text-base sm:text-lg mb-8 sm:mb-12">
+          Choose the plan that works best for your business
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+          {plans.map((plan) => (
+            <div 
+              key={plan.name} 
+              className={`border rounded-3xl p-6 sm:p-8 bg-white ${
+                plan.featured ? 'bg-[#4C1D95] text-white' : ''
+              }`}
+            >
+              <h3 className="text-xl sm:text-2xl font-bold mb-4">{plan.name}</h3>
+              <div className="text-2xl sm:text-3xl font-bold mb-6">
+                ${plan.price}<span className="text-base font-normal">/mo</span>
+              </div>
+              <ul className="mb-8 space-y-3">
+                {plan.features.map((feature) => (
+                  <li key={feature} className="flex items-center gap-2">
+                    <span className="text-green-500">✓</span> 
+                    <span className={plan.featured ? 'text-white' : ''}>
+                      {feature}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <Button 
+                variant={plan.buttonVariant} 
+                className={`w-full ${plan.buttonClassName || ''}`}
+                onClick={() => console.log(`${plan.buttonText} button clicked`)}
+              >
+                {plan.buttonText}
+              </Button>
             </div>
-            <ul className="mb-8">
-              {plan.features.map((feature) => (
-                <li key={feature} className="mb-2 flex items-center gap-2">
-                  <span className="text-green-500">✓</span> {feature}
-                </li>
-              ))}
-            </ul>
-            <Button variant={plan.buttonVariant}>{plan.buttonText}</Button>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </section>
   );

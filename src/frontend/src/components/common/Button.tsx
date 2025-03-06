@@ -1,8 +1,17 @@
 import React from 'react';
 import { ButtonProps } from '../../types';
 
+interface ButtonProps {
+  variant: 'primary' | 'secondary';
+  style?: React.CSSProperties;
+  children: React.ReactNode;
+  onClick: () => void;
+  className?: string;
+}
+
 const Button: React.FC<ButtonProps> = ({ 
   variant, 
+  style, 
   children, 
   onClick, 
   className = '' 
@@ -16,6 +25,7 @@ const Button: React.FC<ButtonProps> = ({
   return (
     <button
       className={`${baseStyles} ${variantStyles[variant]} ${className}`}
+      style={style}
       onClick={onClick}
     >
       {children}
