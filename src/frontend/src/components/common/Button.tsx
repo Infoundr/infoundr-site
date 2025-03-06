@@ -1,11 +1,19 @@
 import React from 'react';
-import { ButtonProps } from '../../types';
+
+interface ButtonProps {
+  variant: 'primary' | 'secondary';
+  className?: string;
+  children: React.ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+}
 
 const Button: React.FC<ButtonProps> = ({ 
-  variant, 
-  children, 
-  onClick, 
-  className = '' 
+  variant,
+  className = '', 
+  children,
+  onClick,
+  disabled = false,
 }) => {
   const baseStyles = "px-6 py-2.5 rounded-full font-medium transition-all duration-200";
   const variantStyles = {
@@ -15,8 +23,11 @@ const Button: React.FC<ButtonProps> = ({
 
   return (
     <button
-      className={`${baseStyles} ${variantStyles[variant]} ${className}`}
+      className={`${baseStyles} ${variantStyles[variant]} ${className} ${
+        disabled ? 'opacity-50 cursor-not-allowed' : ''
+      }`}
       onClick={onClick}
+      disabled={disabled}
     >
       {children}
     </button>

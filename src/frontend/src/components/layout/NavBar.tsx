@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import Button from '../common/Button';
 
-const NavBar: React.FC = () => {
+interface NavBarProps {
+  onGetStartedClick: () => void;
+}
+
+const NavBar: React.FC<NavBarProps> = ({ onGetStartedClick }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md">
+    <nav className="fixed top-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center">
@@ -35,7 +39,10 @@ const NavBar: React.FC = () => {
 
         {/* Desktop CTA Button */}
         <div className="hidden md:block">
-          <Button variant="primary">
+          <Button 
+            variant="primary"
+            onClick={onGetStartedClick}
+          >
             Get Started
           </Button>
         </div>
@@ -82,7 +89,11 @@ const NavBar: React.FC = () => {
             Contact
           </a>
           <div className="pt-4">
-            <Button variant="primary" className="w-full">
+            <Button 
+              variant="primary" 
+              className="w-full"
+              onClick={onGetStartedClick}
+            >
               Get Started
             </Button>
           </div>
