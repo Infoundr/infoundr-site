@@ -15,7 +15,7 @@ export const canisterID = import.meta.env.VITE_DFX_NETWORK === 'ic'
 
 // Identity Provider URLs
 const II_URL = {
-  local: "http://localhost:4943/?canisterId=rdmx6-jaaaa-aaaaa-aaadq-cai",
+  local: "http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:4943",
   ic: "https://identity.ic0.app"
 };
 
@@ -82,6 +82,7 @@ export async function loginWithII() {
   const identityProviderUrl = import.meta.env.VITE_DFX_NETWORK === 'ic' 
     ? II_URL.ic 
     : II_URL.local;
+  console.log("II Provider URL:", identityProviderUrl);
   
   await authenticate(identityProviderUrl);
   return createAuthenticatedActor();
