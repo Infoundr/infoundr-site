@@ -16,6 +16,6 @@ type WaitlistEntry = record {
 };
 type WaitlistStatus = variant { Approved; Rejected; Pending };
 service : {
-  join_waitlist : (text, text) -> (Result);
+  join_waitlist : (text) -> (Result);
   register_user : (text, text) -> (Result_1);
 }

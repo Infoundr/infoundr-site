@@ -18,8 +18,9 @@ fn register_user(email: String, name: String) -> Result<User, String> {
 }
 
 #[ic_cdk::update]
-fn join_waitlist(email: String, name: String) -> Result<models::waitlist::WaitlistEntry, String> {
-    services::waitlist::join_waitlist(email, name)
+fn join_waitlist(name: String) -> Result<models::waitlist::WaitlistEntry, String> {
+    let caller = ic_cdk::caller();
+    services::waitlist::join_waitlist(caller.to_string(), name)
 }
 
 #[ic_cdk::pre_upgrade]
