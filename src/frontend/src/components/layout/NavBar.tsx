@@ -4,33 +4,46 @@ import Button from '../common/Button';
 const NavBar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+      setIsMenuOpen(false);
+    }
+  };
+
+  const navLinks = [
+    { href: 'home', label: 'Home' },
+    { href: 'ai-assistants', label: 'AI Assistants' },
+    { href: 'features', label: 'Features' },
+    { href: 'pricing', label: 'Pricing' },
+    { href: 'contact', label: 'Contact' }
+  ];
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2 sm:py-4 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center">
-          <a href="/" className="text-2xl font-bold text-indigo-600">
-            <img src="images/Logo.png" alt="Infoundr" className="h-24" />
+          <a 
+            onClick={() => scrollToSection('home')} 
+            className="text-2xl font-bold text-indigo-600 cursor-pointer"
+          >
+            <img src="images/Logo.png" alt="Infoundr" className="h-16 sm:h-24" />
           </a>
         </div>
 
         {/* Desktop Navigation Links */}
         <div className="hidden md:flex items-center space-x-8">
-          <a href="#home" className="text-gray-600 hover:text-gray-900">
-            Home
-          </a>
-          <a href="#bots" className="text-gray-600 hover:text-gray-900">
-            Bots
-          </a>
-          <a href="#features" className="text-gray-600 hover:text-gray-900">
-            Features
-          </a>
-          <a href="#pricing" className="text-gray-600 hover:text-gray-900">
-            Pricing
-          </a>
-          <a href="#contact" className="text-gray-600 hover:text-gray-900">
-            Contact
-          </a>
+          {navLinks.map(({ href, label }) => (
+            <button
+              key={href}
+              onClick={() => scrollToSection(href)}
+              className="text-gray-600 hover:text-gray-900"
+            >
+              {label}
+            </button>
+          ))}
         </div>
 
         {/* Desktop CTA Button */}
@@ -44,6 +57,7 @@ const NavBar: React.FC = () => {
         <button 
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           className="md:hidden p-2 text-gray-600 hover:text-gray-900"
+          aria-label="Toggle menu"
         >
           {isMenuOpen ? (
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -62,25 +76,19 @@ const NavBar: React.FC = () => {
         className={`
           md:hidden bg-white border-t
           transition-all duration-300 ease-in-out
-          ${isMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible h-0'}
+          ${isMenuOpen ? 'max-h-96 opacity-100 visible' : 'max-h-0 opacity-0 invisible overflow-hidden'}
         `}
       >
-        <div className="px-6 py-4 space-y-4">
-          <a href="#home" className="block text-gray-600 hover:text-gray-900">
-            Home
-          </a>
-          <a href="#bots" className="block text-gray-600 hover:text-gray-900">
-            Bots
-          </a>
-          <a href="#features" className="block text-gray-600 hover:text-gray-900">
-            Features
-          </a>
-          <a href="#pricing" className="block text-gray-600 hover:text-gray-900">
-            Pricing
-          </a>
-          <a href="#contact" className="block text-gray-600 hover:text-gray-900">
-            Contact
-          </a>
+        <div className="px-4 py-4 space-y-4">
+          {navLinks.map(({ href, label }) => (
+            <button
+              key={href}
+              onClick={() => scrollToSection(href)}
+              className="block w-full text-left text-gray-600 hover:text-gray-900 py-2"
+            >
+              {label}
+            </button>
+          ))}
           <div className="pt-4">
             <Button variant="primary" className="w-full">
               Get Started
