@@ -54,9 +54,9 @@ const Pricing: React.FC = () => {
           {plans.map((plan) => (
             <div 
               key={plan.name} 
-              className={`border rounded-3xl p-6 sm:p-8 bg-white ${
-                plan.featured ? 'bg-[#4C1D95] text-white' : ''
-              }`}
+              className={`border rounded-3xl p-6 sm:p-8 bg-white 
+                transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-lg cursor-pointer
+                ${plan.featured ? 'bg-[#4C1D95] text-white' : ''}`}
             >
               <h3 className="text-xl sm:text-2xl font-bold mb-4">{plan.name}</h3>
               <div className="text-2xl sm:text-3xl font-bold mb-6">
