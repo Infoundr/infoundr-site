@@ -9,7 +9,7 @@ let authClient: AuthClient | null = null;
 const LOCAL_CANISTER_ID = "bkyz2-fmaaa-aaaaa-qaaaq-cai";
 const MAINNET_CANISTER_ID = ""; // Add your mainnet canister ID here
 
-export const canisterID = process.env.DFX_NETWORK === 'ic' 
+export const canisterID = import.meta.env.VITE_DFX_NETWORK === 'ic' 
   ? MAINNET_CANISTER_ID 
   : LOCAL_CANISTER_ID;
 
@@ -59,7 +59,7 @@ async function createAuthenticatedActor() {
     const agent = new HttpAgent({ identity });
 
     // Fetch root key in development
-    if (process.env.DFX_NETWORK !== 'ic') {
+    if (import.meta.env.VITE_DFX_NETWORK !== 'ic') {
       await agent.fetchRootKey();
     }
 
@@ -71,7 +71,7 @@ async function createAuthenticatedActor() {
 }
 
 export async function loginWithII() {
-  const identityProviderUrl = process.env.DFX_NETWORK === 'ic' 
+  const identityProviderUrl = import.meta.env.VITE_DFX_NETWORK === 'ic' 
     ? II_URL.ic 
     : II_URL.local;
   
@@ -80,7 +80,7 @@ export async function loginWithII() {
 }
 
 export async function loginWithNFID() {
-  const identityProviderUrl = process.env.DFX_NETWORK === 'ic' 
+  const identityProviderUrl = import.meta.env.VITE_DFX_NETWORK === 'ic' 
     ? NFID_URL.ic 
     : NFID_URL.local;
   

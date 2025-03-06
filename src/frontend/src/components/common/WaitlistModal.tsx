@@ -50,11 +50,9 @@ const WaitlistModal: React.FC<WaitlistModalProps> = ({ isOpen, onClose }) => {
 
     try {
       const actor = await loginWithII();
-      const principal = await actor.getPrincipal();
 
       await actor.join_waitlist(
-        `${principal.toString()}@ii.internet-identity.ic0.app`,
-        `II User ${principal.toString().slice(0, 6)}`
+        name || "II User"
       );
       
       onClose();
@@ -65,18 +63,16 @@ const WaitlistModal: React.FC<WaitlistModalProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  // NFID signin handler
+  // NFID signin handler (now Email signin)
   const handleNFIDSignin = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
       const actor = await loginWithNFID();
-      const principal = await actor.getPrincipal();
 
       await actor.join_waitlist(
-        `${principal.toString()}@nfid.one`,
-        `NFID User ${principal.toString().slice(0, 6)}`
+        name || "Email User"
       );
       
       onClose();
