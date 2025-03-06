@@ -1,3 +1,21 @@
+type Result = variant { Ok : WaitlistEntry; Err : text };
+type Result_1 = variant { Ok : User; Err : text };
+type SubscriptionTier = variant { Enterprise; Free; Professional };
+type User = record {
+  "principal" : principal;
+  name : text;
+  created_at : nat64;
+  email : text;
+  subscription_tier : SubscriptionTier;
+};
+type WaitlistEntry = record {
+  status : WaitlistStatus;
+  name : text;
+  created_at : nat64;
+  email : text;
+};
+type WaitlistStatus = variant { Approved; Rejected; Pending };
 service : {
-    "greet": (text) -> (text) query;
+  join_waitlist : (text) -> (Result);
+  register_user : (text, text) -> (Result_1);
 }
