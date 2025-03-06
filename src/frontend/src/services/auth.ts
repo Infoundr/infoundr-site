@@ -32,10 +32,13 @@ export async function initializeAuthClient() {
 }
 
 async function authenticate(identityProviderUrl: string) {
+  console.log("Authenticating with:", identityProviderUrl);
   const authClient = await initializeAuthClient();
   const isAuthenticated = await authClient.isAuthenticated();
+  console.log("Is Authenticated:", isAuthenticated);
 
   if (!isAuthenticated) {
+    console.log("Authenticating...");
     await new Promise((resolve, reject) => {
       authClient!.login({
         identityProvider: identityProviderUrl,
@@ -50,16 +53,20 @@ async function authenticate(identityProviderUrl: string) {
     });
   }
 
+  console.log("Authenticated successfully");
+
   return authClient.getIdentity();
 }
 
 async function createAuthenticatedActor() {
   try {
+    console.log("Creating authenticated actor");
     const identity = await authClient!.getIdentity();
     const agent = new HttpAgent({ identity });
 
     // Fetch root key in development
     if (import.meta.env.VITE_DFX_NETWORK !== 'ic') {
+      console.log("Fetching root key");
       await agent.fetchRootKey();
     }
 
@@ -71,6 +78,7 @@ async function createAuthenticatedActor() {
 }
 
 export async function loginWithII() {
+  console.log("Login with II");
   const identityProviderUrl = import.meta.env.VITE_DFX_NETWORK === 'ic' 
     ? II_URL.ic 
     : II_URL.local;
@@ -80,9 +88,11 @@ export async function loginWithII() {
 }
 
 export async function loginWithNFID() {
+  console.log("Login with NFID");
   const identityProviderUrl = import.meta.env.VITE_DFX_NETWORK === 'ic' 
     ? NFID_URL.ic 
     : NFID_URL.local;
+  console.log("Identity Provider URL:", identityProviderUrl);
   
   await authenticate(identityProviderUrl);
   return createAuthenticatedActor();

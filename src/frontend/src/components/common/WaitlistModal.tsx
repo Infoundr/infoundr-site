@@ -5,9 +5,10 @@ import { loginWithII, loginWithNFID } from '../../services/auth';
 interface WaitlistModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onAuthSuccess: () => void;
 }
 
-const WaitlistModal: React.FC<WaitlistModalProps> = ({ isOpen, onClose }) => {
+const WaitlistModal: React.FC<WaitlistModalProps> = ({ isOpen, onClose, onAuthSuccess }) => {
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,11 +51,9 @@ const WaitlistModal: React.FC<WaitlistModalProps> = ({ isOpen, onClose }) => {
 
     try {
       const actor = await loginWithII();
-
-      await actor.join_waitlist(
-        name || "II User"
-      );
-      
+      console.log("Actor from II", actor);
+      await actor.join_waitlist(name || "II User");
+      onAuthSuccess();
       onClose();
     } catch (err: any) {
       setError(err.message || "Failed to authenticate");
@@ -70,11 +69,9 @@ const WaitlistModal: React.FC<WaitlistModalProps> = ({ isOpen, onClose }) => {
 
     try {
       const actor = await loginWithNFID();
-
-      await actor.join_waitlist(
-        name || "Email User"
-      );
-      
+      console.log("Actor from NFID", actor);
+      await actor.join_waitlist(name || "Email User");
+      onAuthSuccess();
       onClose();
     } catch (err: any) {
       setError(err.message || "Failed to authenticate");

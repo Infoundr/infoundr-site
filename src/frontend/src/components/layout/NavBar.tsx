@@ -1,12 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Button from '../common/Button';
+import { isAuthenticated, logout } from '../../services/auth';
 
 interface NavBarProps {
   onGetStartedClick: () => void;
+  isAuthenticated: boolean;
+  onAuthChange: (status: boolean) => void;
 }
 
-const NavBar: React.FC<NavBarProps> = ({ onGetStartedClick }) => {
+const NavBar: React.FC<NavBarProps> = ({ onGetStartedClick, isAuthenticated: isUserAuthenticated, onAuthChange }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const handleLogout = async () => {
+    await logout();
+    onAuthChange(false);
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-md">
@@ -38,13 +46,23 @@ const NavBar: React.FC<NavBarProps> = ({ onGetStartedClick }) => {
         </div>
 
         {/* Desktop CTA Button */}
-        <div className="hidden md:block">
-          <Button 
-            variant="primary"
-            onClick={onGetStartedClick}
-          >
-            Get Started
-          </Button>
+        <div className="hidden md:flex items-center space-x-4">
+          {isUserAuthenticated ? (
+            <Button 
+              variant="primary"
+              className="!bg-[#8B5CF6] hover:!bg-[#7C3AED]"
+              onClick={handleLogout}
+            >
+              Disconnect
+            </Button>
+          ) : (
+            <Button 
+              variant="primary"
+              onClick={onGetStartedClick}
+            >
+              Get Started
+            </Button>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
@@ -89,13 +107,23 @@ const NavBar: React.FC<NavBarProps> = ({ onGetStartedClick }) => {
             Contact
           </a>
           <div className="pt-4">
-            <Button 
-              variant="primary" 
-              className="w-full"
-              onClick={onGetStartedClick}
-            >
-              Get Started
-            </Button>
+            {isUserAuthenticated ? (
+              <Button 
+                variant="primary"
+                className="w-full !bg-[#8B5CF6] hover:!bg-[#7C3AED]"
+                onClick={handleLogout}
+              >
+                Disconnect
+              </Button>
+            ) : (
+              <Button 
+                variant="primary" 
+                className="w-full"
+                onClick={onGetStartedClick}
+              >
+                Get Started
+              </Button>
+            )}
           </div>
         </div>
       </div>
