@@ -1,7 +1,9 @@
 use crate::models::user::{User, SubscriptionTier};
 use crate::storage::memory::USERS;
 use crate::models::stable_principal::StablePrincipal;
+use ic_cdk::update;
 
+#[update]
 pub fn register_user(email: String, name: String) -> Result<User, String> {
     let caller = ic_cdk::caller();
     if USERS.with(|users| users.borrow().contains_key(&StablePrincipal::new(caller))) {

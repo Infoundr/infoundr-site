@@ -4,6 +4,7 @@ use std::cell::RefCell;
 use crate::models::{user::User, waitlist::WaitlistEntry, chat::ChatMessage};
 use crate::models::stable_principal::StablePrincipal;
 use crate::models::stable_string::StableString;
+use crate::models::admin::Admin;
 
 pub type Memory = VirtualMemory<DefaultMemoryImpl>;
 
@@ -27,6 +28,12 @@ thread_local! {
     pub static CHAT_HISTORY: RefCell<StableBTreeMap<(StablePrincipal, u64), ChatMessage, Memory>> = RefCell::new(
         StableBTreeMap::init(
             MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(2)))
+        )
+    );
+
+    pub static ADMINS: RefCell<StableBTreeMap<StablePrincipal, Admin, Memory>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(3)))
         )
     );
 } 

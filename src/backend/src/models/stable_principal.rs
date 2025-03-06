@@ -2,6 +2,7 @@ use candid::{CandidType, Decode, Encode, Principal};
 use ic_stable_structures::{BoundedStorable, Storable};
 use std::borrow::Cow;
 use serde::{Deserialize, Serialize};
+use std::fmt;
 
 #[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
 pub struct StablePrincipal(Principal);
@@ -11,9 +12,9 @@ impl StablePrincipal {
         Self(principal)
     }
 
-    pub fn get(&self) -> Principal {
-        self.0
-    }
+    // pub fn get(&self) -> Principal {
+    //     self.0
+    // }
 }
 
 impl Default for StablePrincipal {
@@ -60,5 +61,11 @@ impl Ord for StablePrincipal {
 impl PartialOrd for StablePrincipal {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(self.cmp(other))
+    }
+}
+
+impl fmt::Display for StablePrincipal {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", Principal::from_slice(&self.0.as_slice()).to_string())
     }
 } 

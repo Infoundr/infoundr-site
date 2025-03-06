@@ -11,17 +11,8 @@ use crate::models::{
     waitlist::WaitlistEntry,
     chat::ChatMessage
 };
-
-#[ic_cdk::update]
-fn register_user(email: String, name: String) -> Result<User, String> {
-    services::auth::register_user(email, name)
-}
-
-#[ic_cdk::update]
-fn join_waitlist(name: String) -> Result<models::waitlist::WaitlistEntry, String> {
-    let caller = ic_cdk::caller();
-    services::waitlist::join_waitlist(caller.to_string(), name)
-}
+use crate::models::chat::BotType;
+use candid::Principal;
 
 #[ic_cdk::pre_upgrade]
 fn pre_upgrade() {

@@ -11,9 +11,9 @@ impl StableString {
         Self(s)
     }
 
-    pub fn get(&self) -> &str {
-        &self.0
-    }
+    // pub fn get(&self) -> &str {
+    //     &self.0
+    // }
 }
 
 impl Storable for StableString {
