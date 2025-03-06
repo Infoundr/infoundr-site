@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Button from './Button';
-import { AuthClient } from '@dfinity/auth-client';
-import { canisterId, createActor } from '../../../../declarations/backend';
+import { loginWithII, loginWithNFID } from '../../services/auth';
 
 interface WaitlistModalProps {
   isOpen: boolean;
@@ -9,7 +8,6 @@ interface WaitlistModalProps {
 }
 
 const WaitlistModal: React.FC<WaitlistModalProps> = ({ isOpen, onClose }) => {
-  const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,9 +33,8 @@ const WaitlistModal: React.FC<WaitlistModalProps> = ({ isOpen, onClose }) => {
     setError(null);
 
     try {
-      const actor = createActor(canisterId);
-      await actor.join_waitlist(email, name);
-      // TODO: Implement email verification flow
+      const actor = await loginWithII();
+      await actor.join_waitlist(name);
       onClose();
     } catch (err: any) {
       setError(err.message || "Failed to join waitlist");
@@ -52,31 +49,9 @@ const WaitlistModal: React.FC<WaitlistModalProps> = ({ isOpen, onClose }) => {
     setError(null);
 
     try {
-      const authClient = await AuthClient.create();
-      
-      // Start the login flow
-      await new Promise((resolve) => {
-        authClient.login({
-          identityProvider: process.env.DFX_NETWORK === 'ic' 
-            ? 'https://identity.ic0.app'
-            : `http://localhost:4943/?canisterId=rdmx6-jaaaa-aaaaa-aaadq-cai`,
-          onSuccess: resolve,
-          onError: (error) => {
-            throw error;
-          },
-        });
-      });
+      const actor = await loginWithII();
+      const principal = await actor.getPrincipal();
 
-      const identity = authClient.getIdentity();
-      const principal = identity.getPrincipal();
-
-      const actor = createActor(canisterId, {
-        agentOptions: {
-          identity,
-        },
-      });
-
-      // Use principal's toString() as a unique identifier
       await actor.join_waitlist(
         `${principal.toString()}@ii.internet-identity.ic0.app`,
         `II User ${principal.toString().slice(0, 6)}`
@@ -96,28 +71,8 @@ const WaitlistModal: React.FC<WaitlistModalProps> = ({ isOpen, onClose }) => {
     setError(null);
 
     try {
-      const authClient = await AuthClient.create();
-      
-      await new Promise((resolve) => {
-        authClient.login({
-          identityProvider: process.env.DFX_NETWORK === 'ic'
-            ? 'https://nfid.one'
-            : 'https://nfid.one/authenticate/?applicationName=Infoundr',
-          onSuccess: resolve,
-          onError: (error) => {
-            throw error;
-          },
-        });
-      });
-
-      const identity = authClient.getIdentity();
-      const principal = identity.getPrincipal();
-
-      const actor = createActor(canisterId, {
-        agentOptions: {
-          identity,
-        },
-      });
+      const actor = await loginWithNFID();
+      const principal = await actor.getPrincipal();
 
       await actor.join_waitlist(
         `${principal.toString()}@nfid.one`,
@@ -181,55 +136,51 @@ const WaitlistModal: React.FC<WaitlistModalProps> = ({ isOpen, onClose }) => {
               required
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-2 text-gray-700">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              required
-            />
-          </div>
-          <Button 
-            variant="primary" 
-            className="w-full !bg-[#8B5CF6] hover:!bg-[#7C3AED]"
-            disabled={isLoading}
-          >
-            {isLoading ? 'Joining...' : 'Join with Email'}
-          </Button>
         </form>
 
         {/* Divider */}
-        <div className="relative my-8">
+        <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-gray-200"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-4 bg-white text-gray-500 text-base">Or</span>
+            <span className="px-4 bg-white text-gray-500 text-base">Continue with</span>
           </div>
         </div>
 
         {/* Internet Identity */}
         <Button
-          variant="secondary"
+          variant="primary"
           className="w-full mb-4 flex items-center justify-center gap-3"
           onClick={handleIISignin}
           disabled={isLoading}
         >
-          <img src="/ii-logo.svg" alt="Internet Identity" className="w-6 h-6" />
+          <img src="/images/icp-logo.png" alt="Internet Identity" className="w-6 h-6" />
           Join with Internet Identity
         </Button>
 
-        {/* NFID */}
+        {/* Email (using NFID) */}
         <Button
-          variant="secondary"
+          variant="primary"
           className="w-full flex items-center justify-center gap-3"
           onClick={handleNFIDSignin}
           disabled={isLoading}
         >
-          <img src="/nfid-logo.svg" alt="NFID" className="w-6 h-6" />
-          Join with NFID
+          <svg
+            className="w-6 h-6 text-white"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+            />
+          </svg>
+          Join with Email
         </Button>
 
         {error && (
