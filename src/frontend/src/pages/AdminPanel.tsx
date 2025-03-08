@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { backend } from "../../../declarations/backend";
 import { User, WaitlistEntry } from "../../../declarations/backend/backend.did";
 import { loginWithII, loginWithNFID, checkIsAuthenticated } from '../services/auth';
+import Button from '../components/common/Button';
 
 const AdminPanel: React.FC = () => {
     const [isAdmin, setIsAdmin] = useState<boolean>(false);
@@ -68,23 +69,42 @@ const AdminPanel: React.FC = () => {
 
     if (!isAuthenticated) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-                <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-                    <h2 className="text-2xl font-bold mb-6 text-center">Admin Authentication</h2>
-                    <div className="space-y-4">
-                        <button
-                            onClick={() => handleLogin('ii')}
-                            className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors"
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+                <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-xl">
+                    <h2 className="text-3xl font-bold mb-8 text-center">Admin Authentication</h2>
+                    
+                    {/* Internet Identity */}
+                    <Button
+                        variant="primary"
+                        className="w-full mb-4 flex items-center justify-center gap-3 !bg-[#8B5CF6] hover:!bg-[#7C3AED]"
+                        onClick={() => handleLogin('ii')}
+                    >
+                        <img src="/images/icp-logo.png" alt="Internet Identity" className="w-6 h-6" />
+                        Login with Internet Identity
+                    </Button>
+
+                    {/* NFID */}
+                    <Button
+                        variant="primary"
+                        className="w-full flex items-center justify-center gap-3 !bg-[#8B5CF6] hover:!bg-[#7C3AED]"
+                        onClick={() => handleLogin('nfid')}
+                    >
+                        <svg
+                            className="w-6 h-6 text-white"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
                         >
-                            Login with Internet Identity
-                        </button>
-                        <button
-                            onClick={() => handleLogin('nfid')}
-                            className="w-full bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700 transition-colors"
-                        >
-                            Login with NFID
-                        </button>
-                    </div>
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                            />
+                        </svg>
+                        Login with NFID
+                    </Button>
                 </div>
             </div>
         );
@@ -92,16 +112,17 @@ const AdminPanel: React.FC = () => {
 
     if (!isAdmin) {
         return (
-            <div className="flex justify-center items-center h-screen">
-                <div className="text-center">
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+                <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-xl text-center">
                     <h2 className="text-2xl font-bold mb-4">Unauthorized Access</h2>
-                    <p className="text-gray-600">You do not have admin privileges.</p>
-                    <button
+                    <p className="text-gray-600 mb-6">You do not have admin privileges.</p>
+                    <Button
+                        variant="primary"
+                        className="!bg-[#8B5CF6] hover:!bg-[#7C3AED]"
                         onClick={() => navigate('/')}
-                        className="mt-4 bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors"
                     >
                         Return to Home
-                    </button>
+                    </Button>
                 </div>
             </div>
         );
