@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../components/common/Button';
-import { loginWithII, loginWithNFID, registerUser, isRegistered } from '../../services/auth';
+import { loginWithII, loginWithNFID, registerUser, isRegistered, checkIsAuthenticated } from '../../services/auth';
 
 const Auth: React.FC = () => {
     const navigate = useNavigate();
@@ -18,32 +18,48 @@ const Auth: React.FC = () => {
             setIsLoading(true);
             setError(null);
             
+            console.log(`Starting ${method} authentication`);
+            let authenticatedActor;
             if (method === 'ii') {
-                await loginWithII();
+                authenticatedActor = await loginWithII();
             } else {
-                await loginWithNFID();
+                authenticatedActor = await loginWithNFID();
             }
             
+            if (!authenticatedActor) {
+                throw new Error("Authentication failed");
+            }
+
+            // Update the global backend reference
+            // @ts-ignore
+            window.backend = authenticatedActor;
+
             // Check if user needs to register
             console.log("Checking if user is registered");
             const registered = await isRegistered();
             console.log("Registered:", registered);
+
             if (!registered) {
                 if (isLogin) {
-                    // User is trying to login but isn't registered
                     setError('Account not found. Please create an account first.');
                     setIsLoading(false);
                     return;
                 } else {
-                    // User is trying to register
                     console.log("User is not registered, showing registration form");
                     setShowRegistrationForm(true);
                     return;
                 }
             }
             
-            // If user is registered or is logging in, navigate to dashboard
-            navigate('/dashboard/home');
+            console.log("User is registered, navigating to dashboard");
+            const isAuth = await checkIsAuthenticated();
+            console.log("Authentication verification:", isAuth);
+            if (!isAuth) {
+                console.log("Authentication verification failed");
+                throw new Error("Authentication verification failed");
+            }
+            setIsLoading(false);
+            navigate('/dashboard/home', { replace: true });
         } catch (err) {
             setError('Authentication failed. Please try again.');
             console.error('Auth error:', err);
@@ -57,9 +73,14 @@ const Auth: React.FC = () => {
             setIsLoading(true);
             setError(null);
             
+            console.log("Starting registration with name:", registrationData.name);
             await registerUser(registrationData.name);
-            navigate('/dashboard/home');
+            console.log("Registration successful, navigating to dashboard");
+            setIsLoading(false);
+            navigate('/dashboard/home', { replace: true });
+            return;
         } catch (err) {
+            console.log("Registration failed:", err);
             setError('Registration failed. Please try again.');
             console.error('Registration error:', err);
         } finally {

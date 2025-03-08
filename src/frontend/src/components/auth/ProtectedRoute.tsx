@@ -12,22 +12,25 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
     useEffect(() => {
         const checkAuth = async () => {
+            console.log("ProtectedRoute: Checking authentication");
             const auth = await checkIsAuthenticated();
+            console.log("ProtectedRoute: Authentication status:", auth);
             setIsAuthenticated(auth);
         };
         checkAuth();
     }, []);
 
     if (isAuthenticated === null) {
-        // Show loading state while checking auth
+        console.log("ProtectedRoute: Still checking auth...");
         return <div className="flex justify-center items-center h-screen">Loading...</div>;
     }
 
     if (!isAuthenticated) {
-        // Redirect to auth page if not authenticated
+        console.log("ProtectedRoute: Not authenticated, redirecting to /dashboard");
         return <Navigate to="/dashboard" state={{ from: location }} replace />;
     }
 
+    console.log("ProtectedRoute: Authenticated, rendering children");
     return <>{children}</>;
 };
 

@@ -121,7 +121,16 @@ export const loginWithNFID = async () => {
         throw new Error("Authentication failed");
     }
 
-    return isAuthenticated;
+    // Create authenticated actor after successful login
+    const identity = authClient.getIdentity();
+    const agent = new HttpAgent({ identity });
+    
+    if (import.meta.env.VITE_DFX_NETWORK !== 'ic') {
+        await agent.fetchRootKey();
+    }
+    
+    // Create and return the authenticated actor
+    return createActor(canisterID, { agent });
 };
 
 export const registerUser = async (name: string) => {
@@ -147,11 +156,29 @@ export const getCurrentUser = async () => {
 
 export const checkIsAuthenticated = async () => {
     try {
+        console.log("Checking authentication status");
         const authClient = await AuthClient.create();
-        if (!authClient.isAuthenticated()) {
+        const isAuth = await authClient.isAuthenticated();
+        console.log("AuthClient isAuthenticated:", isAuth);
+        
+        if (!isAuth) {
+            console.log("AuthClient: Not authenticated");
             return false;
         }
-        return await backend.check_auth();
+
+        // Create authenticated actor for backend checks
+        const identity = authClient.getIdentity();
+        const agent = new HttpAgent({ identity });
+        
+        if (import.meta.env.VITE_DFX_NETWORK !== 'ic') {
+            await agent.fetchRootKey();
+        }
+        
+        const authenticatedActor = createActor(canisterID, { agent });
+        const backendAuth = await authenticatedActor.check_auth();
+        console.log("Backend auth check:", backendAuth);
+        
+        return backendAuth;
     } catch (error) {
         console.error('Error checking auth:', error);
         return false;
@@ -160,7 +187,10 @@ export const checkIsAuthenticated = async () => {
 
 export const isRegistered = async () => {
     try {
-        return await backend.is_registered();
+        console.log("Checking if user is registered in backend");
+        const result = await backend.is_registered();
+        console.log("Registration status:", result);
+        return result;
     } catch (error) {
         console.error('Error checking registration:', error);
         return false;
