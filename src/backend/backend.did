@@ -5,12 +5,11 @@ type ChatMessage = record {
   bot_type : BotType;
   timestamp : nat64;
 };
-type Result = variant { Ok; Err : text };
-type Result_1 = variant { Ok : ChatMessage; Err : text };
-type Result_2 = variant { Ok : vec User; Err : text };
-type Result_3 = variant { Ok : vec WaitlistEntry; Err : text };
-type Result_4 = variant { Ok : WaitlistEntry; Err : text };
-type Result_5 = variant { Ok : User; Err : text };
+type Result = variant { Ok : ChatMessage; Err : text };
+type Result_1 = variant { Ok : vec User; Err : text };
+type Result_2 = variant { Ok : vec WaitlistEntry; Err : text };
+type Result_3 = variant { Ok : WaitlistEntry; Err : text };
+type Result_4 = variant { Ok : User; Err : text };
 type SubscriptionTier = variant { Enterprise; Free; Professional };
 type User = record {
   "principal" : principal;
@@ -27,15 +26,12 @@ type WaitlistEntry = record {
 };
 type WaitlistStatus = variant { Approved; Rejected; Pending };
 service : {
-  add_admin : (principal) -> (Result);
-  add_chat_message : (text, BotType) -> (Result_1);
+  add_chat_message : (text, BotType) -> (Result);
   get_admins : () -> (vec principal) query;
-  get_users : () -> (Result_2) query;
-  get_waitlist : () -> (Result_3) query;
-  initialize_admin : () -> ();
+  get_users : () -> (Result_1) query;
+  get_waitlist : () -> (Result_2) query;
   is_admin : () -> (bool) query;
-  join_waitlist : (text) -> (Result_4);
-  register_user : (text, text) -> (Result_5);
-  restore_admins : (vec principal) -> ();
-  save_admins : () -> (vec principal);
+  is_allowed_principal : () -> (bool) query;
+  join_waitlist : (text) -> (Result_3);
+  register_user : (text, text) -> (Result_4);
 }

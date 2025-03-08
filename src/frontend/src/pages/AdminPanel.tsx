@@ -4,6 +4,8 @@ import { backend } from "../../../declarations/backend";
 import { User, WaitlistEntry } from "../../../declarations/backend/backend.did";
 import { loginWithII, loginWithNFID, checkIsAuthenticated } from '../services/auth';
 import Button from '../components/common/Button';
+import { AuthClient } from "@dfinity/auth-client";
+import { Actor } from "@dfinity/agent";
 
 const AdminPanel: React.FC = () => {
     const [isAdmin, setIsAdmin] = useState<boolean>(false);
@@ -12,6 +14,7 @@ const AdminPanel: React.FC = () => {
     const [waitlist, setWaitlist] = useState<WaitlistEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
+    const [currentPrincipal, setCurrentPrincipal] = useState<string>("");
 
     useEffect(() => {
         checkAuthStatus();
@@ -28,7 +31,9 @@ const AdminPanel: React.FC = () => {
 
     const checkAdminStatus = async () => {
         try {
+            console.log("Checking admin status with principal:", currentPrincipal);
             const isAdminUser = await backend.is_admin();
+            console.log('isAdminUser', isAdminUser);    
             setIsAdmin(isAdminUser);
             if (isAdminUser) {
                 await fetchData();
@@ -42,6 +47,11 @@ const AdminPanel: React.FC = () => {
         try {
             if (method === 'ii') {
                 await loginWithII();
+                const authClient = await AuthClient.create();
+                const identity = authClient.getIdentity();
+                const principal = identity.getPrincipal().toString();
+                setCurrentPrincipal(principal);
+                console.log("Current Principal:", principal);
             } else {
                 await loginWithNFID();
             }
