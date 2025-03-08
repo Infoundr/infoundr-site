@@ -28,10 +28,18 @@ const Auth: React.FC = () => {
             console.log("Checking if user is registered");
             const registered = await isRegistered();
             console.log("Registered:", registered);
-            if (!registered && !isLogin) {
-                console.log("User is not registered and is not logging in, showing registration form");
-                setShowRegistrationForm(true);
-                return;
+            if (!registered) {
+                if (isLogin) {
+                    // User is trying to login but isn't registered
+                    setError('Account not found. Please create an account first.');
+                    setIsLoading(false);
+                    return;
+                } else {
+                    // User is trying to register
+                    console.log("User is not registered, showing registration form");
+                    setShowRegistrationForm(true);
+                    return;
+                }
             }
             
             // If user is registered or is logging in, navigate to dashboard
