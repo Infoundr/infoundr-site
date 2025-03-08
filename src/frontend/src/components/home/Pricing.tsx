@@ -73,7 +73,7 @@ const Pricing: React.FC = () => {
                 ))}
               </ul>
               <Button 
-                variant={plan.buttonVariant} 
+                variant={plan.buttonVariant as 'primary' | 'secondary'} 
                 className={`w-full ${plan.buttonClassName || ''}`}
                 onClick={() => console.log(`${plan.buttonText} button clicked`)}
               >
