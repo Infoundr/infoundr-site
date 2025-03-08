@@ -15,7 +15,7 @@ type User = record {
   "principal" : principal;
   name : text;
   created_at : nat64;
-  email : text;
+  email : opt text;
   subscription_tier : SubscriptionTier;
 };
 type WaitlistEntry = record {
@@ -27,11 +27,14 @@ type WaitlistEntry = record {
 type WaitlistStatus = variant { Approved; Rejected; Pending };
 service : {
   add_chat_message : (text, BotType) -> (Result);
+  check_auth : () -> (bool) query;
   get_admins : () -> (vec principal) query;
+  get_current_user : () -> (opt User) query;
   get_users : () -> (Result_1) query;
   get_waitlist : () -> (Result_2) query;
   is_admin : () -> (bool) query;
   is_allowed_principal : () -> (bool) query;
+  is_registered : () -> (bool) query;
   join_waitlist : (text) -> (Result_3);
-  register_user : (text, text) -> (Result_4);
+  register_user : (text) -> (Result_4);
 }

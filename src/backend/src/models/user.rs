@@ -7,7 +7,7 @@ use crate::models::stable_principal::StablePrincipal;
 #[derive(CandidType, Serialize, Deserialize, Clone)]
 pub struct User {
     pub principal: StablePrincipal,
-    pub email: String,
+    pub email: Option<String>,
     pub name: String,
     pub created_at: u64,
     pub subscription_tier: SubscriptionTier,
