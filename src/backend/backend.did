@@ -30,6 +30,7 @@ service : {
   check_auth : () -> (bool) query;
   get_admins : () -> (vec principal) query;
   get_current_user : () -> (opt User) query;
+  get_registered_users : () -> (Result_1) query;
   get_users : () -> (Result_1) query;
   get_waitlist : () -> (Result_2) query;
   is_admin : () -> (bool) query;

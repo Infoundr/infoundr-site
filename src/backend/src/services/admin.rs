@@ -26,6 +26,20 @@ pub fn is_allowed_principal() -> bool {
     is_allowed
 }
 
+// Function to get total number of registered users
+#[query]
+pub fn get_registered_users() -> Result<Vec<User>, String> {
+    // Get all registered users without admin check
+    let users = USERS.with(|u| {
+        u.borrow()
+         .iter()
+         .map(|(_, user)| user.clone())
+         .collect::<Vec<User>>()
+    });
+    
+    Ok(users)
+}
+
 #[query]
 pub fn is_admin() -> bool {
     ic_cdk::println!("Checking admin status for: {}", caller().to_string());
