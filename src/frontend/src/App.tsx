@@ -9,6 +9,9 @@ import WaitlistModal from './components/common/WaitlistModal';
 import { checkIsAuthenticated } from './services/auth';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import AdminPanel from './pages/AdminPanel';
+import Auth from './pages/Dashboard/Auth';
+import DashboardLayout from './layouts/DashboardLayout';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 // import Home from './pages/Home';
 
 const App: React.FC = () => {
@@ -33,6 +36,15 @@ const App: React.FC = () => {
       <Routes>
         {/* <Route path="/" element={<Home />} /> */}
         <Route path="/admin" element={<AdminPanel />} />
+        <Route path="/dashboard" element={<Auth />} />
+        <Route
+          path="/dashboard/*"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
       <div className="relative">
         <NavBar 
