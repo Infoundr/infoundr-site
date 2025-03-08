@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../components/common/Button';
-import { loginWithII, loginWithNFID } from '../../services/auth';
+import { loginWithII, loginWithNFID, registerUser, isRegistered } from '../../services/auth';
 
 const Auth: React.FC = () => {
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isLogin, setIsLogin] = useState(true);
+    const [registrationData, setRegistrationData] = useState({
+        name: ''
+    });
+    const [showRegistrationForm, setShowRegistrationForm] = useState(false);
 
     const handleAuth = async (method: 'ii' | 'nfid') => {
         try {
@@ -20,7 +24,17 @@ const Auth: React.FC = () => {
                 await loginWithNFID();
             }
             
-            // After successful auth, redirect to dashboard home
+            // Check if user needs to register
+            console.log("Checking if user is registered");
+            const registered = await isRegistered();
+            console.log("Registered:", registered);
+            if (!registered && !isLogin) {
+                console.log("User is not registered and is not logging in, showing registration form");
+                setShowRegistrationForm(true);
+                return;
+            }
+            
+            // If user is registered or is logging in, navigate to dashboard
             navigate('/dashboard/home');
         } catch (err) {
             setError('Authentication failed. Please try again.');
@@ -29,6 +43,64 @@ const Auth: React.FC = () => {
             setIsLoading(false);
         }
     };
+
+    const handleRegistration = async () => {
+        try {
+            setIsLoading(true);
+            setError(null);
+            
+            await registerUser(registrationData.name);
+            navigate('/dashboard/home');
+        } catch (err) {
+            setError('Registration failed. Please try again.');
+            console.error('Registration error:', err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    if (showRegistrationForm) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+                <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-xl">
+                    <h2 className="text-3xl font-bold mb-2 text-center">Complete Your Profile</h2>
+                    <p className="text-gray-500 text-center mb-8">
+                        Please provide your name to complete your registration
+                    </p>
+
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Name
+                            </label>
+                            <input
+                                type="text"
+                                required
+                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                value={registrationData.name}
+                                onChange={(e) => setRegistrationData(prev => ({
+                                    ...prev,
+                                    name: e.target.value
+                                }))}
+                            />
+                        </div>
+                        <Button
+                            variant="primary"
+                            className="w-full !bg-[#8B5CF6] hover:!bg-[#7C3AED]"
+                            onClick={handleRegistration}
+                            disabled={isLoading}
+                        >
+                            Complete Registration
+                        </Button>
+                    </div>
+
+                    {error && (
+                        <p className="mt-4 text-red-600 text-sm text-center">{error}</p>
+                    )}
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
@@ -99,7 +171,7 @@ const Auth: React.FC = () => {
                             d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                         />
                     </svg>
-                    {isLogin ? 'Login with NFID' : 'Sign up with NFID'}
+                    {isLogin ? 'Login with email' : 'Sign up with email'}
                 </Button>
 
                 {error && (

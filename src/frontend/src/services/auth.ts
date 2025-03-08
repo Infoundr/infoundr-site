@@ -1,6 +1,7 @@
 import { AuthClient } from "@dfinity/auth-client";
 import { HttpAgent } from "@dfinity/agent";
 import { createActor } from "../../../declarations/backend";
+import { backend } from "../../../declarations/backend";
 
 // Initialize AuthClient
 let authClient: AuthClient | null = null;
@@ -77,34 +78,96 @@ async function createAuthenticatedActor() {
   }
 }
 
-export async function loginWithII() {
-  console.log("Login with II");
-  const identityProviderUrl = import.meta.env.VITE_DFX_NETWORK === 'ic' 
-    ? II_URL.ic 
-    : II_URL.local;
-  console.log("II Provider URL:", identityProviderUrl);
-  
-  await authenticate(identityProviderUrl);
-  return createAuthenticatedActor();
-}
+export const loginWithII = async () => {
+    const authClient = await AuthClient.create();
+    
+    const isAuthenticated = await new Promise<boolean>((resolve) => {
+        authClient.login({
+            identityProvider: II_URL.local,
+            onSuccess: () => resolve(true),
+            onError: () => resolve(false),
+            windowOpenerFeatures: `
+              left=${window.screen.width / 2 - 525 / 2},
+              top=${window.screen.height / 2 - 705 / 2},
+              toolbar=0,location=0,menubar=0,width=525,height=705
+            `,
+        });
+    });
 
-export async function loginWithNFID() {
-  console.log("Login with NFID");
-  const identityProviderUrl = import.meta.env.VITE_DFX_NETWORK === 'ic' 
-    ? NFID_URL.ic 
-    : NFID_URL.local;
-  console.log("Identity Provider URL:", identityProviderUrl);
-  
-  await authenticate(identityProviderUrl);
-  return createAuthenticatedActor();
-}
+    if (!isAuthenticated) {
+        throw new Error("Authentication failed");
+    }
 
-export async function logout() {
-  const authClient = await initializeAuthClient();
-  await authClient.logout();
-}
+    return isAuthenticated;
+};
 
-export async function checkIsAuthenticated() {
-  const authClient = await initializeAuthClient();
-  return authClient.isAuthenticated();
-} 
+export const loginWithNFID = async () => {
+    const authClient = await AuthClient.create();
+    
+    const isAuthenticated = await new Promise<boolean>((resolve) => {
+        authClient.login({
+            identityProvider: NFID_URL.local,
+            onSuccess: () => resolve(true),
+            onError: () => resolve(false),
+            windowOpenerFeatures: `
+              left=${window.screen.width / 2 - 525 / 2},
+              top=${window.screen.height / 2 - 705 / 2},
+              toolbar=0,location=0,menubar=0,width=525,height=705
+            `,
+        });
+    });
+
+    if (!isAuthenticated) {
+        throw new Error("Authentication failed");
+    }
+
+    return isAuthenticated;
+};
+
+export const registerUser = async (name: string) => {
+    try {
+        const result = await backend.register_user(name);
+        if ('Err' in result) {
+            throw new Error(result.Err);
+        }
+        return result.Ok;
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const getCurrentUser = async () => {
+    try {
+        return await backend.get_current_user();
+    } catch (error) {
+        console.error('Error getting current user:', error);
+        return null;
+    }
+};
+
+export const checkIsAuthenticated = async () => {
+    try {
+        const authClient = await AuthClient.create();
+        if (!authClient.isAuthenticated()) {
+            return false;
+        }
+        return await backend.check_auth();
+    } catch (error) {
+        console.error('Error checking auth:', error);
+        return false;
+    }
+};
+
+export const isRegistered = async () => {
+    try {
+        return await backend.is_registered();
+    } catch (error) {
+        console.error('Error checking registration:', error);
+        return false;
+    }
+};
+
+export const logout = async () => {
+    const authClient = await AuthClient.create();
+    await authClient.logout();
+}; 
