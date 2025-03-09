@@ -1,7 +1,7 @@
 import { AuthClient } from "@dfinity/auth-client";
-import { HttpAgent } from "@dfinity/agent";
+import { HttpAgent, ActorSubclass } from "@dfinity/agent";
 import { createActor } from "../../../declarations/backend";
-import { backend } from "../../../declarations/backend";
+import type { _SERVICE } from "../../../declarations/backend/backend.did.d.ts";
 
 // Initialize AuthClient
 let authClient: AuthClient | null = null;
@@ -59,26 +59,26 @@ async function authenticate(identityProviderUrl: string) {
   return authClient.getIdentity();
 }
 
-async function createAuthenticatedActor() {
-  try {
-    console.log("Creating authenticated actor");
-    const identity = await authClient!.getIdentity();
-    const agent = new HttpAgent({ identity });
+// async function createAuthenticatedActor() {
+//   try {
+//     console.log("Creating authenticated actor");
+//     const identity = await authClient!.getIdentity();
+//     const agent = new HttpAgent({ identity });
 
-    // Fetch root key in development
-    if (import.meta.env.VITE_DFX_NETWORK !== 'ic') {
-      console.log("Fetching root key");
-      await agent.fetchRootKey();
-    }
+//     // Fetch root key in development
+//     if (import.meta.env.VITE_DFX_NETWORK !== 'ic') {
+//       console.log("Fetching root key");
+//       await agent.fetchRootKey();
+//     }
 
-    return createActor(canisterID, { agent });
-  } catch (error) {
-    console.error("Error creating authenticated actor:", error);
-    throw error;
-  }
-}
+//     return createActor(canisterID, { agent });
+//   } catch (error) {
+//     console.error("Error creating authenticated actor:", error);
+//     throw error;
+//   }
+// }
 
-export const loginWithII = async () => {
+export const loginWithII = async (): Promise<ActorSubclass<_SERVICE>> => {
     const authClient = await AuthClient.create();
     
     const isAuthenticated = await new Promise<boolean>((resolve) => {
@@ -98,10 +98,17 @@ export const loginWithII = async () => {
         throw new Error("Authentication failed");
     }
 
-    return isAuthenticated;
+    const identity = authClient.getIdentity();
+    const agent = new HttpAgent({ identity });
+    
+    if (import.meta.env.VITE_DFX_NETWORK !== 'ic') {
+        await agent.fetchRootKey();
+    }
+    
+    return createActor(canisterID, { agent });
 };
 
-export const loginWithNFID = async () => {
+export const loginWithNFID = async (): Promise<ActorSubclass<_SERVICE>> => {
     const authClient = await AuthClient.create();
     
     const isAuthenticated = await new Promise<boolean>((resolve) => {
@@ -121,7 +128,7 @@ export const loginWithNFID = async () => {
         throw new Error("Authentication failed");
     }
 
-    // Create authenticated actor after successful login
+    // Create and return the authenticated actor
     const identity = authClient.getIdentity();
     const agent = new HttpAgent({ identity });
     
@@ -129,13 +136,21 @@ export const loginWithNFID = async () => {
         await agent.fetchRootKey();
     }
     
-    // Create and return the authenticated actor
     return createActor(canisterID, { agent });
 };
 
 export const registerUser = async (name: string) => {
     try {
-        const result = await backend.register_user(name);
+        const authClient = await AuthClient.create();
+        const identity = authClient.getIdentity();
+        const agent = new HttpAgent({ identity });
+        
+        if (import.meta.env.VITE_DFX_NETWORK !== 'ic') {
+            await agent.fetchRootKey();
+        }
+        
+        const actor = createActor(canisterID, { agent });
+        const result = await actor.register_user(name);
         if ('Err' in result) {
             throw new Error(result.Err);
         }
@@ -147,7 +162,16 @@ export const registerUser = async (name: string) => {
 
 export const getCurrentUser = async () => {
     try {
-        return await backend.get_current_user();
+        const authClient = await AuthClient.create();
+        const identity = authClient.getIdentity();
+        const agent = new HttpAgent({ identity });
+        
+        if (import.meta.env.VITE_DFX_NETWORK !== 'ic') {
+            await agent.fetchRootKey();
+        }
+        
+        const actor = createActor(canisterID, { agent });
+        return await actor.get_current_user();
     } catch (error) {
         console.error('Error getting current user:', error);
         return null;
@@ -187,10 +211,16 @@ export const checkIsAuthenticated = async () => {
 
 export const isRegistered = async () => {
     try {
-        console.log("Checking if user is registered in backend");
-        const result = await backend.is_registered();
-        console.log("Registration status:", result);
-        return result;
+        const authClient = await AuthClient.create();
+        const identity = authClient.getIdentity();
+        const agent = new HttpAgent({ identity });
+        
+        if (import.meta.env.VITE_DFX_NETWORK !== 'ic') {
+            await agent.fetchRootKey();
+        }
+        
+        const actor = createActor(canisterID, { agent });
+        return await actor.is_registered();
     } catch (error) {
         console.error('Error checking registration:', error);
         return false;
@@ -200,4 +230,17 @@ export const isRegistered = async () => {
 export const logout = async () => {
     const authClient = await AuthClient.create();
     await authClient.logout();
+};
+
+// Helper function to create authenticated actor
+const createAuthenticatedActor = async () => {
+    const authClient = await AuthClient.create();
+    const identity = authClient.getIdentity();
+    const agent = new HttpAgent({ identity });
+    
+    if (import.meta.env.VITE_DFX_NETWORK !== 'ic') {
+        await agent.fetchRootKey();
+    }
+    
+    return createActor(canisterID, { agent });
 }; 

@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../components/common/Button';
 import { loginWithII, loginWithNFID, registerUser, isRegistered, checkIsAuthenticated } from '../../services/auth';
+import { ActorSubclass } from "@dfinity/agent";
+import type { _SERVICE } from "../../../../declarations/backend/backend.did.d.ts";
 
 const Auth: React.FC = () => {
     const navigate = useNavigate();
@@ -19,24 +21,20 @@ const Auth: React.FC = () => {
             setError(null);
             
             console.log(`Starting ${method} authentication`);
-            let authenticatedActor;
+            let actor: ActorSubclass<_SERVICE>;
             if (method === 'ii') {
-                authenticatedActor = await loginWithII();
+                actor = await loginWithII();
             } else {
-                authenticatedActor = await loginWithNFID();
+                actor = await loginWithNFID();
             }
             
-            if (!authenticatedActor) {
+            if (!actor) {
                 throw new Error("Authentication failed");
             }
 
-            // Update the global backend reference
-            // @ts-ignore
-            window.backend = authenticatedActor;
-
             // Check if user needs to register
             console.log("Checking if user is registered");
-            const registered = await isRegistered();
+            const registered = await actor.is_registered();
             console.log("Registered:", registered);
 
             if (!registered) {
@@ -52,7 +50,7 @@ const Auth: React.FC = () => {
             }
             
             console.log("User is registered, navigating to dashboard");
-            const isAuth = await checkIsAuthenticated();
+            const isAuth = await actor.check_auth();
             console.log("Authentication verification:", isAuth);
             if (!isAuth) {
                 console.log("Authentication verification failed");
