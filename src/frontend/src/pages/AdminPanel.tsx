@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { backend } from "../../../declarations/backend";
-import { User, WaitlistEntry } from "../../../declarations/backend/backend.did";
+import { createActor } from '../../../declarations/backend';
+import { HttpAgent, ActorSubclass } from '@dfinity/agent';
+import { AuthClient } from '@dfinity/auth-client';
+import { _SERVICE } from '../../../declarations/backend/backend.did.d';
+import { canisterID } from '../services/auth';
+import { User, WaitlistEntry } from '../../../declarations/backend/backend.did';
 import { loginWithII, loginWithNFID, checkIsAuthenticated } from '../services/auth';
 import Button from '../components/common/Button';
-import { AuthClient } from "@dfinity/auth-client";
-import { Actor } from "@dfinity/agent";
 
 const AdminPanel: React.FC = () => {
     const [isAdmin, setIsAdmin] = useState<boolean>(false);
@@ -15,28 +17,47 @@ const AdminPanel: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
     const [currentPrincipal, setCurrentPrincipal] = useState<string>("");
+    const [actor, setActor] = useState<ActorSubclass<_SERVICE> | null>(null);
 
-    useEffect(() => {
-        checkAuthStatus();
-    }, []);
-
-    const checkAuthStatus = async () => {
-        const auth = await checkIsAuthenticated();
-        setIsAuthenticated(auth);
-        if (auth) {
-            checkAdminStatus();
+    const createAuthenticatedActor = async () => {
+        try {
+            const authClient = await AuthClient.create();
+            const identity = authClient.getIdentity();
+            const agent = new HttpAgent({ identity });
+            
+            if (import.meta.env.VITE_DFX_NETWORK !== 'ic') {
+                await agent.fetchRootKey();
+            }
+            
+            return createActor(canisterID, { agent });
+        } catch (error) {
+            console.error('Error creating authenticated actor:', error);
+            throw error;
         }
-        setLoading(false);
     };
 
-    const checkAdminStatus = async () => {
+    useEffect(() => {
+        initializeActor();
+    }, []);
+
+    const initializeActor = async () => {
+        try {
+            const authenticatedActor = await createAuthenticatedActor();
+            setActor(authenticatedActor);
+            checkAdminStatus(authenticatedActor);
+        } catch (error) {
+            console.error('Error initializing actor:', error);
+        }
+    };
+
+    const checkAdminStatus = async (authenticatedActor: ActorSubclass<_SERVICE>) => {
         try {
             console.log("Checking admin status with principal:", currentPrincipal);
-            const isAdminUser = await backend.is_admin();
+            const isAdminUser = await authenticatedActor.is_admin();
             console.log('isAdminUser', isAdminUser);    
             setIsAdmin(isAdminUser);
             if (isAdminUser) {
-                await fetchData();
+                await fetchData(authenticatedActor);
             }
         } catch (error) {
             console.error('Error checking admin status:', error);
@@ -61,18 +82,35 @@ const AdminPanel: React.FC = () => {
         }
     };
 
-    const fetchData = async () => {
+    const fetchData = async (authenticatedActor: ActorSubclass<_SERVICE>) => {
         try {
-            const [usersResult, waitlistResult] = await Promise.all([
-                backend.get_users(),
-                backend.get_waitlist()
-            ]);
+            const usersResult = await authenticatedActor.get_users();
+            if ('Ok' in usersResult) {
+                setUsers(usersResult.Ok);
+            }
 
-            if ('Ok' in usersResult) setUsers(usersResult.Ok);
-            if ('Ok' in waitlistResult) setWaitlist(waitlistResult.Ok);
+            const waitlistResult = await authenticatedActor.get_waitlist();
+            if ('Ok' in waitlistResult) {
+                setWaitlist(waitlistResult.Ok);
+            }
         } catch (error) {
             console.error('Error fetching data:', error);
         }
+    };
+
+    const checkAuthStatus = async () => {
+        const auth = await checkIsAuthenticated();
+        setIsAuthenticated(auth);
+        if (auth) {
+            if (actor) {
+                checkAdminStatus(actor);
+            } else {
+                const newActor = await createAuthenticatedActor();
+                setActor(newActor);
+                checkAdminStatus(newActor);
+            }
+        }
+        setLoading(false);
     };
 
     if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
