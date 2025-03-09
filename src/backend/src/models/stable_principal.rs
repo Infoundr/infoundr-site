@@ -34,7 +34,7 @@ impl Storable for StablePrincipal {
 }
 
 impl BoundedStorable for StablePrincipal {
-    const MAX_SIZE: u32 = 29; // Principal max size
+    const MAX_SIZE: u32 = 128; // Principal max size
     const IS_FIXED_SIZE: bool = false;
 }
 

@@ -37,6 +37,7 @@ pub fn get_current_user() -> Option<User> {
 #[query]
 pub fn is_registered() -> bool {
     let caller = caller();
+    ic_cdk::println!("Checking registration for principal: {}", caller.to_string());
     USERS.with(|users| users.borrow().contains_key(&StablePrincipal::new(caller)))
 }
 
