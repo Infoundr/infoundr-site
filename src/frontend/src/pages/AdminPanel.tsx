@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { backend } from "../../../declarations/backend";
-import { User, WaitlistEntry } from "../../../declarations/backend/backend.did";
-import { loginWithII, loginWithNFID, checkIsAuthenticated } from '../services/auth';
+import { createActor } from '../../../declarations/backend';
+import { HttpAgent, ActorSubclass } from '@dfinity/agent';
+import { AuthClient } from '@dfinity/auth-client';
+import { _SERVICE } from '../../../declarations/backend/backend.did.d';
+import { canisterID } from '../services/auth';
+import { User, WaitlistEntry } from '../../../declarations/backend/backend.did';
+import { loginWithII, loginWithNFID, checkIsAuthenticated, logout } from '../services/auth';
 import Button from '../components/common/Button';
-import { AuthClient } from "@dfinity/auth-client";
-import { Actor } from "@dfinity/agent";
 
 const AdminPanel: React.FC = () => {
     const [isAdmin, setIsAdmin] = useState<boolean>(false);
@@ -15,28 +17,47 @@ const AdminPanel: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
     const [currentPrincipal, setCurrentPrincipal] = useState<string>("");
+    const [actor, setActor] = useState<ActorSubclass<_SERVICE> | null>(null);
 
-    useEffect(() => {
-        checkAuthStatus();
-    }, []);
-
-    const checkAuthStatus = async () => {
-        const auth = await checkIsAuthenticated();
-        setIsAuthenticated(auth);
-        if (auth) {
-            checkAdminStatus();
+    const createAuthenticatedActor = async () => {
+        try {
+            const authClient = await AuthClient.create();
+            const identity = authClient.getIdentity();
+            const agent = new HttpAgent({ identity });
+            
+            if (import.meta.env.VITE_DFX_NETWORK !== 'ic') {
+                await agent.fetchRootKey();
+            }
+            
+            return createActor(canisterID, { agent });
+        } catch (error) {
+            console.error('Error creating authenticated actor:', error);
+            throw error;
         }
-        setLoading(false);
     };
 
-    const checkAdminStatus = async () => {
+    useEffect(() => {
+        initializeActor();
+    }, []);
+
+    const initializeActor = async () => {
+        try {
+            const authenticatedActor = await createAuthenticatedActor();
+            setActor(authenticatedActor);
+            checkAdminStatus(authenticatedActor);
+        } catch (error) {
+            console.error('Error initializing actor:', error);
+        }
+    };
+
+    const checkAdminStatus = async (authenticatedActor: ActorSubclass<_SERVICE>) => {
         try {
             console.log("Checking admin status with principal:", currentPrincipal);
-            const isAdminUser = await backend.is_admin();
+            const isAdminUser = await authenticatedActor.is_admin();
             console.log('isAdminUser', isAdminUser);    
             setIsAdmin(isAdminUser);
             if (isAdminUser) {
-                await fetchData();
+                await fetchData(authenticatedActor);
             }
         } catch (error) {
             console.error('Error checking admin status:', error);
@@ -61,26 +82,67 @@ const AdminPanel: React.FC = () => {
         }
     };
 
-    const fetchData = async () => {
+    const fetchData = async (authenticatedActor: ActorSubclass<_SERVICE>) => {
         try {
-            const [usersResult, waitlistResult] = await Promise.all([
-                backend.get_users(),
-                backend.get_waitlist()
-            ]);
+            const usersResult = await authenticatedActor.get_users();
+            if ('Ok' in usersResult) {
+                setUsers(usersResult.Ok);
+            }
 
-            if ('Ok' in usersResult) setUsers(usersResult.Ok);
-            if ('Ok' in waitlistResult) setWaitlist(waitlistResult.Ok);
+            const waitlistResult = await authenticatedActor.get_waitlist();
+            if ('Ok' in waitlistResult) {
+                setWaitlist(waitlistResult.Ok);
+            }
         } catch (error) {
             console.error('Error fetching data:', error);
         }
     };
 
-    if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
+    const checkAuthStatus = async () => {
+        const auth = await checkIsAuthenticated();
+        setIsAuthenticated(auth);
+        if (auth) {
+            if (actor) {
+                checkAdminStatus(actor);
+            } else {
+                const newActor = await createAuthenticatedActor();
+                setActor(newActor);
+                checkAdminStatus(newActor);
+            }
+        }
+        setLoading(false);
+    };
+
+    // if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
 
     if (!isAuthenticated) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
                 <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-xl">
+                    <div className="flex justify-end mb-4">
+                        <Button
+                            variant="secondary"
+                            className="text-gray-600 hover:text-gray-900"
+                            onClick={() => navigate('/')}
+                        >
+                            <div className="flex items-center gap-2">
+                                <svg 
+                                    className="w-5 h-5" 
+                                    fill="none" 
+                                    stroke="currentColor" 
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path 
+                                        strokeLinecap="round" 
+                                        strokeLinejoin="round" 
+                                        strokeWidth={2} 
+                                        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" 
+                                    />
+                                </svg>
+                                Home
+                            </div>
+                        </Button>
+                    </div>
                     <h2 className="text-3xl font-bold mb-8 text-center">Admin Authentication</h2>
                     
                     {/* Internet Identity */}
@@ -140,7 +202,35 @@ const AdminPanel: React.FC = () => {
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold mb-8">Admin Panel</h1>
+            <div className="flex justify-between items-center mb-8">
+                <h1 className="text-3xl font-bold">Admin Panel</h1>
+                <Button
+                    variant="secondary"
+                    className="flex items-center gap-2"
+                    onClick={async () => {
+                        await logout();
+                        setIsAuthenticated(false);
+                        setIsAdmin(false);
+                        setActor(null);
+                        navigate('/admin');
+                    }}
+                >
+                    <svg 
+                        className="w-5 h-5" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                    >
+                        <path 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            strokeWidth={2} 
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" 
+                        />
+                    </svg>
+                    Logout
+                </Button>
+            </div>
             
             {/* Users Section */}
             <section className="mb-12">
