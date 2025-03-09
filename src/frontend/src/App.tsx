@@ -7,12 +7,11 @@ import Pricing from './components/home/Pricing';
 import Footer from './components/layout/Footer';
 import WaitlistModal from './components/common/WaitlistModal';
 import { checkIsAuthenticated } from './services/auth';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import AdminPanel from './pages/AdminPanel';
 import Auth from './pages/Dashboard/Auth';
 import DashboardLayout from './layouts/DashboardLayout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
-// import Home from './pages/Home';
 
 const App: React.FC = () => {
   const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
@@ -32,40 +31,48 @@ const App: React.FC = () => {
   };
 
   return (
-    <Router>
-      <Routes>
-        {/* <Route path="/" element={<Home />} /> */}
-        <Route path="/admin" element={<AdminPanel />} />
-        <Route path="/dashboard" element={<Auth />} />
-        <Route
-          path="/dashboard/*"
-          element={
+    <BrowserRouter>
+      <div className="relative">
+        <Routes>
+          {/* Landing Page Route */}
+          <Route path="/" element={
+            <>
+              <NavBar 
+                onGetStartedClick={() => setIsWaitlistModalOpen(true)} 
+                isAuthenticated={isUserAuthenticated}
+                onAuthChange={handleAuthenticationChange}
+              />
+              <main>
+                <Hero />
+                <Features />
+                <AIAssistants />
+                <Pricing />
+              </main>
+              <Footer />
+            </>
+          } />
+
+          {/* Auth Route */}
+          <Route path="/dashboard" element={<Auth />} />
+
+          {/* Protected Dashboard Routes */}
+          <Route path="/dashboard/*" element={
             <ProtectedRoute>
               <DashboardLayout />
             </ProtectedRoute>
-          }
-        />
-      </Routes>
-      <div className="relative">
-        <NavBar 
-          onGetStartedClick={() => setIsWaitlistModalOpen(true)} 
-          isAuthenticated={isUserAuthenticated}
-          onAuthChange={handleAuthenticationChange}
-        />
-        <main>
-          <Hero />
-          <AIAssistants />
-          <Features />
-          <Pricing />
-        </main>
-        <Footer />
+          } />
+
+          {/* Admin Route */}
+          <Route path="/admin" element={<AdminPanel />} />
+        </Routes>
+
         <WaitlistModal 
           isOpen={isWaitlistModalOpen}
           onClose={() => setIsWaitlistModalOpen(false)}
           onAuthSuccess={() => setIsUserAuthenticated(true)}
         />
       </div>
-    </Router>
+    </BrowserRouter>
   );
 };
 
