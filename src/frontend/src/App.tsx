@@ -43,7 +43,7 @@ const App: React.FC = () => {
                 onAuthChange={handleAuthenticationChange}
               />
               <main>
-                <Hero />
+                <Hero onGetStartedClick={() => setIsWaitlistModalOpen(true)} />
                 <Features />
                 <AIAssistants />
                 <Pricing />
