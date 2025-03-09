@@ -5,7 +5,7 @@ export interface Assistant {
 }
 
 export interface ButtonProps {
-  variant: 'primary' | 'secondary';
+  variant: 'primary' | 'secondary' | 'dark';
   children: React.ReactNode;
   onClick?: () => void;
   className?: string;

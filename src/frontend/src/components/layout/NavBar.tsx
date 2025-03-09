@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Button from '../common/Button';
-import { isAuthenticated, logout } from '../../services/auth';
+import { checkIsAuthenticated, logout } from '../../services/auth';
 
 interface NavBarProps {
   onGetStartedClick: () => void;
@@ -14,6 +14,11 @@ const NavBar: React.FC<NavBarProps> = ({ onGetStartedClick, isAuthenticated: isU
   const handleLogout = async () => {
     await logout();
     onAuthChange(false);
+  };
+
+  const checkAuth = async () => {
+    const auth = await checkIsAuthenticated();
+    onAuthChange(auth);
   };
 
   return (

@@ -1,8 +1,13 @@
 use crate::models::waitlist::{WaitlistEntry, WaitlistStatus};
 use crate::storage::memory::WAITLIST;
 use crate::models::stable_string::StableString;
+use ic_cdk::update;
 
-pub fn join_waitlist(principal_id: String, name: String) -> Result<WaitlistEntry, String> {
+#[update]
+pub fn join_waitlist(name: String) -> Result<WaitlistEntry, String> {
+    let caller = ic_cdk::caller();
+    let principal_id = caller.to_string(); 
+
     if WAITLIST.with(|w| w.borrow().contains_key(&StableString::new(principal_id.clone()))) {
         return Err("Principal already on waitlist".to_string());
     }

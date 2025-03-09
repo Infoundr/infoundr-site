@@ -6,7 +6,12 @@ import Features from './components/home/Features';
 import Pricing from './components/home/Pricing';
 import Footer from './components/layout/Footer';
 import WaitlistModal from './components/common/WaitlistModal';
-import { isAuthenticated } from './services/auth';
+import { checkIsAuthenticated } from './services/auth';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import AdminPanel from './pages/AdminPanel';
+import Auth from './pages/Dashboard/Auth';
+import DashboardLayout from './layouts/DashboardLayout';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 
 const App: React.FC = () => {
   const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
@@ -15,7 +20,7 @@ const App: React.FC = () => {
   // Check initial auth state
   React.useEffect(() => {
     const checkAuth = async () => {
-      const auth = await isAuthenticated();
+      const auth = await checkIsAuthenticated(); 
       setIsUserAuthenticated(auth);
     };
     checkAuth();
@@ -26,25 +31,48 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="relative">
-      <NavBar 
-        onGetStartedClick={() => setIsWaitlistModalOpen(true)} 
-        isAuthenticated={isUserAuthenticated}
-        onAuthChange={handleAuthenticationChange}
-      />
-      <main>
-        <Hero />
-        <AIAssistants />
-        <Features />
-        <Pricing />
-      </main>
-      <Footer />
-      <WaitlistModal 
-        isOpen={isWaitlistModalOpen}
-        onClose={() => setIsWaitlistModalOpen(false)}
-        onAuthSuccess={() => setIsUserAuthenticated(true)}
-      />
-    </div>
+    <BrowserRouter>
+      <div className="relative">
+        <Routes>
+          {/* Landing Page Route */}
+          <Route path="/" element={
+            <>
+              <NavBar 
+                onGetStartedClick={() => setIsWaitlistModalOpen(true)} 
+                isAuthenticated={isUserAuthenticated}
+                onAuthChange={handleAuthenticationChange}
+              />
+              <main>
+                <Hero onGetStartedClick={() => setIsWaitlistModalOpen(true)} />
+                <Features />
+                <AIAssistants />
+                <Pricing />
+              </main>
+              <Footer />
+            </>
+          } />
+
+          {/* Auth Route */}
+          <Route path="/dashboard" element={<Auth />} />
+
+          {/* Protected Dashboard Routes */}
+          <Route path="/dashboard/*" element={
+            <ProtectedRoute>
+              <DashboardLayout />
+            </ProtectedRoute>
+          } />
+
+          {/* Admin Route */}
+          <Route path="/admin" element={<AdminPanel />} />
+        </Routes>
+
+        <WaitlistModal 
+          isOpen={isWaitlistModalOpen}
+          onClose={() => setIsWaitlistModalOpen(false)}
+          onAuthSuccess={() => setIsUserAuthenticated(true)}
+        />
+      </div>
+    </BrowserRouter>
   );
 };
 
