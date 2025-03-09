@@ -6,7 +6,7 @@ import { AuthClient } from '@dfinity/auth-client';
 import { _SERVICE } from '../../../declarations/backend/backend.did.d';
 import { canisterID } from '../services/auth';
 import { User, WaitlistEntry } from '../../../declarations/backend/backend.did';
-import { loginWithII, loginWithNFID, checkIsAuthenticated } from '../services/auth';
+import { loginWithII, loginWithNFID, checkIsAuthenticated, logout } from '../services/auth';
 import Button from '../components/common/Button';
 
 const AdminPanel: React.FC = () => {
@@ -113,7 +113,7 @@ const AdminPanel: React.FC = () => {
         setLoading(false);
     };
 
-    if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
+    // if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
 
     if (!isAuthenticated) {
         return (
@@ -178,7 +178,35 @@ const AdminPanel: React.FC = () => {
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold mb-8">Admin Panel</h1>
+            <div className="flex justify-between items-center mb-8">
+                <h1 className="text-3xl font-bold">Admin Panel</h1>
+                <Button
+                    variant="secondary"
+                    className="flex items-center gap-2"
+                    onClick={async () => {
+                        await logout();
+                        setIsAuthenticated(false);
+                        setIsAdmin(false);
+                        setActor(null);
+                        navigate('/admin');
+                    }}
+                >
+                    <svg 
+                        className="w-5 h-5" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                    >
+                        <path 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            strokeWidth={2} 
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" 
+                        />
+                    </svg>
+                    Logout
+                </Button>
+            </div>
             
             {/* Users Section */}
             <section className="mb-12">
