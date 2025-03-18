@@ -1,15 +1,28 @@
+type AsanaAccount = record {
+  token : text;
+  workspace_id : text;
+  project_ids : vec record { text; text };
+};
 type BotType = variant { Dean; Uncle; Benny };
 type ChatMessage = record {
-  user_principal : principal;
+  id : principal;
   content : text;
-  bot_type : BotType;
+  bot_name : opt text;
+  role : MessageRole;
   timestamp : nat64;
 };
+type ConnectedAccounts = record {
+  asana : opt AsanaAccount;
+  github : opt GitHubAccount;
+};
+type GitHubAccount = record { token : text; selected_repo : opt text };
+type MessageRole = variant { User; Assistant };
 type Result = variant { Ok : ChatMessage; Err : text };
 type Result_1 = variant { Ok : vec User; Err : text };
 type Result_2 = variant { Ok : vec WaitlistEntry; Err : text };
 type Result_3 = variant { Ok : WaitlistEntry; Err : text };
 type Result_4 = variant { Ok : User; Err : text };
+type Result_5 = variant { Ok; Err : text };
 type SubscriptionTier = variant { Enterprise; Free; Professional };
 type User = record {
   "principal" : principal;
@@ -31,6 +44,7 @@ service : {
   get_admins : () -> (vec principal) query;
   get_current_user : () -> (opt User) query;
   get_registered_users : () -> (Result_1) query;
+  get_user_connections : (principal) -> (opt ConnectedAccounts) query;
   get_users : () -> (Result_1) query;
   get_waitlist : () -> (Result_2) query;
   is_admin : () -> (bool) query;
@@ -38,4 +52,12 @@ service : {
   is_registered : () -> (bool) query;
   join_waitlist : (text) -> (Result_3);
   register_user : (text) -> (Result_4);
+  store_asana_connection : (
+      principal,
+      text,
+      text,
+      vec record { text; text },
+    ) -> ();
+  store_github_connection : (principal, text, opt text) -> ();
+  update_github_selected_repo : (principal, text) -> (Result_5);
 }

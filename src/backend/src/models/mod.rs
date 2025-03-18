@@ -4,3 +4,5 @@ pub mod chat;
 pub mod stable_principal;
 pub mod stable_string;
 pub mod admin;
+pub mod connected_accounts;
+pub mod task;

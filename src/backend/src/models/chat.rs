@@ -1,15 +1,24 @@
-use candid::{CandidType, Decode, Encode};
+use candid::{CandidType, Decode, Encode, Principal};
 use ic_stable_structures::{BoundedStorable, Storable};
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
-use crate::models::stable_principal::StablePrincipal;
+use std::fmt;
+// use crate::models::stable_principal::StablePrincipal;
+// use ic_cdk::export::candid::Principal;
 
-#[derive(CandidType, Serialize, Deserialize, Clone)]
+#[derive(CandidType, Deserialize, Clone, Debug)]
+pub enum MessageRole {
+    User,
+    Assistant,
+}
+
+#[derive(CandidType, Deserialize, Clone, Debug)]
 pub struct ChatMessage {
-    pub user_principal: StablePrincipal,
+    pub id: Principal,
+    pub role: MessageRole,
     pub content: String,
     pub timestamp: u64,
-    pub bot_type: BotType,
+    pub bot_name: Option<String>, // Which bot responded (Benny, Felix, etc)
 }
 
 #[derive(CandidType, Serialize, Deserialize, Clone)]
@@ -17,6 +26,17 @@ pub enum BotType {
     Benny,    // Strategic thinking
     Uncle,    // Startup guidance
     Dean,     // Innovation specialist
+}
+
+// Add Display implementation for BotType
+impl fmt::Display for BotType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            BotType::Benny => write!(f, "Benny"),
+            BotType::Uncle => write!(f, "Uncle"),
+            BotType::Dean => write!(f, "Dean"),
+        }
+    }
 }
 
 impl Storable for ChatMessage {

@@ -10,7 +10,8 @@
     "pretest": "npm run prebuild --workspaces --if-present",
     "start": "npm start --workspaces --if-present",
     "test": "npm test --workspaces --if-present",
-    "setup": "bash scripts/setup.sh"
+    "setup": "bash scripts/setup.sh", 
+    "upgrade": "npx generate-did backend && npx upgrade-canister backend --backend && dfx generate"
   },
   "type": "module",
   "workspaces": [
