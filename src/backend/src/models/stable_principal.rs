@@ -12,9 +12,9 @@ impl StablePrincipal {
         Self(principal)
     }
 
-    // pub fn get(&self) -> Principal {
-    //     self.0
-    // }
+    pub fn get(&self) -> Principal {
+        self.0
+    }
 }
 
 impl Default for StablePrincipal {

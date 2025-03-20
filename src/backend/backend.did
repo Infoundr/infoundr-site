@@ -53,6 +53,7 @@ service : {
   get_admins : () -> (vec principal) query;
   get_current_user : () -> (opt User) query;
   get_openchat_user : (text) -> (opt OpenChatUser) query;
+  get_openchat_user_by_principal : (principal) -> (opt OpenChatUser) query;
   get_registered_openchat_users : () -> (vec OpenChatUser) query;
   get_registered_users : () -> (Result_1) query;
   get_user_by_openchat_id : (principal) -> (opt User) query;

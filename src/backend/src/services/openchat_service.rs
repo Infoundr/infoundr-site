@@ -143,4 +143,18 @@ pub fn get_openchat_user(openchat_id: String) -> Option<OpenChatUser> {
         let users = users.borrow();
         users.get(&StableString::from(openchat_id))
     })
+}
+
+#[query]
+pub fn get_openchat_user_by_principal(principal: Principal) -> Option<OpenChatUser> {
+    OPENCHAT_USERS.with(|users| {
+        let users = users.borrow();
+        users.iter()
+            .find(|(_, user)| {
+                user.site_principal.as_ref()
+                    .map(|p| p.get() == principal)
+                    .unwrap_or(false)
+            })
+            .map(|(_, user)| user.clone())
+    })
 } 

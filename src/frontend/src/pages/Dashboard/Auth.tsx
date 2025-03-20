@@ -4,6 +4,9 @@ import Button from '../../components/common/Button';
 import { loginWithII, loginWithNFID, registerUser, isRegistered, checkIsAuthenticated } from '../../services/auth';
 import { ActorSubclass } from "@dfinity/agent";
 import type { _SERVICE } from "../../../../declarations/backend/backend.did.d.ts";
+import { Principal } from '@dfinity/principal';
+import { User, OpenChatUser, OpenChatUserResponse } from '../../types/user';
+import { AuthClient } from '@dfinity/auth-client';
 
 const Auth: React.FC = () => {
     const navigate = useNavigate();
@@ -32,32 +35,57 @@ const Auth: React.FC = () => {
                 throw new Error("Authentication failed");
             }
 
-            // Check if user needs to register
-            console.log("Checking if user is registered");
-            const registered = await actor.is_registered();
-            console.log("Registered:", registered);
+            // Get the authenticated identity's principal directly
+            const authClient = await AuthClient.create();
+            const identity = authClient.getIdentity();
+            const userPrincipal = identity.getPrincipal();
+            console.log("User Principal:", userPrincipal.toString());
 
-            if (!registered) {
-                if (isLogin) {
-                    setError('Account not found. Please create an account first.');
-                    setIsLoading(false);
-                    return;
-                } else {
-                    console.log("User is not registered, showing registration form");
-                    setShowRegistrationForm(true);
-                    return;
+            // Check both regular registration and OpenChat registration
+            console.log("Checking user registration status");
+            try {
+                const [isRegularUser, openchatUser] = await Promise.all([
+                    actor.is_registered(),
+                    actor.get_openchat_user_by_principal(userPrincipal)
+                ]);
+                
+                console.log("Registration check results:", { isRegularUser, openchatUser });
+
+                if (!isRegularUser && (!openchatUser || openchatUser.length === 0)) {
+                    if (isLogin) {
+                        setError('Account not found. Please create an account first.');
+                        setIsLoading(false);
+                        return;
+                    } else {
+                        console.log("User is not registered, showing registration form");
+                        setShowRegistrationForm(true);
+                        return;
+                    }
                 }
+                
+                console.log("User is registered, navigating to dashboard");
+                const isAuth = await actor.check_auth();
+                console.log("Authentication verification:", isAuth);
+                
+                if (!isAuth) {
+                    console.log("Authentication verification failed");
+                    throw new Error("Authentication verification failed");
+                }
+                
+                // If user has an OpenChat account, store the ID
+                if (openchatUser && openchatUser.length > 0 && openchatUser[0]?.openchat_id) {
+                    sessionStorage.setItem('openchat_id', openchatUser[0].openchat_id);
+                }
+                
+                // Store user principal for future use
+                sessionStorage.setItem('user_principal', userPrincipal.toString());
+                
+                setIsLoading(false);
+                navigate('/dashboard/home', { replace: true });
+            } catch (err) {
+                console.error("Registration check error:", err);
+                throw new Error("Failed to verify registration status");
             }
-            
-            console.log("User is registered, navigating to dashboard");
-            const isAuth = await actor.check_auth();
-            console.log("Authentication verification:", isAuth);
-            if (!isAuth) {
-                console.log("Authentication verification failed");
-                throw new Error("Authentication verification failed");
-            }
-            setIsLoading(false);
-            navigate('/dashboard/home', { replace: true });
         } catch (err) {
             setError('Authentication failed. Please try again.');
             console.error('Auth error:', err);
@@ -65,7 +93,7 @@ const Auth: React.FC = () => {
             setIsLoading(false);
         }
     };
-
+    
     const handleRegistration = async () => {
         try {
             setIsLoading(true);
