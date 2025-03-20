@@ -6,6 +6,7 @@ import { HttpAgent } from '@dfinity/agent';
 import { createActor } from '../../../../declarations/backend';
 
 const BotLogin: React.FC = () => {
+    console.log("BotLogin component rendered");
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const [error, setError] = useState<string | null>(null);
@@ -18,6 +19,7 @@ const BotLogin: React.FC = () => {
 
     useEffect(() => {
         const token = searchParams.get('token');
+        console.log("Token from URL:", token);
         
         if (!token) {
             setError('No token provided');
@@ -27,31 +29,43 @@ const BotLogin: React.FC = () => {
 
         const validateToken = async () => {
             try {
-                const { isValid, openchatId } = await loginWithBotToken(token);
+                setIsLoading(true);
+                setError(null);
                 
-                if (!isValid || !openchatId) {
-                    setError('Invalid or expired token');
+                const validationResult = await loginWithBotToken(token);
+                console.log("Validation result:", validationResult);
+
+                if (!validationResult.isValid || !validationResult.openchatId) {
+                    setError('Invalid or expired token. Please request a new login link from the bot.');
                     setIsLoading(false);
                     return;
                 }
 
-                // Check if user has completed registration
-                const isRegistered = await isOpenChatUserRegistered(openchatId);
-                
-                if (!isRegistered) {
-                    setRegistrationData(prev => ({ ...prev, openchatId }));
-                    setShowRegistrationForm(true);
-                    setIsLoading(false);
-                    return;
+                try {
+                    const isRegistered = await isOpenChatUserRegistered(validationResult.openchatId);
+                    console.log("Registration check result:", isRegistered);
+                    
+                    if (!isRegistered) {
+                        setRegistrationData(prev => ({
+                            ...prev,
+                            openchatId: validationResult.openchatId!
+                        }));
+                        setShowRegistrationForm(true);
+                    } else {
+                        // Create a session or store necessary data
+                        sessionStorage.setItem('openchat_id', validationResult.openchatId);
+                        navigate('/dashboard/home', { replace: true });
+                    }
+                } catch (regError) {
+                    console.error("Registration check error:", regError);
+                    setError('Error verifying registration status. Please try again.');
                 }
-
-                // User is valid and registered, redirect to dashboard
-                navigate('/dashboard/home', { replace: true });
             } catch (err) {
-                setError('Failed to validate token');
-                console.error(err);
+                console.error("Validation process error:", err);
+                setError('Failed to validate access token. Please try again or request a new link.');
+            } finally {
+                setIsLoading(false);
             }
-            setIsLoading(false);
         };
 
         validateToken();
@@ -59,6 +73,11 @@ const BotLogin: React.FC = () => {
 
     const handleRegistration = async () => {
         try {
+            if (!registrationData.name.trim()) {
+                setError('Please enter your name');
+                return;
+            }
+            
             setIsLoading(true);
             const agent = new HttpAgent({});
             
@@ -68,14 +87,17 @@ const BotLogin: React.FC = () => {
             
             const actor = createActor(canisterID, { agent });
             
-            // Call your registration endpoint
-            await actor.register_user(registrationData.name);
+            // Register the user with their OpenChat ID
+            await actor.register_openchat_user(
+                registrationData.name,
+                registrationData.openchatId
+            );
             
             // Redirect to dashboard after successful registration
             navigate('/dashboard/home', { replace: true });
         } catch (error) {
-            setError('Failed to complete registration');
-            console.error(error);
+            console.error('Registration error:', error);
+            setError('Failed to complete registration. Please try again.');
         } finally {
             setIsLoading(false);
         }

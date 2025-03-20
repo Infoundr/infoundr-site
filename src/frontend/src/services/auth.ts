@@ -250,7 +250,7 @@ export const loginWithBotToken = async (token: string): Promise<{
     openchatId: string | null;
 }> => {
     try {
-        const authClient = await AuthClient.create();
+        console.log("Starting token validation process");
         const agent = new HttpAgent({});
         
         if (import.meta.env.VITE_DFX_NETWORK !== 'ic') {
@@ -259,23 +259,71 @@ export const loginWithBotToken = async (token: string): Promise<{
         
         const actor = createActor(canisterID, { agent });
         
-        // Convert token string to Uint8Array
-        const tokenBytes = new TextEncoder().encode(token);
+        // Clean and normalize the token
+        let cleanToken = token
+            .replace(/^DIDL.*?,/, '') // Remove DIDL prefix
+            .replace(/\s+/g, '') // Remove all whitespace
+            .trim(); // Trim any remaining whitespace
+            
+        console.log("Cleaned token:", cleanToken);
+        
+        // Ensure the token is properly base64 formatted
+        // Add padding if necessary
+        while (cleanToken.length % 4) {
+            cleanToken += '=';
+        }
+        
+        let tokenBytes;
+        try {
+            // First attempt: direct base64 decode
+            tokenBytes = Uint8Array.from(
+                atob(cleanToken)
+                    .split('')
+                    .map(char => char.charCodeAt(0))
+            );
+        } catch (e) {
+            console.log("Base64 decode failed, trying URL-safe decode");
+            try {
+                // Second attempt: URL-safe base64 decode
+                const urlSafeToken = cleanToken
+                    .replace(/-/g, '+')
+                    .replace(/_/g, '/');
+                tokenBytes = Uint8Array.from(
+                    atob(urlSafeToken)
+                        .split('')
+                        .map(char => char.charCodeAt(0))
+                );
+            } catch (e2) {
+                console.log("URL-safe decode failed, using direct encoding");
+                // Last resort: direct encoding
+                tokenBytes = new TextEncoder().encode(cleanToken);
+            }
+        }
+        
+        console.log("Token bytes:", Array.from(tokenBytes));
         
         // Validate token with backend
-        const openchatId = await actor.validate_dashboard_token(Array.from(tokenBytes));
+        const response = await actor.validate_dashboard_token(Array.from(tokenBytes));
+        console.log("Backend response:", response);
         
-        if (!openchatId) {
+        if (!response || (Array.isArray(response) && response.length === 0)) {
             console.error('Invalid or expired token');
             return { isValid: false, openchatId: null };
         }
 
-        // Store openchat_id in session storage for future use
-        sessionStorage.setItem('openchat_id', openchatId[0]); // Fix for the array issue
+        // Handle the response based on its type
+        const openchatId = Array.isArray(response) ? response[0] : response;
         
-        return { isValid: true, openchatId: openchatId[0] };
+        if (typeof openchatId === 'string' && openchatId) {
+            console.log("Valid OpenChat ID found:", openchatId);
+            sessionStorage.setItem('openchat_id', openchatId);
+            return { isValid: true, openchatId };
+        }
+        
+        console.error('Invalid response format from backend');
+        return { isValid: false, openchatId: null };
     } catch (error) {
-        console.error('Error validating bot token:', error);
+        console.error('Token validation error:', error);
         return { isValid: false, openchatId: null };
     }
 };
