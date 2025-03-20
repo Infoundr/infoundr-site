@@ -34,7 +34,7 @@ pub fn ensure_openchat_user(openchat_id: String) {
 }
 
 #[update]
-pub async fn generate_dashboard_token(openchat_id: String) -> Vec<u8> {
+pub async fn generate_dashboard_token(openchat_id: String) -> String {
     // First ensure user exists
     ensure_openchat_user(openchat_id.clone());
     
@@ -42,8 +42,8 @@ pub async fn generate_dashboard_token(openchat_id: String) -> Vec<u8> {
     let random_bytes = raw_rand().await.unwrap().0;
     let token: Vec<u8> = random_bytes.into_iter().take(32).collect();
     
-    // Create base64 encoded token for storage key
-    let token_key = BASE64.encode(&token);
+    // Create base64 encoded token
+    let token_string = BASE64.encode(&token);
     
     let now = ic_cdk::api::time();
     
@@ -71,10 +71,10 @@ pub async fn generate_dashboard_token(openchat_id: String) -> Vec<u8> {
         }
         
         // Store new token
-        tokens.insert(StableString::from(token_key), token_record);
+        tokens.insert(StableString::from(token_string.clone()), token_record);
     });
     
-    token
+    token_string
 }
 
 // Add helper function to validate tokens

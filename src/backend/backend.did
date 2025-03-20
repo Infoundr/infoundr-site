@@ -48,7 +48,7 @@ service : {
   add_chat_message : (text, BotType) -> (Result);
   check_auth : () -> (bool) query;
   ensure_openchat_user : (text) -> ();
-  generate_dashboard_token : (text) -> (blob);
+  generate_dashboard_token : (text) -> (text);
   get_active_openchat_users : (nat64) -> (vec OpenChatUser) query;
   get_admins : () -> (vec principal) query;
   get_current_user : () -> (opt User) query;
