@@ -79,6 +79,29 @@ The application supports two authentication methods:
 - Internet Identity
 - NFID (Non-Fungible Identity)
 
+## Authentication Flows
+
+### Standard Authentication
+1. User visits dashboard and chooses login method (II or NFID)
+2. User authenticates with chosen provider
+3. On success, user is redirected to dashboard
+
+### Bot Dashboard Access
+1. User interacts with bot in OpenChat
+2. First interaction creates basic OpenChat user record
+3. User types `/dashboard` command
+4. Bot generates secure access token
+5. Bot sends dashboard link with token
+6. User clicks link and is redirected to `/bot-login?token={token}`
+7. Frontend validates token with backend
+8. If token is valid but user hasn't completed registration:
+   - Show registration form
+   - Collect user details
+   - Complete registration
+9. After registration/validation, redirect to dashboard
+
+Technical Flow:
+
 ## Contributing
 
 1. Fork the repository

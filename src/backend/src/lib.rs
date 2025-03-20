@@ -15,7 +15,9 @@ use crate::models::chat::BotType;
 use crate::models::connected_accounts::ConnectedAccounts;
 use crate::models::task::Task;
 use crate::models::openchat_user::OpenChatUser;
+use crate::models::dashboard_token::DashboardToken;
 use candid::Principal;
+
 
 #[ic_cdk::pre_upgrade]
 fn pre_upgrade() {
@@ -33,13 +35,17 @@ fn pre_upgrade() {
 
 #[ic_cdk::post_upgrade]
 fn post_upgrade() {
-    let (users, waitlist, chat_history): (
+    let (users, waitlist, chat_history, connected_accounts, tasks, openchat_users, dashboard_tokens): (
         Vec<(StablePrincipal, User)>,
         Vec<(StableString, WaitlistEntry)>,
-        Vec<((StablePrincipal, u64), ChatMessage)>
+        Vec<((StablePrincipal, u64), ChatMessage)>,
+        Vec<(StablePrincipal, ConnectedAccounts)>,
+        Vec<((StablePrincipal, StableString), Task)>,
+        Vec<(StableString, OpenChatUser)>,
+        Vec<(StableString, DashboardToken)>
     ) = match stable_restore() {
         Ok(data) => data,
-        Err(_) => (vec![], vec![], vec![])
+        Err(_) => (vec![], vec![], vec![], vec![], vec![], vec![], vec![])
     };
 
     // Initialize empty collections for new storage
@@ -70,7 +76,7 @@ fn post_upgrade() {
         }
     });
 
-    // Initialize empty connected accounts
+    // Restore connected accounts
     CONNECTED_ACCOUNTS.with(|ca| {
         let mut ca = ca.borrow_mut();
         for (k, v) in connected_accounts {
@@ -78,10 +84,26 @@ fn post_upgrade() {
         }
     });
 
-    // Initialize empty tasks
+    // Restore tasks
     TASKS.with(|t| {
         let mut t = t.borrow_mut();
         for (k, v) in tasks {
+            t.insert(k, v);
+        }
+    });
+
+    // Restore OpenChat users
+    OPENCHAT_USERS.with(|u| {
+        let mut u = u.borrow_mut();
+        for (k, v) in openchat_users {
+            u.insert(k, v);
+        }
+    });
+
+    // Restore dashboard tokens
+    DASHBOARD_TOKENS.with(|t| {
+        let mut t = t.borrow_mut();
+        for (k, v) in dashboard_tokens {
             t.insert(k, v);
         }
     });

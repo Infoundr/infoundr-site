@@ -243,4 +243,57 @@ const createAuthenticatedActor = async () => {
     }
     
     return createActor(canisterID, { agent });
+};
+
+export const loginWithBotToken = async (token: string): Promise<{
+    isValid: boolean;
+    openchatId: string | null;
+}> => {
+    try {
+        const authClient = await AuthClient.create();
+        const agent = new HttpAgent({});
+        
+        if (import.meta.env.VITE_DFX_NETWORK !== 'ic') {
+            await agent.fetchRootKey();
+        }
+        
+        const actor = createActor(canisterID, { agent });
+        
+        // Convert token string to Uint8Array
+        const tokenBytes = new TextEncoder().encode(token);
+        
+        // Validate token with backend
+        const openchatId = await actor.validate_dashboard_token(Array.from(tokenBytes));
+        
+        if (!openchatId) {
+            console.error('Invalid or expired token');
+            return { isValid: false, openchatId: null };
+        }
+
+        // Store openchat_id in session storage for future use
+        sessionStorage.setItem('openchat_id', openchatId[0]); // Fix for the array issue
+        
+        return { isValid: true, openchatId: openchatId[0] };
+    } catch (error) {
+        console.error('Error validating bot token:', error);
+        return { isValid: false, openchatId: null };
+    }
+};
+
+// Add new function to check if OpenChat user has completed registration
+export const isOpenChatUserRegistered = async (openchatId: string): Promise<boolean> => {
+    try {
+        const agent = new HttpAgent({});
+        
+        if (import.meta.env.VITE_DFX_NETWORK !== 'ic') {
+            await agent.fetchRootKey();
+        }
+        
+        const actor = createActor(canisterID, { agent });
+        const user = await actor.get_openchat_user(openchatId);
+        return user !== null && user !== undefined;
+    } catch (error) {
+        console.error('Error checking OpenChat user registration:', error);
+        return false;
+    }
 }; 

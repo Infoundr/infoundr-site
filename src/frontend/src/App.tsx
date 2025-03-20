@@ -12,6 +12,7 @@ import AdminPanel from './pages/AdminPanel';
 import Auth from './pages/Dashboard/Auth';
 import DashboardLayout from './layouts/DashboardLayout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import BotLogin from './pages/Dashboard/BotLogin';
 
 const App: React.FC = () => {
   const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
@@ -64,6 +65,9 @@ const App: React.FC = () => {
 
           {/* Admin Route */}
           <Route path="/admin" element={<AdminPanel />} />
+
+          {/* Bot Login Route */}
+          <Route path="/bot-login" element={<BotLogin />} />
         </Routes>
 
         <WaitlistModal 
