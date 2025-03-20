@@ -6,3 +6,5 @@ pub mod stable_string;
 pub mod admin;
 pub mod connected_accounts;
 pub mod task;
+pub mod openchat_user;
+pub mod dashboard_token;

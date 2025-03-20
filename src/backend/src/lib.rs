@@ -2,7 +2,7 @@ mod models;
 mod storage;
 mod services;
 
-use crate::storage::memory::{USERS, WAITLIST, CHAT_HISTORY, CONNECTED_ACCOUNTS, TASKS};
+use crate::storage::memory::{USERS, WAITLIST, CHAT_HISTORY, CONNECTED_ACCOUNTS, TASKS, OPENCHAT_USERS, DASHBOARD_TOKENS};
 use ic_cdk::storage::{stable_save, stable_restore};
 use crate::models::{
     stable_principal::StablePrincipal,
@@ -14,6 +14,7 @@ use crate::models::{
 use crate::models::chat::BotType;
 use crate::models::connected_accounts::ConnectedAccounts;
 use crate::models::task::Task;
+use crate::models::openchat_user::OpenChatUser;
 use candid::Principal;
 
 #[ic_cdk::pre_upgrade]
@@ -23,8 +24,10 @@ fn pre_upgrade() {
     let chat_history = CHAT_HISTORY.with(|h| h.borrow().iter().collect::<Vec<_>>());
     let connected_accounts = CONNECTED_ACCOUNTS.with(|ca| ca.borrow().iter().collect::<Vec<_>>());
     let tasks = TASKS.with(|t| t.borrow().iter().collect::<Vec<_>>());
+    let openchat_users = OPENCHAT_USERS.with(|u| u.borrow().iter().collect::<Vec<_>>());
+    let dashboard_tokens = DASHBOARD_TOKENS.with(|t| t.borrow().iter().collect::<Vec<_>>());
 
-    stable_save((users, waitlist, chat_history, connected_accounts, tasks))
+    stable_save((users, waitlist, chat_history, connected_accounts, tasks, openchat_users, dashboard_tokens))
         .expect("Failed to save stable state");
 }
 

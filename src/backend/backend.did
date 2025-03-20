@@ -17,12 +17,18 @@ type ConnectedAccounts = record {
 };
 type GitHubAccount = record { token : text; selected_repo : opt text };
 type MessageRole = variant { User; Assistant };
+type OpenChatUser = record {
+  site_principal : opt principal;
+  last_interaction : nat64;
+  openchat_id : text;
+  first_interaction : nat64;
+};
 type Result = variant { Ok : ChatMessage; Err : text };
 type Result_1 = variant { Ok : vec User; Err : text };
 type Result_2 = variant { Ok : vec WaitlistEntry; Err : text };
 type Result_3 = variant { Ok : WaitlistEntry; Err : text };
-type Result_4 = variant { Ok : User; Err : text };
-type Result_5 = variant { Ok; Err : text };
+type Result_4 = variant { Ok; Err : text };
+type Result_5 = variant { Ok : User; Err : text };
 type SubscriptionTier = variant { Enterprise; Free; Professional };
 type User = record {
   "principal" : principal;
@@ -41,17 +47,26 @@ type WaitlistStatus = variant { Approved; Rejected; Pending };
 service : {
   add_chat_message : (text, BotType) -> (Result);
   check_auth : () -> (bool) query;
+  ensure_openchat_user : (text) -> ();
+  generate_dashboard_token : (text) -> (blob);
+  get_active_openchat_users : (nat64) -> (vec OpenChatUser) query;
   get_admins : () -> (vec principal) query;
   get_current_user : () -> (opt User) query;
+  get_openchat_user : (text) -> (opt OpenChatUser) query;
+  get_registered_openchat_users : () -> (vec OpenChatUser) query;
   get_registered_users : () -> (Result_1) query;
+  get_user_by_openchat_id : (principal) -> (opt User) query;
   get_user_connections : (principal) -> (opt ConnectedAccounts) query;
   get_users : () -> (Result_1) query;
   get_waitlist : () -> (Result_2) query;
   is_admin : () -> (bool) query;
   is_allowed_principal : () -> (bool) query;
+  is_openchat_user_registered : (principal) -> (bool) query;
   is_registered : () -> (bool) query;
   join_waitlist : (text) -> (Result_3);
-  register_user : (text) -> (Result_4);
+  link_accounts : (principal, text) -> (Result_4);
+  register_openchat_user : (text, text) -> (Result_5);
+  register_user : (text) -> (Result_5);
   store_asana_connection : (
       principal,
       text,
@@ -59,5 +74,6 @@ service : {
       vec record { text; text },
     ) -> ();
   store_github_connection : (principal, text, opt text) -> ();
-  update_github_selected_repo : (principal, text) -> (Result_5);
+  update_github_selected_repo : (principal, text) -> (Result_4);
+  validate_dashboard_token : (blob) -> (opt text) query;
 }

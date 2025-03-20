@@ -7,6 +7,8 @@ use crate::models::stable_string::StableString;
 use crate::models::admin::Admin;
 use crate::models::connected_accounts::ConnectedAccounts;
 use crate::models::task::Task;
+use crate::models::openchat_user::OpenChatUser;
+use crate::models::dashboard_token::DashboardToken;
 
 pub type Memory = VirtualMemory<DefaultMemoryImpl>;
 
@@ -48,6 +50,18 @@ thread_local! {
     pub static TASKS: RefCell<StableBTreeMap<(StablePrincipal, StableString), Task, Memory>> = RefCell::new(
         StableBTreeMap::init(
             MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(5)))
+        )
+    );
+
+    pub static OPENCHAT_USERS: RefCell<StableBTreeMap<StableString, OpenChatUser, Memory>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(6)))
+        )
+    );
+
+    pub static DASHBOARD_TOKENS: RefCell<StableBTreeMap<StableString, DashboardToken, Memory>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(7)))
         )
     );
 } 
