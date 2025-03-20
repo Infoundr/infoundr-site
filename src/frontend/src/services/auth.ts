@@ -186,7 +186,19 @@ export const checkIsAuthenticated = async () => {
         console.log("AuthClient isAuthenticated:", isAuth);
         
         if (!isAuth) {
-            console.log("AuthClient: Not authenticated");
+            // Check if we have a valid OpenChat session
+            const openchatId = sessionStorage.getItem('openchat_id');
+            if (openchatId) {
+                const agent = new HttpAgent({});
+                if (import.meta.env.VITE_DFX_NETWORK !== 'ic') {
+                    await agent.fetchRootKey();
+                }
+                const actor = createActor(canisterID, { agent });
+                
+                // Use get_openchat_user to validate the session
+                const user = await actor.get_openchat_user(openchatId);
+                return user !== null && user !== undefined;
+            }
             return false;
         }
 
@@ -198,11 +210,8 @@ export const checkIsAuthenticated = async () => {
             await agent.fetchRootKey();
         }
         
-        const authenticatedActor = createActor(canisterID, { agent });
-        const backendAuth = await authenticatedActor.check_auth();
-        console.log("Backend auth check:", backendAuth);
-        
-        return backendAuth;
+        const actor = createActor(canisterID, { agent });
+        return await actor.check_auth();
     } catch (error) {
         console.error('Error checking auth:', error);
         return false;
@@ -342,6 +351,34 @@ export const isOpenChatUserRegistered = async (openchatId: string): Promise<bool
         return user !== null && user !== undefined;
     } catch (error) {
         console.error('Error checking OpenChat user registration:', error);
+        return false;
+    }
+};
+
+// Function to link accounts
+export const linkAccounts = async (openchatId: string): Promise<boolean> => {
+    try {
+        const authClient = await AuthClient.create();
+        const identity = authClient.getIdentity();
+        const agent = new HttpAgent({ identity });
+        
+        if (import.meta.env.VITE_DFX_NETWORK !== 'ic') {
+            await agent.fetchRootKey();
+        }
+        
+        const actor = createActor(canisterID, { agent });
+        
+        // Link the accounts - pass both the principal and openchatId
+        const principal = identity.getPrincipal();
+        await actor.link_accounts(principal, openchatId);
+        
+        // Store both the auth session and openchat_id
+        sessionStorage.setItem('is_authenticated', 'true');
+        sessionStorage.setItem('openchat_id', openchatId);
+        
+        return true;
+    } catch (error) {
+        console.error('Error linking accounts:', error);
         return false;
     }
 }; 
