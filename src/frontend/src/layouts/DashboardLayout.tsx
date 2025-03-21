@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, Outlet } from 'react-router-dom';
 import { logout } from '../services/auth';
 
 const DashboardLayout: React.FC = () => {
@@ -101,10 +101,10 @@ const DashboardLayout: React.FC = () => {
 
             {/* Main Content */}
             <div className="flex-1 overflow-auto">
-                {/* Add your main content here */}
+                <Outlet />
             </div>
         </div>
     );
 };
 
-export default DashboardLayout; 
+export default DashboardLayout;
