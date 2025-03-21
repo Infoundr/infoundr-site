@@ -9,6 +9,7 @@ use crate::models::connected_accounts::ConnectedAccounts;
 use crate::models::task::Task;
 use crate::models::openchat_user::OpenChatUser;
 use crate::models::dashboard_token::DashboardToken;
+use crate::models::github::Issue;
 
 pub type Memory = VirtualMemory<DefaultMemoryImpl>;
 
@@ -62,6 +63,12 @@ thread_local! {
     pub static DASHBOARD_TOKENS: RefCell<StableBTreeMap<StableString, DashboardToken, Memory>> = RefCell::new(
         StableBTreeMap::init(
             MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(7)))
+        )
+    );
+
+    pub static GITHUB_ISSUES: RefCell<StableBTreeMap<(StablePrincipal, StableString), Issue, Memory>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(8)))
         )
     );
 } 

@@ -9,7 +9,8 @@ use crate::models::dashboard_token::DashboardToken;
 use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
 use ic_cdk::api::management_canister::main::raw_rand;
 
-const TOKEN_EXPIRY_NANOS: u64 = 24 * 60 * 60 * 1_000_000_000; // 24 hours in nanoseconds
+// 2 minutes in nanoseconds
+const TOKEN_EXPIRY_NANOS: u64 = 2 * 60 * 1_000_000_000; // 2 minutes in nanoseconds
 
 #[update]
 pub fn ensure_openchat_user(openchat_id: String) {

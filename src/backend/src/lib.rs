@@ -16,7 +16,10 @@ use crate::models::connected_accounts::ConnectedAccounts;
 use crate::models::task::Task;
 use crate::models::openchat_user::OpenChatUser;
 use crate::models::dashboard_token::DashboardToken;
+use crate::models::github::Issue;
+use crate::services::account_service::ConnectionStatus;
 use candid::Principal;
+use crate::services::account_service::{ UserIdentifier, UserActivity };
 
 
 #[ic_cdk::pre_upgrade]
