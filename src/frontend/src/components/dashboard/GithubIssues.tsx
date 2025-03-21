@@ -14,23 +14,13 @@ const GithubIssues: React.FC<Props> = ({ actor }) => {
         const fetchIssues = async () => {
             try {
                 const user = await getCurrentUser();
+                console.log("User", user);
                 if (user && user[0]) {
-                    // First try to get OpenChat user by principal
-                    const openchatUser = await actor.get_openchat_user_by_principal(user[0].principal);
-                    
-                    if (openchatUser && openchatUser.length > 0) {
-                        // If we found a linked OpenChat user, use UserIdentifier.OpenChatId
-                        const userActivity = await actor.get_user_activity({
-                            OpenChatId: openchatUser[0].openchat_id
-                        });
-                        setIssues(userActivity.issues);
-                    } else {
-                        // If no linked OpenChat user, try with Principal
-                        const userActivity = await actor.get_user_activity({
-                            Principal: user[0].principal
-                        });
-                        setIssues(userActivity.issues);
-                    }
+                    // Use get_user_issues with UserIdentifier.Principal
+                    const userIssues = await actor.get_user_issues({
+                        Principal: user[0].principal
+                    });
+                    setIssues(userIssues);
                 }
             } catch (error) {
                 console.error('Error fetching issues:', error);

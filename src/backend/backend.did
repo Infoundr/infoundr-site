@@ -62,6 +62,7 @@ type User = record {
   name : text;
   created_at : nat64;
   email : opt text;
+  openchat_id : opt text;
   subscription_tier : SubscriptionTier;
 };
 type UserActivity = record {
@@ -94,7 +95,7 @@ service : {
   get_registered_openchat_users : () -> (vec OpenChatUser) query;
   get_registered_users : () -> (Result_1) query;
   get_user_activity : (UserIdentifier) -> (UserActivity) query;
-  get_user_by_openchat_id : (principal) -> (opt User) query;
+  get_user_by_openchat_id : (text) -> (opt User) query;
   get_user_connections : (principal) -> (opt ConnectedAccounts) query;
   get_user_issues : (UserIdentifier) -> (vec Issue) query;
   get_user_tasks : (UserIdentifier) -> (vec Task) query;
@@ -102,11 +103,10 @@ service : {
   get_waitlist : () -> (Result_2) query;
   is_admin : () -> (bool) query;
   is_allowed_principal : () -> (bool) query;
-  is_openchat_user_registered : (principal) -> (bool) query;
+  is_openchat_user_registered : (text) -> (bool) query;
   is_registered : () -> (bool) query;
   join_waitlist : (text) -> (Result_3);
   link_accounts : (principal, text) -> (Result_4);
-  register_openchat_user : (text, text) -> (Result_5);
   register_user : (text) -> (Result_5);
   store_asana_connection : (
       UserIdentifier,

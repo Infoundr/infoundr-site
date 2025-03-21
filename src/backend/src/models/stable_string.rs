@@ -3,6 +3,7 @@ use ic_stable_structures::{BoundedStorable, Storable};
 use std::borrow::Cow;
 use serde::{Deserialize, Serialize};
 use std::string::String;
+use std::fmt;
 
 #[derive(CandidType, Serialize, Deserialize, Debug, Clone)]
 pub struct StableString(String);
@@ -67,5 +68,11 @@ impl Ord for StableString {
 impl PartialOrd for StableString {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(self.cmp(other))
+    }
+}
+
+impl fmt::Display for StableString {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_str())
     }
 } 

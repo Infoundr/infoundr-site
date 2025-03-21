@@ -15,20 +15,11 @@ const TaskList: React.FC<Props> = ({ actor }) => {
             try {
                 const user = await getCurrentUser();
                 if (user && user[0]) {
-                    // First try to get OpenChat user by principal
-                    const openchatUser = await actor.get_openchat_user_by_principal(user[0].principal);
-                    
-                    if (openchatUser && openchatUser.length > 0) {
-                        // If we found a linked OpenChat user, use UserIdentifier.OpenChatId
-                            // const userActivity = await actor.get_user_tasks({
-                            //     OpenChatId: openchatUser[0].openchat_id
-                            // });
-                            // setTasks(userActivity.tasks);
-                    } else {
-                        // If no linked OpenChat user, try with Principal
-                        // const userActivity = await actor.get_user_tasks(user[0].principal);
-                        // setTasks(userActivity.tasks);
-                    }
+                    // Use get_user_tasks with UserIdentifier.Principal
+                    const userTasks = await actor.get_user_tasks({
+                        Principal: user[0].principal
+                    });
+                    setTasks(userTasks);
                 }
             } catch (error) {
                 console.error('Error fetching tasks:', error);

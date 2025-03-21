@@ -19,20 +19,12 @@ const ChatHistory: React.FC<Props> = ({ actor }) => {
                 const user = await getCurrentUser();
                 console.log("User", user);
                 if (user && user[0]) {
-                    // First try to get OpenChat user by principal
-                    console.log("Getting openchat user by principal");
-                    const openchatUser = await actor.get_openchat_user_by_principal(user[0].principal);
-                    console.log("openchatUser", openchatUser);
-                    
-                    if (openchatUser && openchatUser.length > 0) {
-                        // If we found a linked OpenChat user, use UserIdentifier.OpenChatId
-                        // const userActivity = await actor.get_chat_history(openchatUser[0].openchat_id);
-                        // setMessages(userActivity.chat_history);
-                    } else {
-                        // If no linked OpenChat user, try with Principal
-                        // const userActivity = await actor.get_chat_history(user[0].principal);
-                        // setMessages(userActivity.chat_history);
-                    }
+                    // Use get_chat_history with UserIdentifier.Principal
+                    const chatHistory = await actor.get_chat_history({
+                        Principal: user[0].principal
+                    });
+                    console.log("Chat history:", chatHistory);
+                    setMessages(chatHistory);
                 }
             } catch (error) {
                 console.error('Error fetching chat history:', error);
