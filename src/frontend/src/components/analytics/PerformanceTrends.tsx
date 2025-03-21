@@ -19,6 +19,12 @@ const PerformanceTrends: React.FC = () => {
     { month: 'Apr', revenue: 95000, users: 1600, efficiency: 88 },
     { month: 'May', revenue: 102000, users: 1750, efficiency: 90 },
     { month: 'Jun', revenue: 115000, users: 1890, efficiency: 89 },
+    // { month: 'July', revenue: 11500, users: 1890, efficiency: 89 },
+    // { month: 'Aug', revenue: 115000, users: 1890, efficiency: 89 },
+    // { month: 'Sep', revenue: 115000, users: 1890, efficiency: 89 },
+    // { month: 'Oct', revenue: 115000, users: 1890, efficiency: 89 },
+    // { month: 'Nov', revenue: 115000, users: 1890, efficiency: 89 },
+    // { month: 'Dec', revenue: 115000, users: 1890, efficiency: 89 },
   ];
 
   const [activeMetric, setActiveMetric] = useState('revenue');

@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useNavigate, Routes, Route } from 'react-router-dom';
 import { logout } from '../services/auth';
 import Analytics from '../pages/Analytics';
+import Tasks from '../pages/Tasks';
 
 const DashboardLayout: React.FC = () => {
     const navigate = useNavigate();
@@ -104,6 +105,7 @@ const DashboardLayout: React.FC = () => {
             <div className="flex-1 overflow-auto">
                 <Routes>
                     <Route path="analytics" element={<Analytics />} />
+                    <Route path="tasks" element={<Tasks />} />
                     {/* Add other dashboard routes here */}
                     <Route path="*" element={<div>Page not found</div>} />
                 </Routes>
