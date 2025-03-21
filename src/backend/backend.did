@@ -15,7 +15,22 @@ type ConnectedAccounts = record {
   asana : opt AsanaAccount;
   github : opt GitHubAccount;
 };
+type ConnectionStatus = record {
+  github_connected : bool;
+  selected_repo : opt text;
+  asana_connected : bool;
+  asana_workspace : opt text;
+};
 type GitHubAccount = record { token : text; selected_repo : opt text };
+type Issue = record {
+  id : text;
+  status : IssueStatus;
+  title : text;
+  body : text;
+  created_at : nat64;
+  repository : text;
+};
+type IssueStatus = variant { Open; Closed };
 type MessageRole = variant { User; Assistant };
 type OpenChatUser = record {
   site_principal : opt principal;
@@ -29,7 +44,18 @@ type Result_2 = variant { Ok : vec WaitlistEntry; Err : text };
 type Result_3 = variant { Ok : WaitlistEntry; Err : text };
 type Result_4 = variant { Ok; Err : text };
 type Result_5 = variant { Ok : User; Err : text };
+type Result_6 = variant { Ok; Err : vec text };
 type SubscriptionTier = variant { Enterprise; Free; Professional };
+type Task = record {
+  id : text;
+  status : text;
+  title : text;
+  creator : principal;
+  platform_id : text;
+  description : text;
+  platform : text;
+  created_at : nat64;
+};
 type User = record {
   "principal" : principal;
   name : text;
@@ -37,6 +63,7 @@ type User = record {
   email : opt text;
   subscription_tier : SubscriptionTier;
 };
+type UserIdentifier = variant { Principal : principal; OpenChatId : text };
 type WaitlistEntry = record {
   status : WaitlistStatus;
   name : text;
@@ -51,6 +78,9 @@ service : {
   generate_dashboard_token : (text) -> (text);
   get_active_openchat_users : (nat64) -> (vec OpenChatUser) query;
   get_admins : () -> (vec principal) query;
+  get_chat_history : (principal) -> (vec ChatMessage) query;
+  get_connection_status : (principal) -> (ConnectionStatus) query;
+  get_current_repo : (principal) -> (opt text) query;
   get_current_user : () -> (opt User) query;
   get_openchat_user : (text) -> (opt OpenChatUser) query;
   get_openchat_user_by_principal : (principal) -> (opt OpenChatUser) query;
@@ -58,6 +88,8 @@ service : {
   get_registered_users : () -> (Result_1) query;
   get_user_by_openchat_id : (principal) -> (opt User) query;
   get_user_connections : (principal) -> (opt ConnectedAccounts) query;
+  get_user_issues : (principal) -> (vec Issue) query;
+  get_user_tasks : (principal) -> (vec Task) query;
   get_users : () -> (Result_1) query;
   get_waitlist : () -> (Result_2) query;
   is_admin : () -> (bool) query;
@@ -69,12 +101,16 @@ service : {
   register_openchat_user : (text, text) -> (Result_5);
   register_user : (text) -> (Result_5);
   store_asana_connection : (
-      principal,
+      UserIdentifier,
       text,
       text,
       vec record { text; text },
     ) -> ();
-  store_github_connection : (principal, text, opt text) -> ();
-  update_github_selected_repo : (principal, text) -> (Result_4);
+  store_asana_task : (UserIdentifier, Task) -> (Result_4);
+  store_chat_message : (UserIdentifier, ChatMessage) -> ();
+  store_github_connection : (UserIdentifier, text, opt text) -> ();
+  store_github_issue : (UserIdentifier, Issue) -> (Result_4);
+  update_github_selected_repo : (UserIdentifier, text) -> (Result_4);
   validate_dashboard_token : (blob) -> (opt text) query;
+  verify_connections : (principal) -> (Result_6) query;
 }

@@ -17,6 +17,7 @@ pub struct ChatMessage {
     pub id: Principal,
     pub role: MessageRole,
     pub content: String,
+    pub question_asked: Option<String>, // Store the original question when role is assistant
     pub timestamp: u64,
     pub bot_name: Option<String>, // Which bot responded (Benny, Felix, etc)
 }

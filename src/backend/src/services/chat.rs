@@ -15,6 +15,7 @@ pub fn add_chat_message(content: String, bot_type: BotType) -> Result<ChatMessag
         id: caller,
         role: MessageRole::User,
         content,
+        question_asked: None,
         timestamp,
         bot_name: Some(bot_type.to_string()),
     };
