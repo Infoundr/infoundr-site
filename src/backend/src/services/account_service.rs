@@ -132,24 +132,30 @@ pub fn store_chat_message(
     });
 }
 
+// #[query]
+// pub fn get_chat_history(user: Principal) -> Vec<ChatMessage> {
+//     CHAT_HISTORY.with(|history| {
+//         history
+//             .borrow()
+//             .iter()
+//             .filter(|((user_id, _), _)| user_id.get() == user)
+//             .map(|(_, message)| message.clone())
+//             .collect()
+//     })
+// }
+
 #[query]
-pub fn get_chat_history(user: Principal) -> Vec<ChatMessage> {
-    CHAT_HISTORY.with(|history| {
-        history
-            .borrow()
-            .iter()
-            .filter(|((user_id, _), _)| user_id.get() == user)
-            .map(|(_, message)| message.clone())
-            .collect()
-    })
+pub fn get_chat_history(identifier: UserIdentifier) -> Vec<ChatMessage> {
+    get_user_activity(identifier).chat_history
 }
 
 // Connected Accounts Status
 #[query]
-pub fn get_connection_status(user: Principal) -> ConnectionStatus {
+pub fn get_connection_status(identifier: UserIdentifier) -> ConnectionStatus {
+    let principal = get_principal_from_identifier(&identifier);
     CONNECTED_ACCOUNTS.with(|accounts| {
         let accounts = accounts.borrow();
-        if let Some(user_accounts) = accounts.get(&user.into()) {
+        if let Some(user_accounts) = accounts.get(&principal.into()) {
             ConnectionStatus {
                 asana_connected: user_accounts.asana.is_some(),
                 github_connected: user_accounts.github.is_some(),
@@ -209,17 +215,23 @@ pub fn store_asana_task(
     })
 }
 
+// #[query]
+// pub fn get_user_tasks(user: Principal) -> Vec<Task> {
+//     TASKS.with(|tasks| {
+//         tasks
+//             .borrow()
+//             .iter()
+//             .filter(|((user_id, _), _)| user_id.get() == user)
+//             .map(|(_, task)| task.clone())
+//             .collect()
+//     })
+// }
+
 #[query]
-pub fn get_user_tasks(user: Principal) -> Vec<Task> {
-    TASKS.with(|tasks| {
-        tasks
-            .borrow()
-            .iter()
-            .filter(|((user_id, _), _)| user_id.get() == user)
-            .map(|(_, task)| task.clone())
-            .collect()
-    })
+pub fn get_user_tasks(identifier: UserIdentifier) -> Vec<Task> {
+    get_user_activity(identifier).tasks
 }
+
 
 // GitHub Issues Management
 #[update]
@@ -227,6 +239,7 @@ pub fn store_github_issue(
     identifier: UserIdentifier,
     issue: Issue
 ) -> Result<(), String> {
+    ic_cdk::println!("Storing GitHub issue");
     let store_principal = match identifier {
         UserIdentifier::Principal(principal) => principal,
         UserIdentifier::OpenChatId(openchat_id) => {
@@ -242,25 +255,32 @@ pub fn store_github_issue(
             })
         }
     };
+    ic_cdk::println!("Storing GitHub issue for user: {}", store_principal);
 
     GITHUB_ISSUES.with(|issues| {
         let mut issues = issues.borrow_mut();
         let issue_key = (store_principal.into(), StableString::from(issue.id.clone()));
         issues.insert(issue_key, issue);
+        ic_cdk::println!("GitHub issue stored");
         Ok(())
     })
 }
 
+// #[query]
+// pub fn get_user_issues(user: Principal) -> Vec<Issue> {
+//     GITHUB_ISSUES.with(|issues| {
+//         issues
+//             .borrow()
+//             .iter()
+//             .filter(|((user_id, _), _)| user_id.get() == user)
+//             .map(|(_, issue)| issue.clone())
+//             .collect()
+//     })
+// }
+
 #[query]
-pub fn get_user_issues(user: Principal) -> Vec<Issue> {
-    GITHUB_ISSUES.with(|issues| {
-        issues
-            .borrow()
-            .iter()
-            .filter(|((user_id, _), _)| user_id.get() == user)
-            .map(|(_, issue)| issue.clone())
-            .collect()
-    })
+pub fn get_user_issues(identifier: UserIdentifier) -> Vec<Issue> {
+    get_user_activity(identifier).issues
 }
 
 // Helper struct for connection status
@@ -338,6 +358,108 @@ pub struct UserActivity {
     pub tasks: Vec<Task>,
     pub issues: Vec<Issue>,
     pub connection_status: ConnectionStatus,
+}
+
+// Query function to get all user activity
+#[query]
+pub fn get_user_activity(identifier: UserIdentifier) -> UserActivity {
+    let principals_to_check = match &identifier {
+        UserIdentifier::Principal(principal) => {
+            // Check if this principal is linked to any OpenChat account
+            let mut principals = vec![*principal];
+            
+            OPENCHAT_USERS.with(|users| {
+                let users = users.borrow();
+                // Find any OpenChat user linked to this principal
+                for (_, user) in users.iter() {
+                    if let Some(p) = &user.site_principal {
+                        if p.get() == *principal {
+                            // If found, also derive principal from OpenChat ID
+                            if let Ok(derived_principal) = Principal::from_text(&user.openchat_id) {
+                                principals.push(derived_principal);
+                            }
+                            break;
+                        }
+                    }
+                }
+            });
+            principals
+        },
+        UserIdentifier::OpenChatId(openchat_id) => {
+            let mut principals = vec![];
+            
+            // Try to get linked principal
+            OPENCHAT_USERS.with(|users| {
+                let users = users.borrow();
+                if let Some(user) = users.get(&StableString::from(openchat_id.clone())) {
+                    if let Some(p) = &user.site_principal {
+                        principals.push(p.get());
+                    }
+                }
+            });
+            
+            // Also include derived principal from OpenChat ID
+            if let Ok(derived_principal) = Principal::from_text(openchat_id) {
+                principals.push(derived_principal);
+            }
+            principals
+        }
+    };
+
+    // Collect all activity across all relevant principals
+    let mut all_chat_history = vec![];
+    let mut all_tasks = vec![];
+    let mut all_issues = vec![];
+    let mut connection_status = None;
+
+    for principal in principals_to_check {
+        // Get chat history
+        CHAT_HISTORY.with(|history| {
+            all_chat_history.extend(
+                history.borrow()
+                    .iter()
+                    .filter(|((user_id, _), _)| user_id.get() == principal)
+                    .map(|(_, message)| message.clone())
+            );
+        });
+
+        // Get tasks
+        TASKS.with(|tasks| {
+            all_tasks.extend(
+                tasks.borrow()
+                    .iter()
+                    .filter(|((user_id, _), _)| user_id.get() == principal)
+                    .map(|(_, task)| task.clone())
+            );
+        });
+
+        // Get issues
+        GITHUB_ISSUES.with(|issues| {
+            all_issues.extend(
+                issues.borrow()
+                    .iter()
+                    .filter(|((user_id, _), _)| user_id.get() == principal)
+                    .map(|(_, issue)| issue.clone())
+            );
+        });
+
+        // Get connection status (use the first one found)
+        if connection_status.is_none() {
+            connection_status = Some(get_connection_status(identifier.clone()));
+        }
+    }
+
+    UserActivity {
+        chat_history: all_chat_history,
+        tasks: all_tasks,
+        issues: all_issues,
+        connection_status: connection_status.unwrap_or(ConnectionStatus {
+            asana_connected: false,
+            github_connected: false,
+            selected_repo: None,
+            asana_workspace: None,
+        }),
+    }
 }
 
 // fn get_activity_by_principal(principal: Principal) -> UserActivity {

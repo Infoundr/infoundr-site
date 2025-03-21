@@ -1,13 +1,74 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { logout } from '../services/auth';
+import ChatHistory from '../components/dashboard/ChatHistory';
+import TaskList from '../components/dashboard/TaskList';
+import GithubIssues from '../components/dashboard/GithubIssues';
+import { Actor } from '@dfinity/agent';
+import { createActor } from "../../../declarations/backend";
+import { HttpAgent } from "@dfinity/agent";
+import { _SERVICE } from "../../../declarations/backend/backend.did";
+
+// Import or define canister IDs (same as in auth.ts)
+const LOCAL_CANISTER_ID = "bkyz2-fmaaa-aaaaa-qaaaq-cai";
+const MAINNET_CANISTER_ID = ""; // Add your mainnet canister ID here
+
+const canisterID = import.meta.env.VITE_DFX_NETWORK === 'ic' 
+  ? MAINNET_CANISTER_ID 
+  : LOCAL_CANISTER_ID;
 
 const DashboardLayout: React.FC = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const [activeSection, setActiveSection] = useState('dashboard');
+    const [actor, setActor] = useState<Actor | null>(null);
+
+    useEffect(() => {
+        const initActor = async () => {
+            try {
+                const agent = new HttpAgent({});
+                
+                // Only fetch root key in development
+                if (import.meta.env.VITE_DFX_NETWORK !== 'ic') {
+                    await agent.fetchRootKey();
+                }
+
+                const actor = createActor(canisterID, { agent });
+                setActor(actor);
+            } catch (error) {
+                console.error("Failed to initialize actor:", error);
+            }
+        };
+
+        initActor();
+    }, []);
 
     const handleLogout = async () => {
         await logout();
         navigate('/dashboard');
+    };
+
+    const renderContent = () => {
+        if (!actor) {
+            return <div>Loading...</div>;
+        }
+
+        switch (activeSection) {
+            case 'ai-assistants':
+                return <ChatHistory actor={actor as unknown as _SERVICE} />;
+            case 'tasks':
+                return <TaskList actor={actor as unknown as _SERVICE} />;
+            case 'github':
+                // return <GithubIssues actor={actor as unknown as _SERVICE} />;
+            default:
+                return (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
+                        <ChatHistory actor={actor as unknown as _SERVICE} />
+                        <TaskList actor={actor as unknown as _SERVICE} />
+                        {/* <GithubIssues actor={actor as unknown as _SERVICE} /> */}
+                    </div>
+                );
+        }
     };
 
     return (
@@ -100,8 +161,10 @@ const DashboardLayout: React.FC = () => {
             </div>
 
             {/* Main Content */}
-            <div className="flex-1 overflow-auto">
-                {/* Add your main content here */}
+            <div className="flex-1 overflow-auto p-6">
+                <div className="max-w-7xl mx-auto">
+                    {renderContent()}
+                </div>
             </div>
         </div>
     );

@@ -164,13 +164,15 @@ export const getCurrentUser = async () => {
     try {
         const authClient = await AuthClient.create();
         const identity = authClient.getIdentity();
+        console.log("Identity", identity);
         const agent = new HttpAgent({ identity });
         
         if (import.meta.env.VITE_DFX_NETWORK !== 'ic') {
             await agent.fetchRootKey();
         }
-        
+        console.log("Agent", agent);
         const actor = createActor(canisterID, { agent });
+        console.log("Actor", actor);
         return await actor.get_current_user();
     } catch (error) {
         console.error('Error getting current user:', error);
