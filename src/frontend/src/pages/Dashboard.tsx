@@ -1,6 +1,26 @@
 import React, { useState } from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { Bar } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  TooltipItem,
+} from 'chart.js';
 import { Bell, Settings, MoreHorizontal, PlusCircle, MessageSquare, Clock, Mail, Calendar, PieChart, Slack, Mail as MailIcon, Github } from 'lucide-react';
+
+// Register Chart.js components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 // Sample data for the chart
 const chartData = [
@@ -14,6 +34,123 @@ const chartData = [
   { name: 'Aug', value: 85 },
   { name: 'Sep', value: 90 },
 ];
+
+
+// Format data for Chart.js with gradient
+const chartJsData = {
+  labels: chartData.map(item => item.name),
+  datasets: [
+    {
+
+      label: 'Monthly Performance',
+      data: chartData.map(item => item.value),
+
+
+      backgroundColor: function(context: any) {
+        const chart = context.chart;
+        const {ctx, chartArea} = chart;
+        
+        if (!chartArea) {
+          // This case happens on initial chart load
+          return 'rgba(136, 132, 216, 0.8)';
+        }
+        
+        // Create gradient
+        const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+        gradient.addColorStop(0, 'rgba(136, 132, 216, 0.2)');
+        gradient.addColorStop(1, 'rgba(136, 132, 216, 0.8)');
+        return gradient;
+      },
+      borderColor: 'rgba(136, 132, 216, 1)',
+      borderWidth: 1,
+      borderRadius: 6,
+      hoverBackgroundColor: 'rgba(136, 132, 216, 1)',
+    },
+  ],
+};
+
+
+// Chart.js options with enhanced styling
+const chartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      display: false,
+    },
+    tooltip: {
+      backgroundColor: 'rgba(255, 255, 255, 0.9)',
+      titleColor: '#333',
+      bodyColor: '#666',
+      bodyFont: {
+        size: 12,
+      },
+      titleFont: {
+        size: 14,
+        weight: 700, // Using numeric weight (700 = bold)
+      },
+      padding: 12,
+      borderColor: 'rgba(136, 132, 216, 0.3)',
+      borderWidth: 1,
+      displayColors: false,
+      callbacks: {
+        title: function(tooltipItems: TooltipItem<'bar'>[]) {
+          return tooltipItems[0].label;
+        },
+        label: function(context: TooltipItem<'bar'>) {
+          return `Value: ${context.parsed.y}`;
+        }
+      }
+    },
+  },
+  scales: {
+    x: {
+      grid: {
+        display: false,
+        drawBorder: false,
+      },
+      ticks: {
+        color: '#9CA3AF',
+        font: {
+          size: 11,
+        },
+      },
+    },
+    y: {
+      grid: {
+        color: 'rgba(243, 244, 246, 1)',
+        drawBorder: false,
+      },
+      border: {
+        dash: [5, 5],
+      },
+      ticks: {
+        color: '#9CA3AF',
+        font: {
+          size: 11,
+        },
+        padding: 10,
+        callback: function(value: string | number) {
+          return value;
+        },
+      },
+      beginAtZero: true,
+    },
+  },
+  animation: {
+    duration: 1500,
+  },
+  layout: {
+    padding: {
+      top: 20,
+      right: 20,
+      bottom: 0,
+      left: 0
+    }
+  },
+  barPercentage: 0.7,
+  categoryPercentage: 0.7,
+};
 
 // Card component
 interface CardProps {
@@ -228,16 +365,17 @@ const Dashboard = () => {
                 />
               </div>
               
-              {/* Chart */}
+
+              {/* Chart - Enhanced Chart.js implementation */}
               <div className="p-6 h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData}>
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="value" fill="#8884d8" />
-                  </BarChart>
-                </ResponsiveContainer>
+                <div className="mb-4 flex justify-between items-center">
+                  <h3 className="text-gray-700 font-medium">Monthly Performance</h3>
+                  <div className="flex space-x-2">
+                    <button className="text-xs px-3 py-1 bg-purple-100 text-purple-600 rounded-full">Monthly</button>
+                    <button className="text-xs px-3 py-1 text-gray-500 rounded-full">Quarterly</button>
+                  </div>
+                </div>
+                <Bar data={chartJsData} options={chartOptions} />
               </div>
             </Card>
 

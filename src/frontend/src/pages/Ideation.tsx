@@ -130,7 +130,7 @@ const Ideation = () => {
                 <div className="p-4 border border-gray-100 rounded-md shadow-sm">
                   <div className="flex items-start mb-2">
                     <div className="w-10 h-10 rounded-full bg-gray-200 mr-3">
-                      <img src="/api/placeholder/40/40" alt="John Miller" />
+                      <img src="" alt="" />
                     </div>
                     <div>
                       <h3 className="font-medium">John Miller</h3>
@@ -143,7 +143,7 @@ const Ideation = () => {
                 <div className="p-4 border border-gray-100 rounded-md shadow-sm">
                   <div className="flex items-start mb-2">
                     <div className="w-10 h-10 rounded-full bg-gray-200 mr-3">
-                      <img src="/api/placeholder/40/40" alt="Sarah Chen" />
+                      <img src="" alt="" />
                     </div>
                     <div>
                       <h3 className="font-medium">Sarah Chen</h3>
