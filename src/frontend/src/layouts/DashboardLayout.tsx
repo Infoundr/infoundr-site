@@ -1,33 +1,51 @@
-import React from 'react';
-import { Link, useNavigate, Outlet } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { logout } from '../services/auth';
 
 const DashboardLayout: React.FC = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     const handleLogout = async () => {
         await logout();
         navigate('/dashboard');
     };
 
+    const isActive = (path: string) => {
+        return location.pathname.startsWith(path) ? 'bg-[#5B21B6]' : '';
+    };
+
     return (
-        <div className="flex h-screen bg-gray-100">
+        <div className="flex h-screen bg-gray-100 overflow-hidden">
+            {/* Mobile sidebar backdrop */}
+            {sidebarOpen && (
+                <div 
+                    className="fixed inset-0 z-20 bg-black bg-opacity-50 lg:hidden"
+                    onClick={() => setSidebarOpen(false)}
+                ></div>
+            )}
+
             {/* Sidebar */}
-            <div className="w-64 bg-[#4C1D95] text-white">
+            <div className={`
+                fixed inset-y-0 left-0 z-30 w-64 bg-[#4C1D95] text-white transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto lg:z-auto
+                ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+            `}>
                 {/* Logo */}
-                <div className="flex justify-start">
+                <div className="flex justify-start p-4">
                     <img 
                         src="/images/Logo.png" 
                         alt="Infoundr" 
-                        className="h-24"
+                        className="h-16 lg:h-24"
                     />
                 </div>
 
                 {/* Navigation Links */}
-                <nav className="">
+                <nav className="mt-4">
                     <Link 
                         to="/dashboard/home" 
-                        className="flex items-center px-6 py-3 text-gray-100 hover:bg-[#5B21B6] transition-colors"
+                        className={`flex items-center px-6 py-3 text-gray-100 hover:bg-[#5B21B6] transition-colors ${isActive('/dashboard/home')}`}
+                        onClick={() => setSidebarOpen(false)}
                     >
                         <img src="/icons/home.png" alt="" className="w-5 h-5 mr-3" />
                         <span className="text-sm font-medium">Dashboard</span>
@@ -35,7 +53,8 @@ const DashboardLayout: React.FC = () => {
 
                     <Link 
                         to="/dashboard/ai-assistants" 
-                        className="flex items-center px-6 py-3 text-gray-100 hover:bg-[#5B21B6] transition-colors"
+                        className={`flex items-center px-6 py-3 text-gray-100 hover:bg-[#5B21B6] transition-colors ${isActive('/dashboard/ai-assistants')}`}
+                        onClick={() => setSidebarOpen(false)}
                     >
                         <img src="/icons/robot-white.png" alt="" className="w-5 h-5 mr-3" />
                         <span className="text-sm font-medium">AI Assistants</span>
@@ -43,7 +62,8 @@ const DashboardLayout: React.FC = () => {
 
                     <Link 
                         to="/dashboard/tasks" 
-                        className="flex items-center px-6 py-3 text-gray-100 hover:bg-[#5B21B6] transition-colors"
+                        className={`flex items-center px-6 py-3 text-gray-100 hover:bg-[#5B21B6] transition-colors ${isActive('/dashboard/tasks')}`}
+                        onClick={() => setSidebarOpen(false)}
                     >
                         <img src="/icons/tasks.png" alt="" className="w-5 h-5 mr-3" />
                         <span className="text-sm font-medium">Task Automation</span>
@@ -51,7 +71,8 @@ const DashboardLayout: React.FC = () => {
 
                     <Link 
                         to="/dashboard/analytics" 
-                        className="flex items-center px-6 py-3 text-gray-100 hover:bg-[#5B21B6] transition-colors"
+                        className={`flex items-center px-6 py-3 text-gray-100 hover:bg-[#5B21B6] transition-colors ${isActive('/dashboard/analytics')}`}
+                        onClick={() => setSidebarOpen(false)}
                     >
                         <img src="/icons/metrics.png" alt="" className="w-5 h-5 mr-3" />
                         <span className="text-sm font-medium">Analytics</span>
@@ -59,7 +80,8 @@ const DashboardLayout: React.FC = () => {
 
                     <Link 
                         to="/dashboard/team" 
-                        className="flex items-center px-6 py-3 text-gray-100 hover:bg-[#5B21B6] transition-colors"
+                        className={`flex items-center px-6 py-3 text-gray-100 hover:bg-[#5B21B6] transition-colors ${isActive('/dashboard/team')}`}
+                        onClick={() => setSidebarOpen(false)}
                     >
                         <svg 
                             className="w-5 h-5 mr-3" 
@@ -73,7 +95,8 @@ const DashboardLayout: React.FC = () => {
 
                     <Link 
                         to="/dashboard/ideation" 
-                        className="flex items-center px-6 py-3 text-gray-100 hover:bg-[#5B21B6] transition-colors"
+                        className={`flex items-center px-6 py-3 text-gray-100 hover:bg-[#5B21B6] transition-colors ${isActive('/dashboard/ideation')}`}
+                        onClick={() => setSidebarOpen(false)}
                     >
                         <img src="/icons/bulb-white.png" alt="" className="w-5 h-5 mr-3" />
                         <span className="text-sm font-medium">Ideation</span>
@@ -81,7 +104,7 @@ const DashboardLayout: React.FC = () => {
                 </nav>
 
                 {/* Logout Button */}
-                <div className="mt-auto pt-6 pb-8 px-6">
+                <div className="absolute bottom-0 left-0 right-0 p-6">
                     <button
                         onClick={handleLogout}
                         className="flex items-center text-gray-100 hover:text-white transition-colors"
@@ -100,8 +123,35 @@ const DashboardLayout: React.FC = () => {
             </div>
 
             {/* Main Content */}
-            <div className="flex-1 overflow-auto">
-                <Outlet />
+            <div className="flex-1 flex flex-col overflow-hidden">
+                {/* Mobile Header */}
+                <header className="bg-white shadow-sm lg:hidden">
+                    <div className="px-4 py-3 flex items-center justify-between">
+                        <button
+                            onClick={() => setSidebarOpen(true)}
+                            className="text-gray-500 focus:outline-none focus:text-gray-700"
+                        >
+                            <svg 
+                                className="h-6 w-6" 
+                                fill="none" 
+                                viewBox="0 0 24 24" 
+                                stroke="currentColor"
+                            >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                        </button>
+                        <img 
+                            src="/images/Logo.png" 
+                            alt="Infoundr" 
+                            className="h-8"
+                        />
+                    </div>
+                </header>
+
+                {/* Content Area */}
+                <main className="flex-1 overflow-auto p-4">
+                    <Outlet />
+                </main>
             </div>
         </div>
     );

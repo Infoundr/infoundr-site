@@ -64,19 +64,19 @@ interface AssistantCardProps {
 
 const AssistantCard: React.FC<AssistantCardProps> = ({ name, description, icon, category, usageCount, rating }) => {
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
-      <div className="flex items-center mb-4">
-        <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center mr-4">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4 sm:p-6 hover:shadow-md transition-shadow">
+      <div className="flex items-center mb-3 sm:mb-4">
+        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-purple-100 flex items-center justify-center mr-3 sm:mr-4 flex-shrink-0">
           {icon}
         </div>
         <div>
-          <h3 className="font-semibold text-lg">{name}</h3>
+          <h3 className="font-semibold text-base sm:text-lg">{name}</h3>
           <span className="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded-full">{category}</span>
         </div>
       </div>
-      <p className="text-gray-700 mb-4 text-sm h-12">{description}</p>
+      <p className="text-gray-700 mb-3 sm:mb-4 text-xs sm:text-sm h-12 line-clamp-2">{description}</p>
       <div className="flex justify-between items-center">
-        <div className="flex items-center text-gray-500 text-sm">
+        <div className="flex items-center text-gray-500 text-xs sm:text-sm">
           <MessageSquare size={14} className="mr-1" />
           <span>{usageCount} uses</span>
         </div>
@@ -91,7 +91,7 @@ const AssistantCard: React.FC<AssistantCardProps> = ({ name, description, icon, 
           ))}
         </div>
       </div>
-      <button className="w-full mt-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700">
+      <button className="w-full mt-3 sm:mt-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 text-sm">
         Chat Now
       </button>
     </div>
@@ -112,16 +112,16 @@ const AIAssistantsPage = () => {
       category: "Business",
       usageCount: 246,
       rating: 4,
-      icon: <TrendingUp size={24} className="text-purple-600" />
+      icon: <TrendingUp size={20} className="text-purple-600" />
     },
     {
       id: 2,
       name: "Marketing Planner",
-      description: "Creates effective marketing campaigns and content calendars",
+      description: "Creates effective marketing campaigns and content",
       category: "Marketing",
       usageCount: 183,
       rating: 5,
-      icon: <MessageSquare size={24} className="text-purple-600" />
+      icon: <MessageSquare size={20} className="text-purple-600" />
     },
     {
       id: 3,
@@ -130,7 +130,7 @@ const AIAssistantsPage = () => {
       category: "Finance",
       usageCount: 127,
       rating: 4,
-      icon: <TrendingUp size={24} className="text-purple-600" />
+      icon: <TrendingUp size={20} className="text-purple-600" />
     },
     {
       id: 4,
@@ -139,16 +139,16 @@ const AIAssistantsPage = () => {
       category: "Legal",
       usageCount: 95,
       rating: 4,
-      icon: <FileText size={24} className="text-purple-600" />
+      icon: <FileText size={20} className="text-purple-600" />
     },
     {
       id: 5,
       name: "Process Optimizer",
-      description: "Identifies inefficiencies and suggests workflow improvements",
+      description: "Identifies inefficiencies and suggests workflows",
       category: "Operations",
       usageCount: 156,
       rating: 3,
-      icon: <ClipboardList size={24} className="text-purple-600" />
+      icon: <ClipboardList size={20} className="text-purple-600" />
     },
     {
       id: 6,
@@ -157,16 +157,16 @@ const AIAssistantsPage = () => {
       category: "Development",
       usageCount: 312,
       rating: 5,
-      icon: <Brain size={24} className="text-purple-600" />
+      icon: <Brain size={20} className="text-purple-600" />
     },
     {
       id: 7,
       name: "Customer Insights Analyst",
-      description: "Analyzes customer data to identify patterns and opportunities",
+      description: "Analyzes customer data to identify patterns",
       category: "Business",
       usageCount: 138,
       rating: 4,
-      icon: <TrendingUp size={24} className="text-purple-600" />
+      icon: <TrendingUp size={20} className="text-purple-600" />
     },
     {
       id: 8,
@@ -175,7 +175,7 @@ const AIAssistantsPage = () => {
       category: "Marketing",
       usageCount: 201,
       rating: 4,
-      icon: <MessageSquare size={24} className="text-purple-600" />
+      icon: <MessageSquare size={20} className="text-purple-600" />
     }
   ];
 
@@ -188,12 +188,12 @@ const AIAssistantsPage = () => {
 
   return (
     <div className="w-full min-h-screen bg-gray-50">
-      <div className="p-8">
+      <div className="p-4 sm:p-8">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-2xl font-bold">AI Assistants</h1>
-            <p className="text-gray-600">Specialized AI helpers for your startup needs</p>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8">
+          <div className="mb-4 sm:mb-0">
+            <h1 className="text-xl sm:text-2xl font-bold">AI Assistants</h1>
+            <p className="text-gray-600 text-sm">Specialized AI helpers for your startup needs</p>
           </div>
           <div className="flex items-center">
             <button className="p-2 mr-2">
@@ -206,8 +206,8 @@ const AIAssistantsPage = () => {
         </div>
         
         {/* Search and Filter */}
-        <div className="flex justify-between items-center mb-8">
-          <div className="relative w-1/3">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 space-y-4 sm:space-y-0">
+          <div className="relative w-full sm:w-1/3">
             <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input 
               type="text" 
@@ -217,11 +217,11 @@ const AIAssistantsPage = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <div className="flex space-x-2">
+          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
             {categories.map(category => (
               <button 
                 key={category}
-                className={`px-4 py-2 rounded-lg text-sm ${
+                className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm ${
                   activeCategory === category 
                     ? 'bg-purple-600 text-white' 
                     : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
@@ -234,8 +234,8 @@ const AIAssistantsPage = () => {
           </div>
         </div>
         
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {/* Assistants Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
           {filteredAssistants.map(assistant => (
             <AssistantCard 
               key={assistant.id}
@@ -248,21 +248,21 @@ const AIAssistantsPage = () => {
             />
           ))}
           
-          
-          <div className="bg-white rounded-lg border border-dashed border-gray-300 p-6 flex flex-col items-center justify-center text-gray-500 hover:bg-gray-50 cursor-pointer">
-            <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-4">
-              <Plus size={24} />
+          {/* Create Custom Assistant Card */}
+          <div className="bg-white rounded-lg border border-dashed border-gray-300 p-4 sm:p-6 flex flex-col items-center justify-center text-gray-500 hover:bg-gray-50 cursor-pointer">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gray-100 flex items-center justify-center mb-3 sm:mb-4">
+              <Plus size={20} />
             </div>
-            <p className="font-medium">Create Custom Assistant</p>
-            <p className="text-sm text-center mt-2">Build a specialized AI assistant for your specific needs</p>
+            <p className="font-medium text-sm sm:text-base">Create Custom Assistant</p>
+            <p className="text-xs sm:text-sm text-center mt-2">Build a specialized AI assistant for your specific needs</p>
           </div>
         </div>
         
-        
-        <div className="mt-12">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold">Recently Used</h2>
-            <button className="text-purple-600 text-sm flex items-center">
+        {/* Recently Used Section */}
+        <div className="mt-8 sm:mt-12">
+          <div className="flex justify-between items-center mb-4 sm:mb-6">
+            <h2 className="text-lg sm:text-xl font-bold">Recently Used</h2>
+            <button className="text-purple-600 text-xs sm:text-sm flex items-center">
               View All
               <ChevronRight size={16} className="ml-1" />
             </button>
@@ -270,17 +270,17 @@ const AIAssistantsPage = () => {
           
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 divide-y">
             {assistants.slice(0, 3).map(assistant => (
-              <div key={`recent-${assistant.id}`} className="p-4 flex items-center justify-between hover:bg-gray-50">
+              <div key={`recent-${assistant.id}`} className="p-3 sm:p-4 flex items-center justify-between hover:bg-gray-50">
                 <div className="flex items-center">
-                  <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center mr-4">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-purple-100 flex items-center justify-center mr-2 sm:mr-4 flex-shrink-0">
                     {assistant.icon}
                   </div>
                   <div>
-                    <h3 className="font-medium">{assistant.name}</h3>
-                    <p className="text-gray-500 text-sm">Last used 2 hours ago</p>
+                    <h3 className="font-medium text-sm sm:text-base">{assistant.name}</h3>
+                    <p className="text-gray-500 text-xs sm:text-sm">Last used 2 hours ago</p>
                   </div>
                 </div>
-                <button className="px-4 py-1.5 bg-purple-100 text-purple-700 rounded-md hover:bg-purple-200">
+                <button className="px-3 sm:px-4 py-1 sm:py-1.5 bg-purple-100 text-purple-700 rounded-md hover:bg-purple-200 text-xs sm:text-sm">
                   Resume
                 </button>
               </div>
