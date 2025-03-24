@@ -11,25 +11,25 @@ const Analytics: React.FC = () => {
       value: '$245,890',
       label: 'Revenue Growth',
       change: '+12.5%',
-      icon: '📈'
+      iconSrc: '/icons/trends.png'
     },
     {
       value: '1,890',
       label: 'Active Users',
       change: '+5.2%',
-      icon: '👥'
+      iconSrc: '/icons/people.png'
     },
     {
       value: '89.2%',
       label: 'Efficiency Rate',
       change: '+8.7%',
-      icon: '⚡'
+      iconSrc: '/icons/piechart.png'
     },
     {
       value: '95.8%',
       label: 'Productivity Score',
       change: '+15.3%',
-      icon: '🚀'
+      iconSrc: '/icons/rocket.png'
     }
   ];
 
@@ -59,7 +59,7 @@ const Analytics: React.FC = () => {
             value={stat.value}
             label={stat.label}
             change={stat.change}
-            icon={stat.icon}
+            iconSrc={stat.iconSrc}
           />
         ))}
       </div>

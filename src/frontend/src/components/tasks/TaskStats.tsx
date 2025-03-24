@@ -5,29 +5,29 @@ const TaskStats: React.FC = () => {
     {
       label: 'Active Tasks',
       value: '24',
-      icon: '▶️',
-      iconBg: 'bg-green-100',
+      iconSrc: '/icons/play.png',
+      iconBg: 'bg-[#EDE9FE]',
       iconColor: 'text-green-600'
     },
     {
       label: 'Pending',
       value: '12',
-      icon: '⏳',
-      iconBg: 'bg-yellow-100',
+      iconSrc: '/icons/clock.png',
+      iconBg: 'bg-[#EDE9FE]',
       iconColor: 'text-yellow-600'
     },
     {
       label: 'Completed',
       value: '156',
-      icon: '✓',
-      iconBg: 'bg-blue-100',
+      iconSrc: '/icons/check.png',
+      iconBg: 'bg-[#EDE9FE]',
       iconColor: 'text-blue-600'
     },
     {
       label: 'Success Rate',
       value: '98.2%',
-      icon: '📈',
-      iconBg: 'bg-purple-100',
+      iconSrc: '/icons/trends.png',
+      iconBg: 'bg-[#EDE9FE]',
       iconColor: 'text-purple-600'
     }
   ];
@@ -37,8 +37,8 @@ const TaskStats: React.FC = () => {
       {stats.map((stat, index) => (
         <div key={index} className="bg-white rounded-xl p-6 shadow-sm">
           <div className="flex justify-between items-start mb-4">
-            <div className={`${stat.iconBg} p-2 rounded-lg ${stat.iconColor}`}>
-              <span className="text-xl">{stat.icon}</span>
+            <div className={`${stat.iconBg} p-3 rounded-lg`}>
+              <img src={stat.iconSrc} alt="" className="w-6 h-6" />
             </div>
           </div>
           <div>

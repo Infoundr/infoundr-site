@@ -5,42 +5,49 @@ const QuickTemplates: React.FC = () => {
     {
       name: 'Follow-up Email',
       description: 'Automated follow-up sequence',
-      icon: '✉️'
+      iconSrc: '/icons/mail.png'
     },
     {
       name: 'Pitch Deck',
-      description: 'Generate presentation',
-      icon: '📊'
+      description: 'Generate pitch deck from template',
+      iconSrc: '/icons/presentation.png'
     },
     {
       name: 'Analytics Report',
-      description: 'Weekly performance summary',
-      icon: '📈'
+      description: 'Weekly performance analytics',
+      iconSrc: '/icons/chart.png'
     },
     {
       name: 'Custom Template',
-      description: 'Create new template',
-      icon: '➕',
+      description: 'Create your own template',
+      iconSrc: '/icons/plus.png',
       isAdd: true
     }
   ];
 
   return (
-    <div>
-      <h2 className="text-xl font-semibold mb-6">Quick Templates</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="bg-white rounded-xl p-6 shadow-sm">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="bg-[#EDE9FE] p-3 rounded-lg">
+          <img src="/icons/template.png" alt="" className="w-6 h-6" />
+        </div>
+        <h2 className="text-xl font-semibold">Quick Templates</h2>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {templates.map((template, index) => (
           <div 
             key={index} 
-            className={`bg-white rounded-xl p-6 shadow-sm cursor-pointer transition-all hover:shadow-md ${
-              template.isAdd ? 'border-2 border-dashed border-gray-300' : ''
+            className={`border rounded-lg p-4 cursor-pointer hover:border-purple-300 transition-colors ${
+              template.isAdd ? 'border-dashed' : ''
             }`}
           >
-            <div className="flex items-center gap-3 mb-2">
-              <span className="text-2xl">{template.icon}</span>
+            <div className="flex items-start gap-3">
+              <div className="bg-[#EDE9FE] p-3 rounded-lg">
+                <img src={template.iconSrc} alt="" className="w-6 h-6" />
+              </div>
               <div>
                 <h3 className="font-medium">{template.name}</h3>
-                <p className="text-gray-600 text-sm">{template.description}</p>
+                <p className="text-sm text-gray-600 mt-1">{template.description}</p>
               </div>
             </div>
           </div>

@@ -4,14 +4,16 @@ interface StatCardProps {
   value: string;
   label: string;
   change: string;
-  icon: string;
+  iconSrc: string;
 }
 
-const StatCard: React.FC<StatCardProps> = ({ value, label, change, icon }) => {
+const StatCard: React.FC<StatCardProps> = ({ value, label, change, iconSrc }) => {
   return (
     <div className="bg-[#F9F5FF] rounded-xl p-6">
       <div className="flex justify-between items-start mb-4">
-        <span className="text-2xl">{icon}</span>
+        <div className="bg-[#EDE9FE] p-3 rounded-lg">
+          <img src={iconSrc} alt="" className="w-6 h-6" />
+        </div>
         <span className="text-[#7C3AED] text-sm font-medium">{change}</span>
       </div>
       <div>
