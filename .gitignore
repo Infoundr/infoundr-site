@@ -1,6 +1,8 @@
 # Various IDEs and Editors
 .vscode/
 .idea/
+.specstory/ 
+deps/ 
 **/*~
 
 # Mac OSX temporary files

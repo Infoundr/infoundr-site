@@ -7,7 +7,8 @@ import type { _SERVICE } from "../../../declarations/backend/backend.did.d.ts";
 let authClient: AuthClient | null = null;
 
 // Canister IDs
-const LOCAL_CANISTER_ID = "bkyz2-fmaaa-aaaaa-qaaaq-cai";
+// const LOCAL_CANISTER_ID = "bkyz2-fmaaa-aaaaa-qaaaq-cai";
+const LOCAL_CANISTER_ID = "lqy7q-dh777-77777-aaaaq-cai";
 const MAINNET_CANISTER_ID = ""; // Add your mainnet canister ID here
 
 export const canisterID = import.meta.env.VITE_DFX_NETWORK === 'ic' 

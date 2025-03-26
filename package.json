@@ -4,13 +4,14 @@
     "npm": ">=7.0.0"
   },
   "name": "infoundr-site",
+  "private": true,
   "scripts": {
     "build": "npm run build --workspaces --if-present",
     "prebuild": "npm run prebuild --workspaces --if-present",
     "pretest": "npm run prebuild --workspaces --if-present",
+    "setup": "npm run setup --workspaces --if-present",
     "start": "npm start --workspaces --if-present",
     "test": "npm test --workspaces --if-present",
-    "setup": "bash scripts/setup.sh", 
     "upgrade": "npx generate-did backend && npx upgrade-canister backend --backend && dfx generate"
   },
   "type": "module",

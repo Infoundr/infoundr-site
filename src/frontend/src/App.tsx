@@ -13,6 +13,9 @@ import Auth from './pages/Dashboard/Auth';
 import DashboardLayout from './layouts/DashboardLayout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import BotLogin from './pages/Dashboard/BotLogin';
+import Dashboard from './pages/Dashboard';
+import Ideation from './pages/Ideation';
+import AIAssistantsPage from './pages/AIAssistantsPage';
 
 const App: React.FC = () => {
   const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
@@ -57,11 +60,19 @@ const App: React.FC = () => {
           <Route path="/dashboard" element={<Auth />} />
 
           {/* Protected Dashboard Routes */}
-          <Route path="/dashboard/*" element={
+          <Route path="/dashboard" element={
             <ProtectedRoute>
               <DashboardLayout />
             </ProtectedRoute>
-          } />
+          }>
+            <Route path="home" element={<Dashboard />} />
+            <Route path="ai-assistants" element={<AIAssistantsPage />} />
+            <Route path="tasks" element={<div>Tasks Page</div>} />
+            <Route path="analytics" element={<div>Analytics Page</div>} />
+            <Route path="team" element={<div>Team Page</div>} />
+            <Route path="ideation" element={<Ideation />} />
+            
+          </Route>
 
           {/* Admin Route */}
           <Route path="/admin" element={<AdminPanel />} />
@@ -80,4 +91,4 @@ const App: React.FC = () => {
   );
 };
 
-export default App; 
+export default App;

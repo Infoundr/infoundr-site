@@ -12,7 +12,7 @@ const Pricing: React.FC = () => {
         '5 Team Members'
       ],
       buttonText: 'Get Started',
-      buttonVariant: 'dark' as const,
+      buttonVariant: 'secondary' as const,
       buttonClassName: 'bg-[#111827] text-white'
     },
     {
@@ -36,7 +36,7 @@ const Pricing: React.FC = () => {
         'Custom Integration'
       ],
       buttonText: 'Contact Sales',
-      buttonVariant: 'dark' as const,
+      buttonVariant: 'secondary' as const,
       buttonClassName: 'bg-[#111827] text-white'
     }
   ];

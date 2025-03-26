@@ -4,12 +4,13 @@ export interface Assistant {
   icon: string;
 }
 
-export interface ButtonProps {
+export type ButtonProps = {
   variant: 'primary' | 'secondary' | 'dark';
-  children: React.ReactNode;
-  onClick?: () => void;
   className?: string;
-}
+  children: React.ReactNode;
+  onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  disabled?: boolean;
+}; 
 
 export interface CardProps {
   children: React.ReactNode;
