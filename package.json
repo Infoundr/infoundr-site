@@ -11,8 +11,7 @@
     "pretest": "npm run prebuild --workspaces --if-present",
     "setup": "npm run setup --workspaces --if-present",
     "start": "npm start --workspaces --if-present",
-    "test": "npm test --workspaces --if-present",
-    "setup": "bash scripts/setup.sh"
+    "test": "npm test --workspaces --if-present"
   },
   "type": "module",
   "workspaces": [
