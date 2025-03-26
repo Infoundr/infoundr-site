@@ -152,16 +152,13 @@ const DashboardLayout: React.FC = () => {
 
                 {/* Content Area */}
                 <main className="flex-1 overflow-auto p-4">
-                    <Outlet />
+                    <Routes>
+                        <Route path="analytics" element={<Analytics />} />
+                        <Route path="tasks" element={<Tasks />} />
+                        {/* Add other dashboard routes here */}
+                        <Route path="*" element={<div>Page not found</div>} />
+                    </Routes>
                 </main>
-<!--             <div className="flex-1 overflow-auto">
-                <Routes>
-                    <Route path="analytics" element={<Analytics />} />
-                    <Route path="tasks" element={<Tasks />} />
-                    {/* Add other dashboard routes here */}
-                    <Route path="*" element={<div>Page not found</div>} />
-                </Routes> -->
-
             </div>
         </div>
     );
