@@ -2,7 +2,7 @@
 .vscode/
 .idea/
 .specstory/ 
-deps/ 
+deps/
 **/*~
 
 # Mac OSX temporary files

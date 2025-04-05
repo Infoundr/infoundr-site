@@ -83,16 +83,19 @@ pub fn update_github_selected_repo(
     
     CONNECTED_ACCOUNTS.with(|accounts| {
         let mut accounts = accounts.borrow_mut();
-        if let Some(mut user_accounts) = accounts.get(&store_principal.into()) {
-            if let Some(ref mut github) = user_accounts.github {
-                github.selected_repo = Some(repo);
-                accounts.insert(store_principal.into(), user_accounts);
-                Ok(())
-            } else {
-                Err("GitHub account not connected".to_string())
-            }
+        let mut user_accounts = accounts
+            .get(&store_principal.into())
+            .unwrap_or(ConnectedAccounts {
+                asana: None,
+                github: None,
+            });
+
+        if let Some(ref mut github) = user_accounts.github {
+            github.selected_repo = Some(repo);
+            accounts.insert(store_principal.into(), user_accounts);
+            Ok(())
         } else {
-            Err("User accounts not found".to_string())
+            Err("GitHub account not connected".to_string())
         }
     })
 }

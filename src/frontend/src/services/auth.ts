@@ -8,8 +8,8 @@ let authClient: AuthClient | null = null;
 
 // Canister IDs
 // const LOCAL_CANISTER_ID = "bkyz2-fmaaa-aaaaa-qaaaq-cai";
-const LOCAL_CANISTER_ID = "lqy7q-dh777-77777-aaaaq-cai";
-const MAINNET_CANISTER_ID = ""; // Add your mainnet canister ID here
+const LOCAL_CANISTER_ID = "ury7f-eqaaa-aaaab-qadlq-cai";
+const MAINNET_CANISTER_ID = "mdwwn-niaaa-aaaab-qabta-cai"; // Add your mainnet canister ID here
 
 export const canisterID = import.meta.env.VITE_DFX_NETWORK === 'ic' 
   ? MAINNET_CANISTER_ID 
@@ -17,7 +17,7 @@ export const canisterID = import.meta.env.VITE_DFX_NETWORK === 'ic'
 
 // Identity Provider URLs
 const II_URL = {
-  local: "http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:4943",
+  local: "http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:8080",
   ic: "https://identity.ic0.app"
 };
 

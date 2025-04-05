@@ -9,7 +9,7 @@ import { _SERVICE } from "../../../declarations/backend/backend.did";
 
 // Import or define canister IDs (same as in auth.ts)
 const LOCAL_CANISTER_ID = "bkyz2-fmaaa-aaaaa-qaaaq-cai";
-const MAINNET_CANISTER_ID = ""; // Add your mainnet canister ID here
+const MAINNET_CANISTER_ID = "mdwwn-niaaa-aaaab-qabta-cai"; // Add your mainnet canister ID here
 
 const canisterID = import.meta.env.VITE_DFX_NETWORK === 'ic' 
   ? MAINNET_CANISTER_ID 
@@ -56,12 +56,13 @@ const DashboardLayout: React.FC = () => {
             case 'tasks':
                 return <TaskList actor={actor as unknown as _SERVICE} />;
             case 'github':
-                return null; // Commented GithubIssues component
+                return <GithubIssues actor={actor as unknown as _SERVICE} />;
             default:
                 return (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
                         <ChatHistory actor={actor as unknown as _SERVICE} />
                         <TaskList actor={actor as unknown as _SERVICE} />
+                        <GithubIssues actor={actor as unknown as _SERVICE} />
                     </div>
                 );
         }
