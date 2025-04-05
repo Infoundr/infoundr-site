@@ -1,4 +1,4 @@
-use crate::models::chat::{ChatMessage, BotType};
+use crate::models::chat::{ChatMessage, BotType, MessageRole};
 use crate::storage::memory::{CHAT_HISTORY, USERS};
 use crate::models::stable_principal::StablePrincipal;
 use ic_cdk::update;
@@ -12,10 +12,12 @@ pub fn add_chat_message(content: String, bot_type: BotType) -> Result<ChatMessag
 
     let timestamp = ic_cdk::api::time();
     let message = ChatMessage {
-        user_principal: StablePrincipal::new(caller),
+        id: caller,
+        role: MessageRole::User,
         content,
+        question_asked: None,
         timestamp,
-        bot_type,
+        bot_name: Some(bot_type.to_string()),
     };
 
     CHAT_HISTORY.with(|history| {

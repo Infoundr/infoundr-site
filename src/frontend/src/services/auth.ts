@@ -8,8 +8,8 @@ let authClient: AuthClient | null = null;
 
 // Canister IDs
 // const LOCAL_CANISTER_ID = "bkyz2-fmaaa-aaaaa-qaaaq-cai";
-const LOCAL_CANISTER_ID = "lqy7q-dh777-77777-aaaaq-cai";
-const MAINNET_CANISTER_ID = ""; // Add your mainnet canister ID here
+const LOCAL_CANISTER_ID = "ury7f-eqaaa-aaaab-qadlq-cai";
+const MAINNET_CANISTER_ID = "mdwwn-niaaa-aaaab-qabta-cai"; // Add your mainnet canister ID here
 
 export const canisterID = import.meta.env.VITE_DFX_NETWORK === 'ic' 
   ? MAINNET_CANISTER_ID 
@@ -17,7 +17,7 @@ export const canisterID = import.meta.env.VITE_DFX_NETWORK === 'ic'
 
 // Identity Provider URLs
 const II_URL = {
-  local: "http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:4943",
+  local: "http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:8080",
   ic: "https://identity.ic0.app"
 };
 
@@ -165,13 +165,15 @@ export const getCurrentUser = async () => {
     try {
         const authClient = await AuthClient.create();
         const identity = authClient.getIdentity();
+        console.log("Identity", identity);
         const agent = new HttpAgent({ identity });
         
         if (import.meta.env.VITE_DFX_NETWORK !== 'ic') {
             await agent.fetchRootKey();
         }
-        
+        console.log("Agent", agent);
         const actor = createActor(canisterID, { agent });
+        console.log("Actor", actor);
         return await actor.get_current_user();
     } catch (error) {
         console.error('Error getting current user:', error);
@@ -187,7 +189,19 @@ export const checkIsAuthenticated = async () => {
         console.log("AuthClient isAuthenticated:", isAuth);
         
         if (!isAuth) {
-            console.log("AuthClient: Not authenticated");
+            // Check if we have a valid OpenChat session
+            const openchatId = sessionStorage.getItem('openchat_id');
+            if (openchatId) {
+                const agent = new HttpAgent({});
+                if (import.meta.env.VITE_DFX_NETWORK !== 'ic') {
+                    await agent.fetchRootKey();
+                }
+                const actor = createActor(canisterID, { agent });
+                
+                // Use get_openchat_user to validate the session
+                const user = await actor.get_openchat_user(openchatId);
+                return user !== null && user !== undefined;
+            }
             return false;
         }
 
@@ -199,11 +213,8 @@ export const checkIsAuthenticated = async () => {
             await agent.fetchRootKey();
         }
         
-        const authenticatedActor = createActor(canisterID, { agent });
-        const backendAuth = await authenticatedActor.check_auth();
-        console.log("Backend auth check:", backendAuth);
-        
-        return backendAuth;
+        const actor = createActor(canisterID, { agent });
+        return await actor.check_auth();
     } catch (error) {
         console.error('Error checking auth:', error);
         return false;
@@ -244,4 +255,133 @@ const createAuthenticatedActor = async () => {
     }
     
     return createActor(canisterID, { agent });
+};
+
+export const loginWithBotToken = async (token: string): Promise<{
+    isValid: boolean;
+    openchatId: string | null;
+}> => {
+    try {
+        console.log("Starting token validation process");
+        const agent = new HttpAgent({});
+        
+        if (import.meta.env.VITE_DFX_NETWORK !== 'ic') {
+            await agent.fetchRootKey();
+        }
+        
+        const actor = createActor(canisterID, { agent });
+        
+        // Clean and normalize the token
+        let cleanToken = token
+            .replace(/^DIDL.*?,/, '') // Remove DIDL prefix
+            .replace(/\s+/g, '') // Remove all whitespace
+            .trim(); // Trim any remaining whitespace
+            
+        console.log("Cleaned token:", cleanToken);
+        
+        // Ensure the token is properly base64 formatted
+        // Add padding if necessary
+        while (cleanToken.length % 4) {
+            cleanToken += '=';
+        }
+        
+        let tokenBytes;
+        try {
+            // First attempt: direct base64 decode
+            tokenBytes = Uint8Array.from(
+                atob(cleanToken)
+                    .split('')
+                    .map(char => char.charCodeAt(0))
+            );
+        } catch (e) {
+            console.log("Base64 decode failed, trying URL-safe decode");
+            try {
+                // Second attempt: URL-safe base64 decode
+                const urlSafeToken = cleanToken
+                    .replace(/-/g, '+')
+                    .replace(/_/g, '/');
+                tokenBytes = Uint8Array.from(
+                    atob(urlSafeToken)
+                        .split('')
+                        .map(char => char.charCodeAt(0))
+                );
+            } catch (e2) {
+                console.log("URL-safe decode failed, using direct encoding");
+                // Last resort: direct encoding
+                tokenBytes = new TextEncoder().encode(cleanToken);
+            }
+        }
+        
+        console.log("Token bytes:", Array.from(tokenBytes));
+        
+        // Validate token with backend
+        const response = await actor.validate_dashboard_token(Array.from(tokenBytes));
+        console.log("Backend response:", response);
+        
+        if (!response || (Array.isArray(response) && response.length === 0)) {
+            console.error('Invalid or expired token');
+            return { isValid: false, openchatId: null };
+        }
+
+        // Handle the response based on its type
+        const openchatId = Array.isArray(response) ? response[0] : response;
+        
+        if (typeof openchatId === 'string' && openchatId) {
+            console.log("Valid OpenChat ID found:", openchatId);
+            sessionStorage.setItem('openchat_id', openchatId);
+            return { isValid: true, openchatId };
+        }
+        
+        console.error('Invalid response format from backend');
+        return { isValid: false, openchatId: null };
+    } catch (error) {
+        console.error('Token validation error:', error);
+        return { isValid: false, openchatId: null };
+    }
+};
+
+// Add new function to check if OpenChat user has completed registration
+export const isOpenChatUserRegistered = async (openchatId: string): Promise<boolean> => {
+    try {
+        const agent = new HttpAgent({});
+        
+        if (import.meta.env.VITE_DFX_NETWORK !== 'ic') {
+            await agent.fetchRootKey();
+        }
+        
+        const actor = createActor(canisterID, { agent });
+        const user = await actor.get_openchat_user(openchatId);
+        return user !== null && user !== undefined;
+    } catch (error) {
+        console.error('Error checking OpenChat user registration:', error);
+        return false;
+    }
+};
+
+// Function to link accounts
+export const linkAccounts = async (openchatId: string): Promise<boolean> => {
+    try {
+        const authClient = await AuthClient.create();
+        const identity = authClient.getIdentity();
+        const agent = new HttpAgent({ identity });
+        
+        if (import.meta.env.VITE_DFX_NETWORK !== 'ic') {
+            await agent.fetchRootKey();
+        }
+        
+        const actor = createActor(canisterID, { agent });
+        
+        // Link the accounts - pass both the principal and openchatId
+        const principal = identity.getPrincipal();
+        await actor.link_accounts(principal, openchatId);
+        
+        // Store both the auth session and openchat_id
+        sessionStorage.setItem('is_authenticated', 'true');
+        sessionStorage.setItem('openchat_id', openchatId);
+        
+        return true;
+    } catch (error) {
+        console.error('Error linking accounts:', error);
+        return false;
+    }
 }; 

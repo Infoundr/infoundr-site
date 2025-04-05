@@ -1,4 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import ChatHistory from '../components/dashboard/ChatHistory';
+import TaskList from '../components/dashboard/TaskList';
+import GithubIssues from '../components/dashboard/GithubIssues';
+import { Actor } from '@dfinity/agent';
+import { createActor } from "../../../declarations/backend";
+import { HttpAgent } from "@dfinity/agent";
+import { _SERVICE } from "../../../declarations/backend/backend.did";
+
+// Import or define canister IDs (same as in auth.ts)
+const LOCAL_CANISTER_ID = "bkyz2-fmaaa-aaaaa-qaaaq-cai";
+const MAINNET_CANISTER_ID = "mdwwn-niaaa-aaaab-qabta-cai"; // Add your mainnet canister ID here
+
+const canisterID = import.meta.env.VITE_DFX_NETWORK === 'ic' 
+  ? MAINNET_CANISTER_ID 
+  : LOCAL_CANISTER_ID;
 import { Link, useNavigate, Outlet, useLocation, Routes, Route } from 'react-router-dom';
 import { logout } from '../services/auth';
 import Analytics from '../pages/Analytics';
@@ -8,14 +23,58 @@ const DashboardLayout: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [activeSection, setActiveSection] = useState('dashboard');
+    const [actor, setActor] = useState<Actor | null>(null);
 
-    const handleLogout = async () => {
-        await logout();
-        navigate('/dashboard');
+    useEffect(() => {
+        const initActor = async () => {
+            try {
+                const agent = new HttpAgent({});
+                
+                if (import.meta.env.VITE_DFX_NETWORK !== 'ic') {
+                    await agent.fetchRootKey();
+                }
+
+                const actor = createActor(canisterID, { agent });
+                setActor(actor);
+            } catch (error) {
+                console.error("Failed to initialize actor:", error);
+            }
+        };
+
+        initActor();
+    }, []);
+
+    const renderContent = () => {
+        if (!actor) {
+            return <div>Loading...</div>;
+        }
+
+        switch (activeSection) {
+            case 'ai-assistants':
+                return <ChatHistory actor={actor as unknown as _SERVICE} />;
+            case 'tasks':
+                return <TaskList actor={actor as unknown as _SERVICE} />;
+            case 'github':
+                return <GithubIssues actor={actor as unknown as _SERVICE} />;
+            default:
+                return (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
+                        <ChatHistory actor={actor as unknown as _SERVICE} />
+                        <TaskList actor={actor as unknown as _SERVICE} />
+                        <GithubIssues actor={actor as unknown as _SERVICE} />
+                    </div>
+                );
+        }
     };
 
     const isActive = (path: string) => {
         return location.pathname.startsWith(path) ? 'bg-[#5B21B6]' : '';
+    };
+
+    const handleLogout = async () => {
+        await logout();
+        navigate('/dashboard');
     };
 
     return (
@@ -152,10 +211,10 @@ const DashboardLayout: React.FC = () => {
 
                 {/* Content Area */}
                 <main className="flex-1 overflow-auto p-4">
+                    {renderContent()}
                     <Routes>
                         <Route path="analytics" element={<Analytics />} />
                         <Route path="tasks" element={<Tasks />} />
-                        {/* Add other dashboard routes here */}
                         <Route path="*" element={<div>Page not found</div>} />
                     </Routes>
                 </main>

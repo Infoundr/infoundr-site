@@ -2,7 +2,7 @@ mod models;
 mod storage;
 mod services;
 
-use crate::storage::memory::{USERS, WAITLIST, CHAT_HISTORY};
+use crate::storage::memory::{USERS, WAITLIST, CHAT_HISTORY, CONNECTED_ACCOUNTS, TASKS, OPENCHAT_USERS, DASHBOARD_TOKENS};
 use ic_cdk::storage::{stable_save, stable_restore};
 use crate::models::{
     stable_principal::StablePrincipal,
@@ -12,26 +12,48 @@ use crate::models::{
     chat::ChatMessage
 };
 use crate::models::chat::BotType;
+use crate::models::connected_accounts::ConnectedAccounts;
+use crate::models::task::Task;
+use crate::models::openchat_user::OpenChatUser;
+use crate::models::dashboard_token::DashboardToken;
+use crate::models::github::Issue;
+use crate::services::account_service::ConnectionStatus;
 use candid::Principal;
+use crate::services::account_service::{ UserIdentifier, UserActivity };
+
 
 #[ic_cdk::pre_upgrade]
 fn pre_upgrade() {
     let users = USERS.with(|users| users.borrow().iter().collect::<Vec<_>>());
     let waitlist = WAITLIST.with(|w| w.borrow().iter().collect::<Vec<_>>());
     let chat_history = CHAT_HISTORY.with(|h| h.borrow().iter().collect::<Vec<_>>());
+    let connected_accounts = CONNECTED_ACCOUNTS.with(|ca| ca.borrow().iter().collect::<Vec<_>>());
+    let tasks = TASKS.with(|t| t.borrow().iter().collect::<Vec<_>>());
+    let openchat_users = OPENCHAT_USERS.with(|u| u.borrow().iter().collect::<Vec<_>>());
+    let dashboard_tokens = DASHBOARD_TOKENS.with(|t| t.borrow().iter().collect::<Vec<_>>());
 
-    stable_save((users, waitlist, chat_history))
+    stable_save((users, waitlist, chat_history, connected_accounts, tasks, openchat_users, dashboard_tokens))
         .expect("Failed to save stable state");
 }
 
 #[ic_cdk::post_upgrade]
 fn post_upgrade() {
-    let (users, waitlist, chat_history): (
+    let (users, waitlist, chat_history, connected_accounts, tasks, openchat_users, dashboard_tokens): (
         Vec<(StablePrincipal, User)>,
         Vec<(StableString, WaitlistEntry)>,
-        Vec<((StablePrincipal, u64), ChatMessage)>
-    ) = stable_restore()
-        .expect("Failed to restore stable state");
+        Vec<((StablePrincipal, u64), ChatMessage)>,
+        Vec<(StablePrincipal, ConnectedAccounts)>,
+        Vec<((StablePrincipal, StableString), Task)>,
+        Vec<(StableString, OpenChatUser)>,
+        Vec<(StableString, DashboardToken)>
+    ) = match stable_restore() {
+        Ok(data) => data,
+        Err(_) => (vec![], vec![], vec![], vec![], vec![], vec![], vec![])
+    };
+
+    // Initialize empty collections for new storage
+    let connected_accounts: Vec<(StablePrincipal, ConnectedAccounts)> = vec![];
+    let tasks: Vec<((StablePrincipal, StableString), Task)> = vec![];
 
     // Restore users
     USERS.with(|u| {
@@ -54,6 +76,38 @@ fn post_upgrade() {
         let mut h = h.borrow_mut();
         for (k, v) in chat_history {
             h.insert(k, v);
+        }
+    });
+
+    // Restore connected accounts
+    CONNECTED_ACCOUNTS.with(|ca| {
+        let mut ca = ca.borrow_mut();
+        for (k, v) in connected_accounts {
+            ca.insert(k, v);
+        }
+    });
+
+    // Restore tasks
+    TASKS.with(|t| {
+        let mut t = t.borrow_mut();
+        for (k, v) in tasks {
+            t.insert(k, v);
+        }
+    });
+
+    // Restore OpenChat users
+    OPENCHAT_USERS.with(|u| {
+        let mut u = u.borrow_mut();
+        for (k, v) in openchat_users {
+            u.insert(k, v);
+        }
+    });
+
+    // Restore dashboard tokens
+    DASHBOARD_TOKENS.with(|t| {
+        let mut t = t.borrow_mut();
+        for (k, v) in dashboard_tokens {
+            t.insert(k, v);
         }
     });
 }

@@ -10,8 +10,10 @@
     "prebuild": "npm run prebuild --workspaces --if-present",
     "pretest": "npm run prebuild --workspaces --if-present",
     "setup": "npm run setup --workspaces --if-present",
+    "setup-backend": "scripts/setup-backend.sh",
     "start": "npm start --workspaces --if-present",
-    "test": "npm test --workspaces --if-present"
+    "test": "npm test --workspaces --if-present",
+    "upgrade": "npx generate-did backend && npx upgrade-canister backend --backend && dfx generate"
   },
   "type": "module",
   "workspaces": [

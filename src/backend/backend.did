@@ -1,23 +1,77 @@
+type AsanaAccount = record {
+  token : text;
+  workspace_id : text;
+  project_ids : vec record { text; text };
+};
 type BotType = variant { Dean; Uncle; Benny };
 type ChatMessage = record {
-  user_principal : principal;
+  id : principal;
+  question_asked : opt text;
   content : text;
-  bot_type : BotType;
+  bot_name : opt text;
+  role : MessageRole;
   timestamp : nat64;
+};
+type ConnectedAccounts = record {
+  asana : opt AsanaAccount;
+  github : opt GitHubAccount;
+};
+type ConnectionStatus = record {
+  github_connected : bool;
+  selected_repo : opt text;
+  asana_connected : bool;
+  asana_workspace : opt text;
+};
+type GitHubAccount = record { token : text; selected_repo : opt text };
+type Issue = record {
+  id : text;
+  status : IssueStatus;
+  title : text;
+  body : text;
+  created_at : nat64;
+  repository : text;
+};
+type IssueStatus = variant { Open; Closed };
+type MessageRole = variant { User; Assistant };
+type OpenChatUser = record {
+  site_principal : opt principal;
+  last_interaction : nat64;
+  openchat_id : text;
+  first_interaction : nat64;
 };
 type Result = variant { Ok : ChatMessage; Err : text };
 type Result_1 = variant { Ok : vec User; Err : text };
 type Result_2 = variant { Ok : vec WaitlistEntry; Err : text };
 type Result_3 = variant { Ok : WaitlistEntry; Err : text };
-type Result_4 = variant { Ok : User; Err : text };
+type Result_4 = variant { Ok; Err : text };
+type Result_5 = variant { Ok : User; Err : text };
+type Result_6 = variant { Ok; Err : vec text };
 type SubscriptionTier = variant { Enterprise; Free; Professional };
+type Task = record {
+  id : text;
+  status : text;
+  title : text;
+  creator : principal;
+  platform_id : text;
+  description : text;
+  platform : text;
+  created_at : nat64;
+};
 type User = record {
   "principal" : principal;
   name : text;
   created_at : nat64;
   email : opt text;
+  openchat_id : opt text;
   subscription_tier : SubscriptionTier;
 };
+type UserActivity = record {
+  tasks : vec Task;
+  connection_status : ConnectionStatus;
+  issues : vec Issue;
+  chat_history : vec ChatMessage;
+};
+type UserIdentifier = variant { Principal : principal; OpenChatId : text };
 type WaitlistEntry = record {
   status : WaitlistStatus;
   name : text;
@@ -28,14 +82,43 @@ type WaitlistStatus = variant { Approved; Rejected; Pending };
 service : {
   add_chat_message : (text, BotType) -> (Result);
   check_auth : () -> (bool) query;
+  ensure_openchat_user : (text) -> ();
+  generate_dashboard_token : (text) -> (text);
+  get_active_openchat_users : (nat64) -> (vec OpenChatUser) query;
   get_admins : () -> (vec principal) query;
+  get_chat_history : (UserIdentifier) -> (vec ChatMessage) query;
+  get_connection_status : (UserIdentifier) -> (ConnectionStatus) query;
+  get_current_repo : (principal) -> (opt text) query;
   get_current_user : () -> (opt User) query;
+  get_openchat_user : (text) -> (opt OpenChatUser) query;
+  get_openchat_user_by_principal : (principal) -> (opt OpenChatUser) query;
+  get_registered_openchat_users : () -> (vec OpenChatUser) query;
   get_registered_users : () -> (Result_1) query;
+  get_user_activity : (UserIdentifier) -> (UserActivity) query;
+  get_user_by_openchat_id : (text) -> (opt User) query;
+  get_user_connections : (principal) -> (opt ConnectedAccounts) query;
+  get_user_issues : (UserIdentifier) -> (vec Issue) query;
+  get_user_tasks : (UserIdentifier) -> (vec Task) query;
   get_users : () -> (Result_1) query;
   get_waitlist : () -> (Result_2) query;
   is_admin : () -> (bool) query;
   is_allowed_principal : () -> (bool) query;
+  is_openchat_user_registered : (text) -> (bool) query;
   is_registered : () -> (bool) query;
   join_waitlist : (text) -> (Result_3);
-  register_user : (text) -> (Result_4);
+  link_accounts : (principal, text) -> (Result_4);
+  register_user : (text) -> (Result_5);
+  store_asana_connection : (
+      UserIdentifier,
+      text,
+      text,
+      vec record { text; text },
+    ) -> ();
+  store_asana_task : (UserIdentifier, Task) -> (Result_4);
+  store_chat_message : (UserIdentifier, ChatMessage) -> ();
+  store_github_connection : (UserIdentifier, text, opt text) -> ();
+  store_github_issue : (UserIdentifier, Issue) -> (Result_4);
+  update_github_selected_repo : (UserIdentifier, text) -> (Result_4);
+  validate_dashboard_token : (blob) -> (opt text) query;
+  verify_connections : (principal) -> (Result_6) query;
 }

@@ -4,16 +4,17 @@ use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 use crate::models::stable_principal::StablePrincipal;
 
-#[derive(CandidType, Serialize, Deserialize, Clone)]
+#[derive(CandidType, Deserialize, Clone, Debug)]
 pub struct User {
     pub principal: StablePrincipal,
-    pub email: Option<String>,
     pub name: String,
+    pub email: Option<String>,
     pub created_at: u64,
     pub subscription_tier: SubscriptionTier,
+    pub openchat_id: Option<String>,
 }
 
-#[derive(CandidType, Serialize, Deserialize, Clone)]
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
 pub enum SubscriptionTier {
     Free,
     Professional,
