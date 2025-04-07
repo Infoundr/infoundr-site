@@ -1,0 +1,77 @@
+name: Build and Deploy canister
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DFX_VERSION: "0.25.1-beta.0"  # dfx version
+  BACKEND_PACKAGE: "backend"  # Backend canister name
+  FRONTEND_PACKAGE: "frontend"  # Frontend canister name
+  VERSION: ${{ github.sha }}  
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          targets: wasm32-unknown-unknown
+          override: true
+
+      - name: Install PocketIC server
+        uses: dfinity/pocketic@main
+      - name: Confirm successful installation
+        run: $POCKET_IC_BIN --version
+
+      - name: Build
+        uses: ./.github/actions/build
+        with:
+          lint: "true"
+          test: "true"
+          gzip: "true"
+          version: ${{ env.VERSION }}
+          package: ${{ env.BACKEND_PACKAGE }}
+          build_args: ""
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.BACKEND_PACKAGE }}_${{ github.sha }}  # Changed from PACKAGE
+          path: wasm/${{ env.BACKEND_PACKAGE }}_${{ env.VERSION }}.wasm.gz  # Changed from PACKAGE
+          if-no-files-found: error
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare Wasm Directory
+        run: mkdir -p wasm
+
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.BACKEND_PACKAGE }}_${{ github.sha }}  # Changed from PACKAGE
+          path: wasm
+
+      - name: Deploy
+        uses: ./.github/actions/deploy
+        with:
+          identity: ${{ secrets.IC_IDENTITY }}
+          canister_name: ${{ env.BACKEND_PACKAGE }}  # Changed from PACKAGE
+          network: ic
+          wasm_file: wasm/${{ env.BACKEND_PACKAGE }}_${{ env.VERSION }}.wasm.gz  # Changed from PACKAGE
