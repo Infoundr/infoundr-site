@@ -24,9 +24,9 @@ pub struct ChatMessage {
 
 #[derive(CandidType, Serialize, Deserialize, Clone)]
 pub enum BotType {
-    Benny,    // Strategic thinking
-    Uncle,    // Startup guidance
-    Dean,     // Innovation specialist
+    Benny, // Strategic thinking
+    Uncle, // Startup guidance
+    Dean,  // Innovation specialist
 }
 
 // Add Display implementation for BotType
@@ -53,4 +53,4 @@ impl Storable for ChatMessage {
 impl BoundedStorable for ChatMessage {
     const MAX_SIZE: u32 = 2048;
     const IS_FIXED_SIZE: bool = false;
-} 
+}

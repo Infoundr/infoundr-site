@@ -31,4 +31,4 @@ impl Storable for Issue {
 impl BoundedStorable for Issue {
     const MAX_SIZE: u32 = 2048;
     const IS_FIXED_SIZE: bool = false;
-} 
+}

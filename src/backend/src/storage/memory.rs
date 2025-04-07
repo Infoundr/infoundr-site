@@ -1,15 +1,15 @@
+use crate::models::admin::Admin;
+use crate::models::connected_accounts::ConnectedAccounts;
+use crate::models::dashboard_token::DashboardToken;
+use crate::models::github::Issue;
+use crate::models::openchat_user::OpenChatUser;
+use crate::models::stable_principal::StablePrincipal;
+use crate::models::stable_string::StableString;
+use crate::models::task::Task;
+use crate::models::{chat::ChatMessage, user::User, waitlist::WaitlistEntry};
 use ic_stable_structures::memory_manager::{MemoryId, MemoryManager, VirtualMemory};
 use ic_stable_structures::{DefaultMemoryImpl, StableBTreeMap};
 use std::cell::RefCell;
-use crate::models::{user::User, waitlist::WaitlistEntry, chat::ChatMessage};
-use crate::models::stable_principal::StablePrincipal;
-use crate::models::stable_string::StableString;
-use crate::models::admin::Admin;
-use crate::models::connected_accounts::ConnectedAccounts;
-use crate::models::task::Task;
-use crate::models::openchat_user::OpenChatUser;
-use crate::models::dashboard_token::DashboardToken;
-use crate::models::github::Issue;
 
 pub type Memory = VirtualMemory<DefaultMemoryImpl>;
 
@@ -71,4 +71,4 @@ thread_local! {
             MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(8)))
         )
     );
-} 
+}

@@ -1,4 +1,4 @@
-use candid::{CandidType, Deserialize, Decode, Encode};
+use candid::{CandidType, Decode, Deserialize, Encode};
 use ic_stable_structures::{BoundedStorable, Storable};
 use std::borrow::Cow;
 
@@ -23,4 +23,4 @@ impl Storable for DashboardToken {
 impl BoundedStorable for DashboardToken {
     const MAX_SIZE: u32 = 2048;
     const IS_FIXED_SIZE: bool = false;
-} 
+}

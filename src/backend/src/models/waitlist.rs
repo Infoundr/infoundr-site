@@ -31,4 +31,4 @@ impl Storable for WaitlistEntry {
 impl BoundedStorable for WaitlistEntry {
     const MAX_SIZE: u32 = 1024;
     const IS_FIXED_SIZE: bool = false;
-} 
+}

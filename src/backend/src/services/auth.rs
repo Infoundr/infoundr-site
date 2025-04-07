@@ -1,17 +1,17 @@
-use candid::Principal;
-use ic_cdk::caller;
-use crate::models::user::User;
-use crate::storage::memory::{USERS, OPENCHAT_USERS};
-use ic_cdk::api::time;
-use ic_cdk::{query, update};
 use crate::models::stable_principal::StablePrincipal;
-use crate::models::user::SubscriptionTier;
 use crate::models::stable_string::StableString;
+use crate::models::user::SubscriptionTier;
+use crate::models::user::User;
+use crate::storage::memory::{OPENCHAT_USERS, USERS};
+use candid::Principal;
+use ic_cdk::api::time;
+use ic_cdk::caller;
+use ic_cdk::{query, update};
 
 #[update]
 pub fn register_user(name: String) -> Result<User, String> {
     let caller = caller();
-    
+
     // Check if user already exists
     if USERS.with(|users| users.borrow().contains_key(&StablePrincipal::new(caller))) {
         return Err("User already exists".to_string());
@@ -19,7 +19,8 @@ pub fn register_user(name: String) -> Result<User, String> {
 
     // Check if this principal is already linked to an OpenChat user
     let openchat_id = OPENCHAT_USERS.with(|users| {
-        users.borrow()
+        users
+            .borrow()
             .iter()
             .find(|(_, user)| user.site_principal.as_ref().map(|p| p.get()) == Some(caller))
             .map(|(id, _)| id.as_str().to_string())
@@ -34,17 +35,26 @@ pub fn register_user(name: String) -> Result<User, String> {
         openchat_id, // Add this field to User struct
     };
 
-    USERS.with(|users| users.borrow_mut().insert(StablePrincipal::new(caller), user.clone()));
+    USERS.with(|users| {
+        users
+            .borrow_mut()
+            .insert(StablePrincipal::new(caller), user.clone())
+    });
     Ok(user)
 }
 
 #[query]
 pub fn get_current_user() -> Option<User> {
     let caller = caller();
-    
+
     // First try to get user directly
-    let direct_user = USERS.with(|users| users.borrow().get(&StablePrincipal::new(caller)).map(|u| u.clone()));
-    
+    let direct_user = USERS.with(|users| {
+        users
+            .borrow()
+            .get(&StablePrincipal::new(caller))
+            .map(|u| u.clone())
+    });
+
     if direct_user.is_some() {
         return direct_user;
     }
@@ -82,14 +92,15 @@ pub fn get_current_user() -> Option<User> {
 #[query]
 pub fn is_registered() -> bool {
     let caller = caller();
-    
+
     // Check both USERS and OPENCHAT_USERS
-    USERS.with(|users| users.borrow().contains_key(&StablePrincipal::new(caller))) ||
-    OPENCHAT_USERS.with(|users| {
-        users.borrow()
-            .iter()
-            .any(|(_, user)| user.site_principal.as_ref().map(|p| p.get()) == Some(caller))
-    })
+    USERS.with(|users| users.borrow().contains_key(&StablePrincipal::new(caller)))
+        || OPENCHAT_USERS.with(|users| {
+            users
+                .borrow()
+                .iter()
+                .any(|(_, user)| user.site_principal.as_ref().map(|p| p.get()) == Some(caller))
+        })
 }
 
 // Helper function to check if user is authenticated
@@ -99,7 +110,7 @@ pub fn check_auth() -> bool {
     if caller == Principal::anonymous() {
         return false;
     }
-    
+
     // Check both regular registration and OpenChat registration
     is_registered()
 }
@@ -114,13 +125,17 @@ pub fn check_auth() -> bool {
 pub fn get_user_by_openchat_id(openchat_id: String) -> Option<User> {
     // First check if there's a linked user
     OPENCHAT_USERS.with(|users| {
-        users.borrow()
+        users
+            .borrow()
             .get(&StableString::from(openchat_id.clone()))
-            .and_then(|openchat_user| {
-                openchat_user.site_principal.as_ref().map(|p| p.get())
-            })
+            .and_then(|openchat_user| openchat_user.site_principal.as_ref().map(|p| p.get()))
             .and_then(|principal| {
-                USERS.with(|users| users.borrow().get(&StablePrincipal::new(principal)).map(|u| u.clone()))
+                USERS.with(|users| {
+                    users
+                        .borrow()
+                        .get(&StablePrincipal::new(principal))
+                        .map(|u| u.clone())
+                })
             })
     })
 }
@@ -129,6 +144,8 @@ pub fn get_user_by_openchat_id(openchat_id: String) -> Option<User> {
 #[query]
 pub fn is_openchat_user_registered(openchat_id: String) -> bool {
     OPENCHAT_USERS.with(|users| {
-        users.borrow().contains_key(&StableString::from(openchat_id))
+        users
+            .borrow()
+            .contains_key(&StableString::from(openchat_id))
     })
-} 
+}

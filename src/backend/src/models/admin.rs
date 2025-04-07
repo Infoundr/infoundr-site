@@ -1,5 +1,5 @@
 use candid::{CandidType, Deserialize};
-use ic_stable_structures::{Storable, BoundedStorable};
+use ic_stable_structures::{BoundedStorable, Storable};
 use std::borrow::Cow;
 
 #[derive(CandidType, Deserialize, Clone, Debug)]
@@ -17,8 +17,8 @@ impl Storable for Admin {
     }
 
     fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Self {
-        let principal_id = String::from_utf8(bytes[..bytes.len()-8].to_vec()).unwrap();
-        let created_at = u64::from_le_bytes(bytes[bytes.len()-8..].try_into().unwrap());
+        let principal_id = String::from_utf8(bytes[..bytes.len() - 8].to_vec()).unwrap();
+        let created_at = u64::from_le_bytes(bytes[bytes.len() - 8..].try_into().unwrap());
         Admin {
             principal_id,
             created_at,
@@ -30,4 +30,4 @@ impl Storable for Admin {
 impl BoundedStorable for Admin {
     const MAX_SIZE: u32 = 1024; // Adjust this value based on your needs
     const IS_FIXED_SIZE: bool = false;
-} 
+}

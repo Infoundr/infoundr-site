@@ -1,6 +1,6 @@
-use crate::models::chat::{ChatMessage, BotType, MessageRole};
-use crate::storage::memory::{CHAT_HISTORY, USERS};
+use crate::models::chat::{BotType, ChatMessage, MessageRole};
 use crate::models::stable_principal::StablePrincipal;
+use crate::storage::memory::{CHAT_HISTORY, USERS};
 use ic_cdk::update;
 
 #[update]
@@ -21,7 +21,9 @@ pub fn add_chat_message(content: String, bot_type: BotType) -> Result<ChatMessag
     };
 
     CHAT_HISTORY.with(|history| {
-        history.borrow_mut().insert((StablePrincipal::new(caller), timestamp), message.clone())
+        history
+            .borrow_mut()
+            .insert((StablePrincipal::new(caller), timestamp), message.clone())
     });
     Ok(message)
-} 
+}

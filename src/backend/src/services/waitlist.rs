@@ -1,14 +1,17 @@
+use crate::models::stable_string::StableString;
 use crate::models::waitlist::{WaitlistEntry, WaitlistStatus};
 use crate::storage::memory::WAITLIST;
-use crate::models::stable_string::StableString;
 use ic_cdk::update;
 
 #[update]
 pub fn join_waitlist(name: String) -> Result<WaitlistEntry, String> {
     let caller = ic_cdk::caller();
-    let principal_id = caller.to_string(); 
+    let principal_id = caller.to_string();
 
-    if WAITLIST.with(|w| w.borrow().contains_key(&StableString::new(principal_id.clone()))) {
+    if WAITLIST.with(|w| {
+        w.borrow()
+            .contains_key(&StableString::new(principal_id.clone()))
+    }) {
         return Err("Principal already on waitlist".to_string());
     }
 
@@ -19,7 +22,10 @@ pub fn join_waitlist(name: String) -> Result<WaitlistEntry, String> {
         status: WaitlistStatus::Pending,
     };
 
-    WAITLIST.with(|w| w.borrow_mut().insert(StableString::new(principal_id), entry.clone()));
+    WAITLIST.with(|w| {
+        w.borrow_mut()
+            .insert(StableString::new(principal_id), entry.clone())
+    });
     Ok(entry)
 }
 
@@ -32,4 +38,4 @@ pub fn join_waitlist(name: String) -> Result<WaitlistEntry, String> {
 // fn generate_verification_token() -> String {
 //     // Implement secure token generation
 //     uuid::Uuid::new_v4().to_string()
-// } 
+// }

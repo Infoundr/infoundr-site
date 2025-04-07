@@ -1,8 +1,8 @@
+use crate::models::stable_principal::StablePrincipal;
 use candid::{CandidType, Decode, Encode};
 use ic_stable_structures::{BoundedStorable, Storable};
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
-use crate::models::stable_principal::StablePrincipal;
 
 #[derive(CandidType, Deserialize, Clone, Debug)]
 pub struct User {
@@ -34,4 +34,4 @@ impl Storable for User {
 impl BoundedStorable for User {
     const MAX_SIZE: u32 = 1024;
     const IS_FIXED_SIZE: bool = false;
-} 
+}

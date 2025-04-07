@@ -1,4 +1,4 @@
-use candid::{CandidType, Decode, Encode, Deserialize};
+use candid::{CandidType, Decode, Deserialize, Encode};
 use ic_stable_structures::{BoundedStorable, Storable};
 use std::borrow::Cow;
 
@@ -36,4 +36,4 @@ impl Storable for ConnectedAccounts {
 impl BoundedStorable for ConnectedAccounts {
     const MAX_SIZE: u32 = 100000; // Adjust this value based on your needs
     const IS_FIXED_SIZE: bool = false;
-} 
+}

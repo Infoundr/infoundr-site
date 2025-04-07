@@ -1,8 +1,8 @@
+use crate::models::stable_principal::StablePrincipal;
 use candid::{CandidType, Deserialize};
+use candid::{Decode, Encode};
 use ic_stable_structures::{BoundedStorable, Storable};
 use std::borrow::Cow;
-use candid::{Decode, Encode};
-use crate::models::stable_principal::StablePrincipal;
 
 #[derive(CandidType, Deserialize, Clone, Debug)]
 pub struct OpenChatUser {
@@ -25,4 +25,4 @@ impl Storable for OpenChatUser {
 impl BoundedStorable for OpenChatUser {
     const MAX_SIZE: u32 = 1024;
     const IS_FIXED_SIZE: bool = false;
-} 
+}

@@ -1,9 +1,9 @@
 use candid::{CandidType, Decode, Encode};
 use ic_stable_structures::{BoundedStorable, Storable};
-use std::borrow::Cow;
 use serde::{Deserialize, Serialize};
-use std::string::String;
+use std::borrow::Cow;
 use std::fmt;
+use std::string::String;
 
 #[derive(CandidType, Serialize, Deserialize, Debug, Clone)]
 pub struct StableString(String);
@@ -75,4 +75,4 @@ impl fmt::Display for StableString {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.as_str())
     }
-} 
+}

@@ -1,4 +1,4 @@
-use candid::{CandidType, Decode, Encode, Deserialize, Principal};
+use candid::{CandidType, Decode, Deserialize, Encode, Principal};
 use ic_stable_structures::{BoundedStorable, Storable};
 use std::borrow::Cow;
 
@@ -9,7 +9,7 @@ pub struct Task {
     pub description: String,
     pub status: String,
     pub created_at: u64,
-    pub platform: String, // "asana" or "github"
+    pub platform: String,    // "asana" or "github"
     pub platform_id: String, // ID of the task in the respective platform
     pub creator: Principal,
 }
@@ -27,6 +27,6 @@ impl Storable for Task {
 
 // Implement BoundedStorable for Task
 impl BoundedStorable for Task {
-    const MAX_SIZE: u32 = 2048; // Adjust this value 
+    const MAX_SIZE: u32 = 2048; // Adjust this value
     const IS_FIXED_SIZE: bool = false;
-} 
+}

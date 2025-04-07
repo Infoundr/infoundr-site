@@ -1,13 +1,13 @@
-use crate::storage::memory::{CONNECTED_ACCOUNTS, CHAT_HISTORY, TASKS, GITHUB_ISSUES};
-use crate::models::connected_accounts::{ConnectedAccounts, AsanaAccount, GitHubAccount};
 use crate::models::chat::ChatMessage;
-use crate::models::task::Task;
-use crate::models::stable_string::StableString;
-use ic_cdk::{update, query};
-use candid::Principal;
+use crate::models::connected_accounts::{AsanaAccount, ConnectedAccounts, GitHubAccount};
 use crate::models::github::Issue;
+use crate::models::stable_string::StableString;
+use crate::models::task::Task;
 use crate::services::openchat_service::ensure_openchat_user;
 use crate::storage::memory::OPENCHAT_USERS;
+use crate::storage::memory::{CHAT_HISTORY, CONNECTED_ACCOUNTS, GITHUB_ISSUES, TASKS};
+use candid::Principal;
+use ic_cdk::{query, update};
 
 // Asana connection management
 #[update]
@@ -15,25 +15,26 @@ pub fn store_asana_connection(
     identifier: UserIdentifier,
     token: String,
     workspace_id: String,
-    project_ids: Vec<(String, String)>
+    project_ids: Vec<(String, String)>,
 ) {
     let store_principal = get_principal_from_identifier(&identifier);
-    
+
     CONNECTED_ACCOUNTS.with(|accounts| {
         let mut accounts = accounts.borrow_mut();
-        let mut user_accounts = accounts
-            .get(&store_principal.into())
-            .unwrap_or(ConnectedAccounts {
-                asana: None,
-                github: None,
-            });
-        
+        let mut user_accounts =
+            accounts
+                .get(&store_principal.into())
+                .unwrap_or(ConnectedAccounts {
+                    asana: None,
+                    github: None,
+                });
+
         user_accounts.asana = Some(AsanaAccount {
             token,
             workspace_id,
             project_ids,
         });
-        
+
         accounts.insert(store_principal.into(), user_accounts);
     });
 }
@@ -43,24 +44,25 @@ pub fn store_asana_connection(
 pub fn store_github_connection(
     identifier: UserIdentifier,
     token: String,
-    selected_repo: Option<String>
+    selected_repo: Option<String>,
 ) {
     let store_principal = get_principal_from_identifier(&identifier);
-    
+
     CONNECTED_ACCOUNTS.with(|accounts| {
         let mut accounts = accounts.borrow_mut();
-        let mut user_accounts = accounts
-            .get(&store_principal.into())
-            .unwrap_or(ConnectedAccounts {
-                asana: None,
-                github: None,
-            });
-        
+        let mut user_accounts =
+            accounts
+                .get(&store_principal.into())
+                .unwrap_or(ConnectedAccounts {
+                    asana: None,
+                    github: None,
+                });
+
         user_accounts.github = Some(GitHubAccount {
             token,
             selected_repo,
         });
-        
+
         accounts.insert(store_principal.into(), user_accounts);
     });
 }
@@ -68,27 +70,23 @@ pub fn store_github_connection(
 // Get user's connected accounts
 #[query]
 pub fn get_user_connections(user: Principal) -> Option<ConnectedAccounts> {
-    CONNECTED_ACCOUNTS.with(|accounts| {
-        accounts.borrow().get(&user.into())
-    })
+    CONNECTED_ACCOUNTS.with(|accounts| accounts.borrow().get(&user.into()))
 }
 
 // Update GitHub selected repository
 #[update]
-pub fn update_github_selected_repo(
-    identifier: UserIdentifier, 
-    repo: String
-) -> Result<(), String> {
+pub fn update_github_selected_repo(identifier: UserIdentifier, repo: String) -> Result<(), String> {
     let store_principal = get_principal_from_identifier(&identifier);
-    
+
     CONNECTED_ACCOUNTS.with(|accounts| {
         let mut accounts = accounts.borrow_mut();
-        let mut user_accounts = accounts
-            .get(&store_principal.into())
-            .unwrap_or(ConnectedAccounts {
-                asana: None,
-                github: None,
-            });
+        let mut user_accounts =
+            accounts
+                .get(&store_principal.into())
+                .unwrap_or(ConnectedAccounts {
+                    asana: None,
+                    github: None,
+                });
 
         if let Some(ref mut github) = user_accounts.github {
             github.selected_repo = Some(repo);
@@ -102,19 +100,17 @@ pub fn update_github_selected_repo(
 
 // Message History Management
 #[update]
-pub fn store_chat_message(
-    identifier: UserIdentifier,
-    message: ChatMessage
-) {
+pub fn store_chat_message(identifier: UserIdentifier, message: ChatMessage) {
     let store_principal = match identifier {
         UserIdentifier::Principal(principal) => principal,
         UserIdentifier::OpenChatId(openchat_id) => {
             // Ensure OpenChat user exists
             ensure_openchat_user(openchat_id.clone());
-            
+
             // Try to get linked principal, otherwise derive from openchat_id
             OPENCHAT_USERS.with(|users| {
-                users.borrow()
+                users
+                    .borrow()
                     .get(&StableString::from(openchat_id.clone()))
                     .and_then(|user| user.site_principal.map(|p| p.get()))
                     .unwrap_or_else(|| {
@@ -130,7 +126,7 @@ pub fn store_chat_message(
             .iter()
             .filter(|((user_id, _), _)| user_id.get() == store_principal)
             .count() as u64;
-        
+
         history.insert((store_principal.into(), message_id), message);
     });
 }
@@ -162,7 +158,10 @@ pub fn get_connection_status(identifier: UserIdentifier) -> ConnectionStatus {
             ConnectionStatus {
                 asana_connected: user_accounts.asana.is_some(),
                 github_connected: user_accounts.github.is_some(),
-                selected_repo: user_accounts.github.as_ref().and_then(|gh| gh.selected_repo.clone()),
+                selected_repo: user_accounts
+                    .github
+                    .as_ref()
+                    .and_then(|gh| gh.selected_repo.clone()),
                 asana_workspace: user_accounts.asana.as_ref().map(|a| a.workspace_id.clone()),
             }
         } else {
@@ -190,17 +189,15 @@ pub fn get_current_repo(user: Principal) -> Option<String> {
 
 // Asana Tasks Management
 #[update]
-pub fn store_asana_task(
-    identifier: UserIdentifier,
-    task: Task
-) -> Result<(), String> {
+pub fn store_asana_task(identifier: UserIdentifier, task: Task) -> Result<(), String> {
     let store_principal = match identifier {
         UserIdentifier::Principal(principal) => principal,
         UserIdentifier::OpenChatId(openchat_id) => {
             ensure_openchat_user(openchat_id.clone());
-            
+
             OPENCHAT_USERS.with(|users| {
-                users.borrow()
+                users
+                    .borrow()
                     .get(&StableString::from(openchat_id.clone()))
                     .and_then(|user| user.site_principal.map(|p| p.get()))
                     .unwrap_or_else(|| {
@@ -235,21 +232,18 @@ pub fn get_user_tasks(identifier: UserIdentifier) -> Vec<Task> {
     get_user_activity(identifier).tasks
 }
 
-
 // GitHub Issues Management
 #[update]
-pub fn store_github_issue(
-    identifier: UserIdentifier,
-    issue: Issue
-) -> Result<(), String> {
+pub fn store_github_issue(identifier: UserIdentifier, issue: Issue) -> Result<(), String> {
     ic_cdk::println!("Storing GitHub issue");
     let store_principal = match identifier {
         UserIdentifier::Principal(principal) => principal,
         UserIdentifier::OpenChatId(openchat_id) => {
             ensure_openchat_user(openchat_id.clone());
-            
+
             OPENCHAT_USERS.with(|users| {
-                users.borrow()
+                users
+                    .borrow()
                     .get(&StableString::from(openchat_id.clone()))
                     .and_then(|user| user.site_principal.map(|p| p.get()))
                     .unwrap_or_else(|| {
@@ -299,17 +293,22 @@ pub struct ConnectionStatus {
 #[query]
 pub fn verify_connections(user: Principal) -> Result<(), Vec<String>> {
     let mut errors = Vec::new();
-    
+
     CONNECTED_ACCOUNTS.with(|accounts| {
         let accounts = accounts.borrow();
         if let Some(user_accounts) = accounts.get(&user.into()) {
             // Check GitHub connection
             if user_accounts.github.is_none() {
                 errors.push("GitHub not connected".to_string());
-            } else if user_accounts.github.as_ref().and_then(|gh| gh.selected_repo.as_ref()).is_none() {
+            } else if user_accounts
+                .github
+                .as_ref()
+                .and_then(|gh| gh.selected_repo.as_ref())
+                .is_none()
+            {
                 errors.push("No GitHub repository selected".to_string());
             }
-            
+
             // Check Asana connection
             if user_accounts.asana.is_none() {
                 errors.push("Asana not connected".to_string());
@@ -322,7 +321,7 @@ pub fn verify_connections(user: Principal) -> Result<(), Vec<String>> {
             errors.push("No connected accounts found".to_string());
         }
     });
-    
+
     if errors.is_empty() {
         Ok(())
     } else {
@@ -334,16 +333,15 @@ pub fn verify_connections(user: Principal) -> Result<(), Vec<String>> {
 fn get_principal_from_identifier(identifier: &UserIdentifier) -> Principal {
     match identifier {
         UserIdentifier::Principal(principal) => *principal,
-        UserIdentifier::OpenChatId(openchat_id) => {
-            OPENCHAT_USERS.with(|users| {
-                users.borrow()
-                    .get(&StableString::from(openchat_id.clone()))
-                    .and_then(|user| user.site_principal.map(|p| p.get()))
-                    .unwrap_or_else(|| {
-                        Principal::from_text(openchat_id).unwrap_or_else(|_| Principal::anonymous())
-                    })
-            })
-        }
+        UserIdentifier::OpenChatId(openchat_id) => OPENCHAT_USERS.with(|users| {
+            users
+                .borrow()
+                .get(&StableString::from(openchat_id.clone()))
+                .and_then(|user| user.site_principal.map(|p| p.get()))
+                .unwrap_or_else(|| {
+                    Principal::from_text(openchat_id).unwrap_or_else(|_| Principal::anonymous())
+                })
+        }),
     }
 }
 
@@ -370,7 +368,7 @@ pub fn get_user_activity(identifier: UserIdentifier) -> UserActivity {
         UserIdentifier::Principal(principal) => {
             // Check if this principal is linked to any OpenChat account
             let mut principals = vec![*principal];
-            
+
             OPENCHAT_USERS.with(|users| {
                 let users = users.borrow();
                 // Find any OpenChat user linked to this principal
@@ -387,10 +385,10 @@ pub fn get_user_activity(identifier: UserIdentifier) -> UserActivity {
                 }
             });
             principals
-        },
+        }
         UserIdentifier::OpenChatId(openchat_id) => {
             let mut principals = vec![];
-            
+
             // Try to get linked principal
             OPENCHAT_USERS.with(|users| {
                 let users = users.borrow();
@@ -400,7 +398,7 @@ pub fn get_user_activity(identifier: UserIdentifier) -> UserActivity {
                     }
                 }
             });
-            
+
             // Also include derived principal from OpenChat ID
             if let Ok(derived_principal) = Principal::from_text(openchat_id) {
                 principals.push(derived_principal);
@@ -419,30 +417,33 @@ pub fn get_user_activity(identifier: UserIdentifier) -> UserActivity {
         // Get chat history
         CHAT_HISTORY.with(|history| {
             all_chat_history.extend(
-                history.borrow()
+                history
+                    .borrow()
                     .iter()
                     .filter(|((user_id, _), _)| user_id.get() == principal)
-                    .map(|(_, message)| message.clone())
+                    .map(|(_, message)| message.clone()),
             );
         });
 
         // Get tasks
         TASKS.with(|tasks| {
             all_tasks.extend(
-                tasks.borrow()
+                tasks
+                    .borrow()
                     .iter()
                     .filter(|((user_id, _), _)| user_id.get() == principal)
-                    .map(|(_, task)| task.clone())
+                    .map(|(_, task)| task.clone()),
             );
         });
 
         // Get issues
         GITHUB_ISSUES.with(|issues| {
             all_issues.extend(
-                issues.borrow()
+                issues
+                    .borrow()
                     .iter()
                     .filter(|((user_id, _), _)| user_id.get() == principal)
-                    .map(|(_, issue)| issue.clone())
+                    .map(|(_, issue)| issue.clone()),
             );
         });
 
