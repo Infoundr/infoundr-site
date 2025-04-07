@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { loginWithBotToken, isOpenChatUserRegistered, loginWithII, loginWithNFID, canisterID } from '../../services/auth';
+import { loginWithBotToken, isOpenChatUserRegistered, loginWithII, loginWithNFID } from '../../services/auth';
 import Button from '../../components/common/Button';
 import { HttpAgent } from '@dfinity/agent';
 import { createActor } from '../../../../declarations/backend';

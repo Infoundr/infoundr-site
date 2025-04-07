@@ -4,7 +4,7 @@ import { createActor } from '../../../declarations/backend';
 import { HttpAgent, ActorSubclass } from '@dfinity/agent';
 import { AuthClient } from '@dfinity/auth-client';
 import { _SERVICE } from '../../../declarations/backend/backend.did.d';
-import { canisterID } from '../services/auth';
+import { CANISTER_ID } from '@/vite-env';
 import { User, WaitlistEntry } from '../../../declarations/backend/backend.did';
 import { loginWithII, loginWithNFID, checkIsAuthenticated, logout } from '../services/auth';
 import Button from '../components/common/Button';
@@ -29,7 +29,7 @@ const AdminPanel: React.FC = () => {
                 await agent.fetchRootKey();
             }
             
-            return createActor(canisterID, { agent });
+            return createActor(CANISTER_ID, { agent });
         } catch (error) {
             console.error('Error creating authenticated actor:', error);
             throw error;

@@ -6,14 +6,9 @@ import { Actor } from '@dfinity/agent';
 import { createActor } from "../../../declarations/backend";
 import { HttpAgent } from "@dfinity/agent";
 import { _SERVICE } from "../../../declarations/backend/backend.did";
+import { CANISTER_ID } from '@/vite-env';
 
-// Import or define canister IDs (same as in auth.ts)
-const LOCAL_CANISTER_ID = "bkyz2-fmaaa-aaaaa-qaaaq-cai";
-const MAINNET_CANISTER_ID = "mdwwn-niaaa-aaaab-qabta-cai"; // Add your mainnet canister ID here
 
-const canisterID = import.meta.env.VITE_DFX_NETWORK === 'ic' 
-  ? MAINNET_CANISTER_ID 
-  : LOCAL_CANISTER_ID;
 import { Link, useNavigate, Outlet, useLocation, Routes, Route } from 'react-router-dom';
 import { logout } from '../services/auth';
 import Analytics from '../pages/Analytics';
@@ -35,7 +30,7 @@ const DashboardLayout: React.FC = () => {
                     await agent.fetchRootKey();
                 }
 
-                const actor = createActor(canisterID, { agent });
+                const actor = createActor(CANISTER_ID, { agent });
                 setActor(actor);
             } catch (error) {
                 console.error("Failed to initialize actor:", error);

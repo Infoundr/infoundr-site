@@ -2,18 +2,9 @@ import { AuthClient } from "@dfinity/auth-client";
 import { HttpAgent, ActorSubclass } from "@dfinity/agent";
 import { createActor } from "../../../declarations/backend";
 import type { _SERVICE } from "../../../declarations/backend/backend.did.d.ts";
-
+import { CANISTER_ID } from '@/vite-env';
 // Initialize AuthClient
 let authClient: AuthClient | null = null;
-
-// Canister IDs
-// const LOCAL_CANISTER_ID = "bkyz2-fmaaa-aaaaa-qaaaq-cai";
-const LOCAL_CANISTER_ID = "ury7f-eqaaa-aaaab-qadlq-cai";
-const MAINNET_CANISTER_ID = "mdwwn-niaaa-aaaab-qabta-cai"; // Add your mainnet canister ID here
-
-export const canisterID = import.meta.env.VITE_DFX_NETWORK === 'ic' 
-  ? MAINNET_CANISTER_ID 
-  : LOCAL_CANISTER_ID;
 
 // Identity Provider URLs
 const II_URL = {
@@ -72,7 +63,7 @@ async function authenticate(identityProviderUrl: string) {
 //       await agent.fetchRootKey();
 //     }
 
-//     return createActor(canisterID, { agent });
+//     return createActor(CANISTER_ID, { agent });
 //   } catch (error) {
 //     console.error("Error creating authenticated actor:", error);
 //     throw error;
@@ -106,7 +97,7 @@ export const loginWithII = async (): Promise<ActorSubclass<_SERVICE>> => {
         await agent.fetchRootKey();
     }
     
-    return createActor(canisterID, { agent });
+    return createActor(CANISTER_ID, { agent });      
 };
 
 export const loginWithNFID = async (): Promise<ActorSubclass<_SERVICE>> => {
@@ -137,7 +128,7 @@ export const loginWithNFID = async (): Promise<ActorSubclass<_SERVICE>> => {
         await agent.fetchRootKey();
     }
     
-    return createActor(canisterID, { agent });
+    return createActor(CANISTER_ID, { agent });
 };
 
 export const registerUser = async (name: string) => {
@@ -150,7 +141,7 @@ export const registerUser = async (name: string) => {
             await agent.fetchRootKey();
         }
         
-        const actor = createActor(canisterID, { agent });
+        const actor = createActor(CANISTER_ID, { agent });
         const result = await actor.register_user(name);
         if ('Err' in result) {
             throw new Error(result.Err);
@@ -172,7 +163,7 @@ export const getCurrentUser = async () => {
             await agent.fetchRootKey();
         }
         console.log("Agent", agent);
-        const actor = createActor(canisterID, { agent });
+        const actor = createActor(CANISTER_ID, { agent } );
         console.log("Actor", actor);
         return await actor.get_current_user();
     } catch (error) {
@@ -196,7 +187,7 @@ export const checkIsAuthenticated = async () => {
                 if (import.meta.env.VITE_DFX_NETWORK !== 'ic') {
                     await agent.fetchRootKey();
                 }
-                const actor = createActor(canisterID, { agent });
+                const actor = createActor(CANISTER_ID, { agent });
                 
                 // Use get_openchat_user to validate the session
                 const user = await actor.get_openchat_user(openchatId);
@@ -213,7 +204,7 @@ export const checkIsAuthenticated = async () => {
             await agent.fetchRootKey();
         }
         
-        const actor = createActor(canisterID, { agent });
+        const actor = createActor(CANISTER_ID, { agent });
         return await actor.check_auth();
     } catch (error) {
         console.error('Error checking auth:', error);
@@ -231,7 +222,7 @@ export const isRegistered = async () => {
             await agent.fetchRootKey();
         }
         
-        const actor = createActor(canisterID, { agent });
+        const actor = createActor(CANISTER_ID, { agent });
         return await actor.is_registered();
     } catch (error) {
         console.error('Error checking registration:', error);
@@ -254,7 +245,7 @@ const createAuthenticatedActor = async () => {
         await agent.fetchRootKey();
     }
     
-    return createActor(canisterID, { agent });
+    return createActor(CANISTER_ID, { agent });  
 };
 
 export const loginWithBotToken = async (token: string): Promise<{
@@ -269,7 +260,7 @@ export const loginWithBotToken = async (token: string): Promise<{
             await agent.fetchRootKey();
         }
         
-        const actor = createActor(canisterID, { agent });
+        const actor = createActor(CANISTER_ID, { agent });
         
         // Clean and normalize the token
         let cleanToken = token
@@ -349,7 +340,7 @@ export const isOpenChatUserRegistered = async (openchatId: string): Promise<bool
             await agent.fetchRootKey();
         }
         
-        const actor = createActor(canisterID, { agent });
+        const actor = createActor(CANISTER_ID, { agent });
         const user = await actor.get_openchat_user(openchatId);
         return user !== null && user !== undefined;
     } catch (error) {
@@ -369,7 +360,7 @@ export const linkAccounts = async (openchatId: string): Promise<boolean> => {
             await agent.fetchRootKey();
         }
         
-        const actor = createActor(canisterID, { agent });
+        const actor = createActor(CANISTER_ID, { agent });
         
         // Link the accounts - pass both the principal and openchatId
         const principal = identity.getPrincipal();
