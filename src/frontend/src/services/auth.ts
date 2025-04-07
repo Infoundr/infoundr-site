@@ -2,7 +2,8 @@ import { AuthClient } from "@dfinity/auth-client";
 import { HttpAgent, ActorSubclass } from "@dfinity/agent";
 import { createActor } from "../../../declarations/backend";
 import type { _SERVICE } from "../../../declarations/backend/backend.did.d.ts";
-import { CANISTER_ID } from '@/vite-env';
+import { CANISTER_ID } from '../config';
+
 // Initialize AuthClient
 let authClient: AuthClient | null = null;
 

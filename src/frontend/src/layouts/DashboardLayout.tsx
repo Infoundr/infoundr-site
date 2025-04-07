@@ -6,7 +6,7 @@ import { Actor } from '@dfinity/agent';
 import { createActor } from "../../../declarations/backend";
 import { HttpAgent } from "@dfinity/agent";
 import { _SERVICE } from "../../../declarations/backend/backend.did";
-import { CANISTER_ID } from '@/vite-env';
+import { CANISTER_ID } from '../config';
 
 
 import { Link, useNavigate, Outlet, useLocation, Routes, Route } from 'react-router-dom';

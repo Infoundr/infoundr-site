@@ -4,7 +4,7 @@ import { createActor } from '../../../declarations/backend';
 import { HttpAgent, ActorSubclass } from '@dfinity/agent';
 import { AuthClient } from '@dfinity/auth-client';
 import { _SERVICE } from '../../../declarations/backend/backend.did.d';
-import { CANISTER_ID } from '@/vite-env';
+import { CANISTER_ID } from '../config';
 import { User, WaitlistEntry } from '../../../declarations/backend/backend.did';
 import { loginWithII, loginWithNFID, checkIsAuthenticated, logout } from '../services/auth';
 import Button from '../components/common/Button';
