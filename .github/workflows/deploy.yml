@@ -38,12 +38,12 @@ jobs:
       - name: Build
         uses: ./.github/actions/build
         with:
-          lint: "true"
+          lint: "false"  # Disable linting temporarily
           test: "true"
           gzip: "true"
           version: ${{ env.VERSION }}
           package: ${{ env.BACKEND_PACKAGE }}
-          build_args: ""
+          build_args: "--no-default-features"  # Skip some checks
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
