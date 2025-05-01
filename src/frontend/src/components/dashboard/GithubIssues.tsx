@@ -1,18 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import { getCurrentUser } from '../../services/auth';
 import { _SERVICE } from "../../../../declarations/backend/backend.did";
+import { mockGithubIssues, mockActor } from '../../mocks/mockData';
 
 interface Props {
     actor: _SERVICE;
+    useMockData?: boolean;
 }
 
-const GithubIssues: React.FC<Props> = ({ actor }) => {
+const GithubIssues: React.FC<Props> = ({ actor, useMockData = false }) => {
     const [issues, setIssues] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchIssues = async () => {
             try {
+                if (useMockData) {
+                    setIssues(mockGithubIssues);
+                    setLoading(false);
+                    return;
+                }
+
                 const user = await getCurrentUser();
                 console.log("User", user);
                 if (user && user[0]) {
@@ -30,7 +38,7 @@ const GithubIssues: React.FC<Props> = ({ actor }) => {
         };
 
         fetchIssues();
-    }, [actor]);
+    }, [actor, useMockData]);
 
     if (loading) return <div>Loading issues...</div>;
 

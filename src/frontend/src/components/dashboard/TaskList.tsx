@@ -1,18 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import { getCurrentUser } from '../../services/auth';
 import { _SERVICE } from "../../../../declarations/backend/backend.did";
+import { mockTasks, mockActor } from '../../mocks/mockData';
 
 interface Props {
     actor: _SERVICE;
+    useMockData?: boolean;
 }
 
-const TaskList: React.FC<Props> = ({ actor }) => {
+const TaskList: React.FC<Props> = ({ actor, useMockData = false }) => {
     const [tasks, setTasks] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchTasks = async () => {
             try {
+                if (useMockData) {
+                    setTasks(mockTasks);
+                    setLoading(false);
+                    return;
+                }
+
                 const user = await getCurrentUser();
                 if (user && user[0]) {
                     // Use get_user_tasks with UserIdentifier.Principal
@@ -29,7 +37,7 @@ const TaskList: React.FC<Props> = ({ actor }) => {
         };
 
         fetchTasks();
-    }, [actor]);
+    }, [actor, useMockData]);
 
     if (loading) return <div>Loading tasks...</div>;
 
