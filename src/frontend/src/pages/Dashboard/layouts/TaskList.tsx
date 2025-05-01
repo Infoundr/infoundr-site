@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { getCurrentUser } from '../../services/auth';
-import { _SERVICE } from "../../../../declarations/backend/backend.did";
-import { mockTasks, mockActor } from '../../mocks/mockData';
+import { getCurrentUser } from '../../../services/auth';
+import { _SERVICE } from "../../../../../declarations/backend/backend.did";
+import { mockTasks } from '../../../mocks/mockData';
 
 interface Props {
     actor: _SERVICE;
     useMockData?: boolean;
 }
 
-const TaskList: React.FC<Props> = ({ actor, useMockData = false }) => {
+const TaskList: React.FC<Props> = ({ actor, useMockData = true }) => {
     const [tasks, setTasks] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -16,6 +16,7 @@ const TaskList: React.FC<Props> = ({ actor, useMockData = false }) => {
         const fetchTasks = async () => {
             try {
                 if (useMockData) {
+                    console.log("Using mock data directly for tasks");
                     setTasks(mockTasks);
                     setLoading(false);
                     return;
@@ -23,7 +24,6 @@ const TaskList: React.FC<Props> = ({ actor, useMockData = false }) => {
 
                 const user = await getCurrentUser();
                 if (user && user[0]) {
-                    // Use get_user_tasks with UserIdentifier.Principal
                     const userTasks = await actor.get_user_tasks({
                         Principal: user[0].principal
                     });
@@ -38,6 +38,8 @@ const TaskList: React.FC<Props> = ({ actor, useMockData = false }) => {
 
         fetchTasks();
     }, [actor, useMockData]);
+
+    console.log("Current tasks state:", tasks);
 
     if (loading) return <div>Loading tasks...</div>;
 

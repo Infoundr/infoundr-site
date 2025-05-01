@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { getCurrentUser } from '../../services/auth';
-import { _SERVICE } from "../../../../declarations/backend/backend.did";
-import { mockGithubIssues, mockActor } from '../../mocks/mockData';
+import { getCurrentUser } from '../../../services/auth';
+import { _SERVICE } from "../../../../../declarations/backend/backend.did";
+import { mockGithubIssues } from '../../../mocks/mockData';
 
 interface Props {
     actor: _SERVICE;
     useMockData?: boolean;
 }
 
-const GithubIssues: React.FC<Props> = ({ actor, useMockData = false }) => {
+const GithubIssues: React.FC<Props> = ({ actor, useMockData = true }) => {
     const [issues, setIssues] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -16,15 +16,14 @@ const GithubIssues: React.FC<Props> = ({ actor, useMockData = false }) => {
         const fetchIssues = async () => {
             try {
                 if (useMockData) {
+                    console.log("Using mock data directly for GitHub issues");
                     setIssues(mockGithubIssues);
                     setLoading(false);
                     return;
                 }
 
                 const user = await getCurrentUser();
-                console.log("User", user);
                 if (user && user[0]) {
-                    // Use get_user_issues with UserIdentifier.Principal
                     const userIssues = await actor.get_user_issues({
                         Principal: user[0].principal
                     });
@@ -39,6 +38,8 @@ const GithubIssues: React.FC<Props> = ({ actor, useMockData = false }) => {
 
         fetchIssues();
     }, [actor, useMockData]);
+
+    console.log("Current issues state:", issues);
 
     if (loading) return <div>Loading issues...</div>;
 

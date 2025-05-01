@@ -10,12 +10,12 @@ import { checkIsAuthenticated } from './services/auth';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import AdminPanel from './pages/AdminPanel';
 import Auth from './pages/Dashboard/Auth';
-import DashboardLayout from './layouts/DashboardLayout';
+import DashboardLayout from './pages/Dashboard/layouts/DashboardLayout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import BotLogin from './pages/Dashboard/BotLogin';
 import Dashboard from './pages/Dashboard';
-import Ideation from './pages/Ideation';
-import AIAssistantsPage from './pages/AIAssistantsPage';
+import Ideation from './pages/Dashboard/layouts/Ideation';
+import AIAssistantsPage from './pages/Dashboard/layouts/AIAssistantsPage';
 
 const App: React.FC = () => {
   const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);

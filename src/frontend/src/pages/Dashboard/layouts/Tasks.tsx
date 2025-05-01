@@ -1,9 +1,9 @@
 import React from 'react';
-import TaskStats from '../components/tasks/TaskStats';
-import AIRecommendations from '../components/tasks/AIRecommendations';
-import ActiveTasks from '../components/tasks/ActiveTasks';
-import QuickTemplates from '../components/tasks/QuickTemplates';
-import Button from '../components/common/Button';
+import TaskStats from '../../../components/tasks/TaskStats';
+import AIRecommendations from '../../../components/tasks/AIRecommendations';
+import ActiveTasks from '../../../components/tasks/ActiveTasks';
+import QuickTemplates from '../../../components/tasks/QuickTemplates';
+import Button from '../../../components/common/Button';
 
 const Tasks: React.FC = () => {
   return (

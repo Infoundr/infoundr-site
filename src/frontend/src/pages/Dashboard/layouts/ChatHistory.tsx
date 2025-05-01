@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 // import { ChatMessage } from '@/types/chat';     
-import { getCurrentUser } from '../../services/auth';
-import { _SERVICE } from "../../../../declarations/backend/backend.did";
-import { mockChatHistory } from '../../mocks/mockData';
+import { getCurrentUser } from '../../../services/auth';
+import { _SERVICE } from "../../../../../declarations/backend/backend.did";
+import { mockChatHistory } from '../../../mocks/mockData';
 
 interface Props {
     actor: _SERVICE;
@@ -20,7 +20,7 @@ const ChatHistory: React.FC<Props> = ({ actor, useMockData = true }) => {
                 if (useMockData) {
                     console.log("Using mock data directly");
                     // Use mock data directly
-                    setMessages(mockChatHistory);
+                    setMessages(mockChatHistory as any);
                     setLoading(false);
                     return;
                 }

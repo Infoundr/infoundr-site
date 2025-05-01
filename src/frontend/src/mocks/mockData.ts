@@ -14,7 +14,7 @@ export const mockChatHistory = [
         question_asked: "What are the best practices for fundraising?",
         content: "Key fundraising best practices include: 1. Prepare a solid pitch deck 2. Network with investors 3. Have clear financial projections 4. Understand your valuation"
     }
-];
+] as const;
 
 export const mockTasks = [
     {

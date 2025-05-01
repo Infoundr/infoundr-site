@@ -1,9 +1,9 @@
 import React from 'react';
-import Button from '../components/common/Button';
-import StatCard from '../components/analytics/StatCard';
-import PerformanceTrends from '../components/analytics/PerformanceTrends';
-import AIPredictions from '../components/analytics/AIPredictions';
-import AvailableReports from '../components/analytics/AvailableReports';
+import Button from '../../../components/common/Button';
+import StatCard from '../../../components/analytics/StatCard';
+import PerformanceTrends from '../../../components/analytics/PerformanceTrends';
+import AIPredictions from '../../../components/analytics/AIPredictions';
+import AvailableReports from '../../../components/analytics/AvailableReports';
 
 const Analytics: React.FC = () => {
   const stats = [

@@ -1,24 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import ChatHistory from '../components/dashboard/ChatHistory';
-import TaskList from '../components/dashboard/TaskList';
-import GithubIssues from '../components/dashboard/GithubIssues';
+import ChatHistory from './ChatHistory';
+import TaskList from './TaskList';
+import GithubIssues from './GithubIssues';
 import { Actor } from '@dfinity/agent';
-import { createActor } from "../../../declarations/backend";
+import { createActor } from "../../../../../declarations/backend";
 import { HttpAgent } from "@dfinity/agent";
-import { _SERVICE } from "../../../declarations/backend/backend.did";
-import { CANISTER_ID } from '../config';
-
+import { _SERVICE } from "../../../../../declarations/backend/backend.did";
+import { CANISTER_ID } from '../../../config';
 
 import { Link, useNavigate, Outlet, useLocation, Routes, Route } from 'react-router-dom';
-import { logout } from '../services/auth';
-import Analytics from '../pages/Analytics';
-import Tasks from '../pages/Tasks';
+import { logout } from '../../../services/auth';
+import Analytics from './Analytics';
+import Tasks from './Tasks';
+import { mockActor } from '../../../mocks/mockData';
+import Ideation from './Ideation';
 
 const DashboardLayout: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [activeSection, setActiveSection] = useState('dashboard');
     const [actor, setActor] = useState<Actor | null>(null);
 
     useEffect(() => {
@@ -45,22 +45,53 @@ const DashboardLayout: React.FC = () => {
             return <div>Loading...</div>;
         }
 
-        switch (activeSection) {
-            case 'ai-assistants':
-                return <ChatHistory actor={actor as unknown as _SERVICE} />;
-            case 'tasks':
-                return <TaskList actor={actor as unknown as _SERVICE} />;
-            case 'github':
-                return <GithubIssues actor={actor as unknown as _SERVICE} />;
-            default:
-                return (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
-                        <ChatHistory actor={actor as unknown as _SERVICE} />
-                        <TaskList actor={actor as unknown as _SERVICE} />
-                        <GithubIssues actor={actor as unknown as _SERVICE} />
-                    </div>
-                );
+        const path = location.pathname;
+        
+        // Dashboard home shows all components
+        if (path === '/dashboard' || path === '/dashboard/home') {
+            return (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
+                    <ChatHistory actor={actor as unknown as _SERVICE} useMockData={true} />
+                    <TaskList actor={actor as unknown as _SERVICE} useMockData={true} />
+                    <GithubIssues actor={actor as unknown as _SERVICE} useMockData={true} />
+                    <Tasks /> 
+                </div>
+            );
         }
+
+        // Individual routes show single components
+        if (path === '/dashboard/ai-assistants') {
+            return <ChatHistory actor={actor as unknown as _SERVICE} useMockData={true} />;
+        }
+
+        if (path === '/dashboard/tasks') {
+            return <TaskList actor={actor as unknown as _SERVICE} useMockData={true} />;
+        }
+
+        if (path === '/dashboard/github') {
+            return <GithubIssues actor={actor as unknown as _SERVICE} useMockData={true} />;
+        }
+
+        if (path === '/dashboard/tasks') {
+            return <Tasks />;
+        }
+
+        if (path === '/dashboard/analytics') {
+            return <Analytics />;
+        }
+
+        if (path === '/dashboard/team') {
+            return <div>Team Page</div>;
+        }
+
+        if (path === '/dashboard/ideation') {
+            return <Ideation />;
+        }
+
+        // Default case
+
+        // Default case
+        return null;
     };
 
     const isActive = (path: string) => {
@@ -207,11 +238,11 @@ const DashboardLayout: React.FC = () => {
                 {/* Content Area */}
                 <main className="flex-1 overflow-auto p-4">
                     {renderContent()}
-                    <Routes>
+                    {/* <Routes>
                         <Route path="analytics" element={<Analytics />} />
-                        <Route path="tasks" element={<Tasks />} />
-                        <Route path="*" element={<div>Page not found</div>} />
-                    </Routes>
+                        <Route path="team" element={<div>Team Page</div>} />
+                        <Route path="ideation" element={<div>Ideation Page</div>} />
+                    </Routes> */}
                 </main>
             </div>
         </div>
