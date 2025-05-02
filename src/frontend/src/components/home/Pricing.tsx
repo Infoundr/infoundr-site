@@ -13,7 +13,7 @@ const Pricing: React.FC = () => {
       ],
       buttonText: 'Get Started',
       buttonVariant: 'secondary' as const,
-      buttonClassName: 'bg-[#111827] text-white'
+      buttonClassName: 'bg-[#111827]'
     },
     {
       name: 'Professional',
@@ -37,7 +37,7 @@ const Pricing: React.FC = () => {
       ],
       buttonText: 'Contact Sales',
       buttonVariant: 'secondary' as const,
-      buttonClassName: 'bg-[#111827] text-white'
+      buttonClassName: 'bg-[#111827]'
     }
   ];
 
@@ -56,7 +56,7 @@ const Pricing: React.FC = () => {
               key={plan.name} 
               className={`border rounded-3xl p-6 sm:p-8 bg-white 
                 transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-lg cursor-pointer
-                ${plan.featured ? 'bg-[#4C1D95] text-white' : ''}`}
+                ${plan.featured ? 'bg-[#4C1D95]' : ''}`}
             >
               <h3 className="text-xl sm:text-2xl font-bold mb-4">{plan.name}</h3>
               <div className="text-2xl sm:text-3xl font-bold mb-6">
@@ -66,7 +66,7 @@ const Pricing: React.FC = () => {
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-center gap-2">
                     <span className="text-green-500">✓</span> 
-                    <span className={plan.featured ? 'text-white' : ''}>
+                    <span>
                       {feature}
                     </span>
                   </li>
