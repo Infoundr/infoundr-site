@@ -1,22 +1,30 @@
 import React, { useEffect, useState } from 'react';
-import { getCurrentUser } from '../../services/auth';
-import { _SERVICE } from "../../../../declarations/backend/backend.did";
+import { getCurrentUser } from '../../../services/auth';
+import { _SERVICE } from "../../../../../declarations/backend/backend.did";
+import { mockGithubIssues, useMockData as mockDataBoolean } from '../../../mocks/mockData';
+import LoadingSpinner from '../../../components/LoadingSpinner';
 
 interface Props {
     actor: _SERVICE;
+    useMockData?: boolean;
 }
 
-const GithubIssues: React.FC<Props> = ({ actor }) => {
+const GithubIssues: React.FC<Props> = ({ actor, useMockData = mockDataBoolean }) => {
     const [issues, setIssues] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchIssues = async () => {
             try {
+                if (useMockData) {
+                    console.log("Using mock data directly for GitHub issues");
+                    setIssues(mockGithubIssues);
+                    setLoading(false);
+                    return;
+                }
+
                 const user = await getCurrentUser();
-                console.log("User", user);
                 if (user && user[0]) {
-                    // Use get_user_issues with UserIdentifier.Principal
                     const userIssues = await actor.get_user_issues({
                         Principal: user[0].principal
                     });
@@ -30,9 +38,15 @@ const GithubIssues: React.FC<Props> = ({ actor }) => {
         };
 
         fetchIssues();
-    }, [actor]);
+    }, [actor, useMockData]);
 
-    if (loading) return <div>Loading issues...</div>;
+    console.log("Current issues state:", issues);
+
+    if (loading) return (
+        <div className="flex items-center justify-center h-64">
+            <LoadingSpinner size="lg" />
+        </div>
+    );
 
     return (
         <div className="bg-white rounded-lg shadow p-6">

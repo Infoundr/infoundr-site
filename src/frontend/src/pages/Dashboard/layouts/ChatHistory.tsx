@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
 // import { ChatMessage } from '@/types/chat';     
-import { getCurrentUser } from '../../services/auth';
-import { _SERVICE } from "../../../../declarations/backend/backend.did";
+import { getCurrentUser } from '../../../services/auth';
+import { _SERVICE } from "../../../../../declarations/backend/backend.did";
+import { mockChatHistory, useMockData as mockDataBoolean } from '../../../mocks/mockData';
+import LoadingSpinner from '../../../components/LoadingSpinner';
 
 interface Props {
     actor: _SERVICE;
+    useMockData?: boolean;
 }
 
-const ChatHistory: React.FC<Props> = ({ actor }) => {
+const ChatHistory: React.FC<Props> = ({ actor, useMockData = mockDataBoolean }) => {
     console.log("Starting ChatHistory");
     const [messages, setMessages] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -15,15 +18,19 @@ const ChatHistory: React.FC<Props> = ({ actor }) => {
     useEffect(() => {
         const fetchMessages = async () => {
             try {
-                console.log("Fetching messages");
+                if (useMockData) {
+                    console.log("Using mock data directly");
+                    // Use mock data directly
+                    setMessages(mockChatHistory as any);
+                    setLoading(false);
+                    return;
+                }
+
                 const user = await getCurrentUser();
-                console.log("User", user);
                 if (user && user[0]) {
-                    // Use get_chat_history with UserIdentifier.Principal
                     const chatHistory = await actor.get_chat_history({
                         Principal: user[0].principal
                     });
-                    console.log("Chat history:", chatHistory);
                     setMessages(chatHistory);
                 }
             } catch (error) {
@@ -34,9 +41,15 @@ const ChatHistory: React.FC<Props> = ({ actor }) => {
         };
 
         fetchMessages();
-    }, [actor]);
+    }, [actor, useMockData]);
 
-    if (loading) return <div>Loading chat history...</div>;
+    console.log("Current messages state:", messages);
+
+    if (loading) return (
+        <div className="flex items-center justify-center h-64">
+            <LoadingSpinner size="lg" />
+        </div>
+    );
 
     return (
         <div className="bg-white rounded-lg shadow p-6">

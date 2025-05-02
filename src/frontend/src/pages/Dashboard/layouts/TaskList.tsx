@@ -1,21 +1,30 @@
 import React, { useEffect, useState } from 'react';
-import { getCurrentUser } from '../../services/auth';
-import { _SERVICE } from "../../../../declarations/backend/backend.did";
+import { getCurrentUser } from '../../../services/auth';
+import { _SERVICE } from "../../../../../declarations/backend/backend.did";
+import { mockTasks } from '../../../mocks/mockData';
+import LoadingSpinner from '../../../components/LoadingSpinner';
 
 interface Props {
     actor: _SERVICE;
+    useMockData?: boolean;
 }
 
-const TaskList: React.FC<Props> = ({ actor }) => {
+const TaskList: React.FC<Props> = ({ actor, useMockData = true }) => {
     const [tasks, setTasks] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchTasks = async () => {
             try {
+                if (useMockData) {
+                    console.log("Using mock data directly for tasks");
+                    setTasks(mockTasks);
+                    setLoading(false);
+                    return;
+                }
+
                 const user = await getCurrentUser();
                 if (user && user[0]) {
-                    // Use get_user_tasks with UserIdentifier.Principal
                     const userTasks = await actor.get_user_tasks({
                         Principal: user[0].principal
                     });
@@ -29,9 +38,15 @@ const TaskList: React.FC<Props> = ({ actor }) => {
         };
 
         fetchTasks();
-    }, [actor]);
+    }, [actor, useMockData]);
 
-    if (loading) return <div>Loading tasks...</div>;
+    console.log("Current tasks state:", tasks);
+
+    if (loading) return (
+        <div className="flex items-center justify-center h-64">
+            <LoadingSpinner size="lg" />
+        </div>
+    );
 
     return (
         <div className="bg-white rounded-lg shadow p-6">
