@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { checkIsAuthenticated } from '../../services/auth';
+import LoadingSpinner from '../../components/LoadingSpinner';
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
@@ -22,7 +23,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
     if (isAuthenticated === null) {
         console.log("ProtectedRoute: Still checking auth...");
-        return <div className="flex justify-center items-center h-screen">Loading...</div>;
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <LoadingSpinner size="lg" />
+            </div>
+        );
     }
 
     if (!isAuthenticated) {

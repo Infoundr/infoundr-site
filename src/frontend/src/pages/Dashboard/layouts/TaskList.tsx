@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getCurrentUser } from '../../../services/auth';
 import { _SERVICE } from "../../../../../declarations/backend/backend.did";
 import { mockTasks } from '../../../mocks/mockData';
+import LoadingSpinner from '../../../components/LoadingSpinner';
 
 interface Props {
     actor: _SERVICE;
@@ -41,7 +42,11 @@ const TaskList: React.FC<Props> = ({ actor, useMockData = true }) => {
 
     console.log("Current tasks state:", tasks);
 
-    if (loading) return <div>Loading tasks...</div>;
+    if (loading) return (
+        <div className="flex items-center justify-center h-64">
+            <LoadingSpinner size="lg" />
+        </div>
+    );
 
     return (
         <div className="bg-white rounded-lg shadow p-6">

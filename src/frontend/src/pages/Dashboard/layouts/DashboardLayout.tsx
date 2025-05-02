@@ -15,6 +15,7 @@ import Tasks from './Tasks';
 import { mockActor } from '../../../mocks/mockData';
 import Ideation from './Ideation';
 import { useMockData as mockDataBoolean } from '../../../mocks/mockData';
+import LoadingSpinner from '../../../components/LoadingSpinner';
 
 const DashboardLayout: React.FC = () => {
     const navigate = useNavigate();
@@ -43,7 +44,11 @@ const DashboardLayout: React.FC = () => {
 
     const renderContent = () => {
         if (!actor) {
-            return <div>Loading...</div>;
+            return (
+                <div className="flex items-center justify-center h-screen">
+                    <LoadingSpinner size="lg" />
+                </div>
+            );
         }
 
         const path = location.pathname;
@@ -171,23 +176,23 @@ const DashboardLayout: React.FC = () => {
                         <span className="text-sm font-medium">Github</span>
                     </Link>
 
-                    <Link 
+                    {/* <Link 
                         to="/dashboard/analytics" 
                         className={`flex items-center px-6 py-3 text-gray-100 hover:bg-[#5B21B6] transition-colors ${isActive('/dashboard/analytics')}`}
                         onClick={() => setSidebarOpen(false)}
                     >
                         <img src="/icons/metrics.png" alt="" className="w-5 h-5 mr-3" />
                         <span className="text-sm font-medium">Analytics</span>
-                    </Link>
+                    </Link> */}
 
-                    <Link 
+                    {/* <Link 
                         to="/dashboard/ideation" 
                         className={`flex items-center px-6 py-3 text-gray-100 hover:bg-[#5B21B6] transition-colors ${isActive('/dashboard/ideation')}`}
                         onClick={() => setSidebarOpen(false)}
                     >
                         <img src="/icons/bulb-white.png" alt="" className="w-5 h-5 mr-3" />
                         <span className="text-sm font-medium">Ideation</span>
-                    </Link>
+                    </Link> */}
                 </nav>
 
                 {/* Logout Button */}
