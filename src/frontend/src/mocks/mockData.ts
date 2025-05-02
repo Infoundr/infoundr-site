@@ -64,6 +64,8 @@ export const mockGithubIssues = [
     }
 ];
 
+export const useMockData = true;
+
 // Mock actor implementation for testing
 export const mockActor: _SERVICE = {
     get_chat_history: async () => {

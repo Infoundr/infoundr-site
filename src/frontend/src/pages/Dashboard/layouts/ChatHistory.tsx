@@ -2,14 +2,14 @@ import React, { useEffect, useState } from 'react';
 // import { ChatMessage } from '@/types/chat';     
 import { getCurrentUser } from '../../../services/auth';
 import { _SERVICE } from "../../../../../declarations/backend/backend.did";
-import { mockChatHistory } from '../../../mocks/mockData';
+import { mockChatHistory, useMockData as mockDataBoolean } from '../../../mocks/mockData';
 
 interface Props {
     actor: _SERVICE;
     useMockData?: boolean;
 }
 
-const ChatHistory: React.FC<Props> = ({ actor, useMockData = true }) => {
+const ChatHistory: React.FC<Props> = ({ actor, useMockData = mockDataBoolean }) => {
     console.log("Starting ChatHistory");
     const [messages, setMessages] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);

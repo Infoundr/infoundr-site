@@ -16,10 +16,15 @@ import BotLogin from './pages/Dashboard/BotLogin';
 import Dashboard from './pages/Dashboard';
 import Ideation from './pages/Dashboard/layouts/Ideation';
 import AIAssistantsPage from './pages/Dashboard/layouts/AIAssistantsPage';
+import GithubIssues from './pages/Dashboard/layouts/GithubIssues';
+import { _SERVICE } from '../../declarations/backend/backend.did';
+import { useMockData as mockDataBoolean } from './mocks/mockData';
+import { Actor } from '@dfinity/agent';
 
 const App: React.FC = () => {
   const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
   const [isUserAuthenticated, setIsUserAuthenticated] = useState(false);
+  const [actor, setActor] = useState<Actor | null>(null);
 
   // Check initial auth state
   React.useEffect(() => {
@@ -71,6 +76,7 @@ const App: React.FC = () => {
             <Route path="analytics" element={<div>Analytics Page</div>} />
             <Route path="team" element={<div>Team Page</div>} />
             <Route path="ideation" element={<Ideation />} />
+            <Route path="github" element={<GithubIssues actor={actor as unknown as _SERVICE} useMockData={mockDataBoolean} />} />
             
           </Route>
 

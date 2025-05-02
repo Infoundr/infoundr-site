@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { getCurrentUser } from '../../../services/auth';
 import { _SERVICE } from "../../../../../declarations/backend/backend.did";
-import { mockGithubIssues } from '../../../mocks/mockData';
+import { mockGithubIssues, useMockData as mockDataBoolean } from '../../../mocks/mockData';
 
 interface Props {
     actor: _SERVICE;
     useMockData?: boolean;
 }
 
-const GithubIssues: React.FC<Props> = ({ actor, useMockData = true }) => {
+const GithubIssues: React.FC<Props> = ({ actor, useMockData = mockDataBoolean }) => {
     const [issues, setIssues] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
