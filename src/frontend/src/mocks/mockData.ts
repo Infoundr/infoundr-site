@@ -64,7 +64,7 @@ export const mockGithubIssues = [
     }
 ];
 
-export const useMockData = false;
+export const useMockData = true;
 
 // Mock actor implementation for testing
 export const mockActor: _SERVICE = {
