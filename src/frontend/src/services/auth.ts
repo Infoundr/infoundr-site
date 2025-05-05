@@ -2,7 +2,7 @@ import { AuthClient } from "@dfinity/auth-client";
 import { HttpAgent, ActorSubclass } from "@dfinity/agent";
 import { createActor } from "../../../declarations/backend";
 import type { _SERVICE } from "../../../declarations/backend/backend.did.d.ts";
-import { CANISTER_ID } from '../config';
+import { CANISTER_ID, MOCK_USER } from '../config';
 
 // Initialize AuthClient
 let authClient: AuthClient | null = null;
@@ -176,6 +176,13 @@ export const getCurrentUser = async () => {
 export const checkIsAuthenticated = async () => {
     try {
         console.log("Checking authentication status");
+        
+        // Check for mock authentication first
+        if (import.meta.env.VITE_AUTH_MODE === 'mock') {
+            const mockPrincipal = sessionStorage.getItem('user_principal');
+            return mockPrincipal === MOCK_USER.principal;
+        }
+        
         const authClient = await AuthClient.create();
         const isAuth = await authClient.isAuthenticated();
         console.log("AuthClient isAuthenticated:", isAuth);

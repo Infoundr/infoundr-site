@@ -35,6 +35,19 @@ npm run dev
 
 The application should now be running at `http://localhost:3000`
 
+### Deploying to Playground
+
+To deploy to the Internet Computer Playground and start the development server:
+
+```bash
+npm run dev:playground
+```
+
+This will:
+1. Deploy your project to the playground
+2. Update the configuration with the new playground canister ID
+3. Start the development server
+
 ## Project Structure
 
 ```

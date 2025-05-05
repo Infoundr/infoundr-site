@@ -64,7 +64,8 @@ export const mockGithubIssues = [
     }
 ];
 
-export const useMockData = false;
+// Use mock data when in local development or when explicitly set in environment
+export const useMockData = import.meta.env.VITE_AUTH_MODE === 'mock';
 
 // Mock actor implementation for testing
 export const mockActor: _SERVICE = {
