@@ -5,7 +5,7 @@ A decentralized AI chat platform built on the Internet Computer.
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:
-- [Node.js](https://nodejs.org/) (v16 or higher)
+- [Node.js](https://nodejs.org/) (v18 or higher)
 - [npm](https://www.npmjs.com/) (v7 or higher)
 - [DFX](https://internetcomputer.org/docs/current/developer-docs/build/install-upgrade-remove) (latest version)
 
@@ -35,8 +35,22 @@ npm run dev
 
 The application should now be running at `http://localhost:3000`
 
-### Deploying to Playground
+## Development Options
 
+### Local Development with Mock Data
+For frontend development without needing the backend canister:
+
+```bash
+npm run dev:local
+```
+
+This will:
+1. Configure the environment for local development
+2. Enable mock authentication
+3. Use mock data instead of backend calls
+4. Start the development server
+
+### Deploying to Playground
 To deploy to the Internet Computer Playground and start the development server:
 
 ```bash
@@ -53,12 +67,20 @@ This will:
 ```
 infoundr-site/
 ├── scripts/              # Setup and utility scripts
+│   ├── setup.sh         # Main setup script
+│   ├── setup-backend.sh # Backend setup
+│   ├── setup-local.sh   # Local development setup
+│   └── deploy-playground.sh # Playground deployment
 ├── src/
 │   ├── backend/         # Rust backend canister
 │   │   ├── src/        # Backend source code
 │   │   └── Cargo.toml  # Rust dependencies
 │   └── frontend/       # React frontend
 │       ├── src/        # Frontend source code
+│       │   ├── components/ # React components
+│       │   ├── mocks/     # Mock data for development
+│       │   ├── pages/     # Page components
+│       │   └── services/  # API services
 │       └── package.json # Frontend dependencies
 ├── dfx.json            # DFX configuration
 └── package.json        # Root package.json
@@ -78,19 +100,23 @@ The frontend is built with React and TypeScript. Key directories:
 - `src/frontend/src/components/` - React components
 - `src/frontend/src/services/` - API services
 - `src/frontend/src/pages/` - Page components
+- `src/frontend/src/mocks/` - Mock data for development
 
 ## Available Scripts
 
 - `npm run setup` - Install dependencies and deploy canisters
+- `npm run dev:local` - Start development server with mock data
+- `npm run dev:playground` - Deploy to playground and start development server
 - `npm start` - Start the frontend development server
 - `npm run build` - Build the project for production
 - `dfx deploy` - Deploy the canisters to the local network
 
 ## Authentication
 
-The application supports two authentication methods:
+The application supports multiple authentication methods:
 - Internet Identity
 - NFID (Non-Fungible Identity)
+- Mock Authentication (for local development)
 
 ## Authentication Flows
 
@@ -98,6 +124,11 @@ The application supports two authentication methods:
 1. User visits dashboard and chooses login method (II or NFID)
 2. User authenticates with chosen provider
 3. On success, user is redirected to dashboard
+
+### Mock Authentication (Local Development)
+1. User visits dashboard
+2. Mock authentication is automatically used
+3. User is immediately redirected to dashboard with mock data
 
 ### Bot Dashboard Access
 1. User interacts with bot in OpenChat
@@ -112,8 +143,6 @@ The application supports two authentication methods:
    - Collect user details
    - Complete registration
 9. After registration/validation, redirect to dashboard
-
-Technical Flow:
 
 ## Contributing
 
