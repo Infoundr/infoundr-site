@@ -35,11 +35,34 @@ const Hero: React.FC<HeroProps> = ({ onGetStartedClick }) => {
 
           {/* Right Column - Image */}
           <div className="w-full lg:w-1/2 flex justify-center items-center">
-            <img 
-              src="images/founders.jpg" 
-              alt="AI Assistant" 
-              className="w-full max-w-[250px] lg:max-w-[300px] h-[290px] lg:h-[300px] object-cover rounded-lg"
-            />
+            <div className="relative w-full max-w-[600px] h-[400px] flex items-center justify-center">
+              {/* Main image */}
+              <div className="absolute z-20 transform rotate-[-5deg] shadow-xl">
+                <img 
+                  src="images/founders.jpg" 
+                  alt="AI Assistant" 
+                  className="w-full max-w-[250px] lg:max-w-[300px] h-[290px] lg:h-[300px] object-cover rounded-lg"
+                />
+              </div>
+              
+              {/* Second image */}
+              <div className="absolute z-10 transform translate-x-[-80px] translate-y-[-60px] rotate-[5deg] shadow-xl">
+                <img 
+                  src="images/founders_2.jpg" 
+                  alt="AI Assistant Team" 
+                  className="w-full max-w-[220px] lg:max-w-[270px] h-[260px] lg:h-[270px] object-cover rounded-lg"
+                />
+              </div>
+              
+              {/* Third image */}
+              <div className="absolute transform translate-x-[80px] translate-y-[40px] rotate-[10deg] shadow-xl">
+                <img 
+                  src="images/founders_3.jpg" 
+                  alt="AI Assistant Group" 
+                  className="w-full max-w-[220px] lg:max-w-[270px] h-[260px] lg:h-[270px] object-cover rounded-lg"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
