@@ -1,6 +1,6 @@
 {
   "engines": {
-    "node": ">=16.0.0",
+    "node": ">=18.0.0",
     "npm": ">=7.0.0"
   },
   "name": "infoundr-site",
@@ -10,10 +10,14 @@
     "prebuild": "npm run prebuild --workspaces --if-present",
     "pretest": "npm run prebuild --workspaces --if-present",
     "setup": "npm run setup --workspaces --if-present",
-    "setup-backend": "scripts/setup-backend.sh",
+    "setup-backend": "./scripts/setup-backend.sh",
+    "setup-local": "./scripts/setup-local.sh",
     "start": "npm start --workspaces --if-present",
     "test": "npm test --workspaces --if-present",
-    "upgrade": "npx generate-did backend && npx upgrade-canister backend --backend && dfx generate"
+    "upgrade": "npx generate-did backend && npx upgrade-canister backend --backend && dfx generate",
+    "deploy:playground": "./scripts/deploy-playground.sh",
+    "dev:local": "npm run setup-local && cd src/frontend && npm run dev",
+    "dev:playground": "npm run deploy:playground && cd src/frontend && npm run dev"
   },
   "type": "module",
   "workspaces": [

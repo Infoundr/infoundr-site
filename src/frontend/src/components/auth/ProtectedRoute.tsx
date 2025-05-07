@@ -13,13 +13,21 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
     useEffect(() => {
         const checkAuth = async () => {
-            console.log("ProtectedRoute: Checking authentication");
+            console.log("ProtectedRoute: Starting authentication check");
+            console.log("ProtectedRoute: Current location:", location.pathname);
+            console.log("ProtectedRoute: Auth mode:", import.meta.env.VITE_AUTH_MODE);
+            
             const auth = await checkIsAuthenticated();
             console.log("ProtectedRoute: Authentication status:", auth);
+            console.log("ProtectedRoute: Session storage:", {
+                user_principal: sessionStorage.getItem('user_principal'),
+                openchat_id: sessionStorage.getItem('openchat_id')
+            });
+            
             setIsAuthenticated(auth);
         };
         checkAuth();
-    }, []);
+    }, [location]);
 
     if (isAuthenticated === null) {
         console.log("ProtectedRoute: Still checking auth...");

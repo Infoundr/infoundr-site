@@ -36,9 +36,9 @@ const Hero: React.FC<HeroProps> = ({ onGetStartedClick }) => {
           {/* Right Column - Image */}
           <div className="w-full lg:w-1/2 flex justify-center items-center">
             <img 
-              src="images/Hero.png" 
+              src="images/founders.jpg" 
               alt="AI Assistant" 
-              className="w-full max-w-[300px] lg:max-w-[400px] h-auto object-contain"
+              className="w-full max-w-[250px] lg:max-w-[300px] h-[290px] lg:h-[300px] object-cover rounded-lg"
             />
           </div>
         </div>

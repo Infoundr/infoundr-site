@@ -7,6 +7,7 @@ import type { _SERVICE } from "../../../../declarations/backend/backend.did.d.ts
 import { Principal } from '@dfinity/principal';
 import { User, OpenChatUser, OpenChatUserResponse } from '../../types/user';
 import { AuthClient } from '@dfinity/auth-client';
+import { ENV, MOCK_USER } from '../../config';
 
 const Auth: React.FC = () => {
     const navigate = useNavigate();
@@ -22,6 +23,16 @@ const Auth: React.FC = () => {
         try {
             setIsLoading(true);
             setError(null);
+            
+            // If in mock mode, use mock authentication
+            if (ENV.authMode === 'mock') {
+                console.log("Using mock authentication");
+                sessionStorage.setItem('user_principal', MOCK_USER.principal);
+                sessionStorage.setItem('openchat_id', MOCK_USER.openchat_id);
+                setIsLoading(false);
+                navigate('/dashboard/home', { replace: true });
+                return;
+            }
             
             console.log(`Starting ${method} authentication`);
             let actor: ActorSubclass<_SERVICE>;
