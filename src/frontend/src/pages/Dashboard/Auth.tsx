@@ -7,9 +7,11 @@ import type { _SERVICE } from "../../../../declarations/backend/backend.did.d.ts
 import { Principal } from '@dfinity/principal';
 import { User, OpenChatUser, OpenChatUserResponse } from '../../types/user';
 import { AuthClient } from '@dfinity/auth-client';
-import { ENV, MOCK_USER } from '../../config';
+import { MOCK_USER } from '../../config';
+import { useMockData } from '../../mocks/mockData';
 
 const Auth: React.FC = () => {
+    console.log("useMockData", useMockData);
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -24,8 +26,8 @@ const Auth: React.FC = () => {
             setIsLoading(true);
             setError(null);
             
-            // If in mock mode, use mock authentication
-            if (ENV.authMode === 'mock') {
+            // Use mock authentication in development mode
+            if (useMockData) {
                 console.log("Using mock authentication");
                 sessionStorage.setItem('user_principal', MOCK_USER.principal);
                 sessionStorage.setItem('openchat_id', MOCK_USER.openchat_id);
