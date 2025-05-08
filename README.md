@@ -176,4 +176,49 @@ The application supports multiple authentication methods:
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
+## Environment Configuration
+
+### Endpoints and Hosts
+The application uses different endpoints based on the environment:
+
+- **Local Development**: `http://localhost:8080`
+- **Playground**: `https://icp0.io`
+- **Mainnet**: `https://icp0.io`
+
+### Environment Variables
+The following environment variables are used:
+
+```bash
+# Local Development
+VITE_DFX_NETWORK=local
+VITE_IC_HOST=http://localhost:8080
+VITE_CANISTER_ID=<local-canister-id>
+VITE_AUTH_MODE=mock
+VITE_ENV_MODE=local
+
+# Playground
+VITE_DFX_NETWORK=playground
+VITE_IC_HOST=https://icp0.io
+VITE_CANISTER_ID=<playground-canister-id>
+VITE_AUTH_MODE=backend
+VITE_ENV_MODE=playground
+
+# Mainnet
+VITE_DFX_NETWORK=ic
+VITE_IC_HOST=https://icp0.io
+VITE_CANISTER_ID=<mainnet-canister-id>
+VITE_AUTH_MODE=backend
+VITE_ENV_MODE=mainnet
+```
+
+### Development Mode
+The application uses a `DEV_MODE` flag in `src/frontend/src/mocks/mockData.ts` to control whether to use mock data:
+- `true`: Use mock data and authentication (local development)
+- `false`: Use real backend calls (playground and mainnet)
+
+The deployment scripts automatically manage this flag:
+- `setup-local.sh`: Sets `DEV_MODE=true`
+- `deploy-playground.sh`: Sets `DEV_MODE=false`
+- `deploy-mainnet.sh`: Sets `DEV_MODE=false`
+
 
