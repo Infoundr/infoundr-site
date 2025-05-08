@@ -36,18 +36,18 @@ const NavBar: React.FC<NavBarProps> = ({ onGetStartedClick, isAuthenticated: isU
           <a href="#home" className="text-gray-600 hover:text-gray-900">
             Home
           </a>
-          <a href="#bots" className="text-gray-600 hover:text-gray-900">
+          {/* <a href="#bots" className="text-gray-600 hover:text-gray-900">
             Bots
-          </a>
+          </a> */}
           <a href="#features" className="text-gray-600 hover:text-gray-900">
             Features
           </a>
           <a href="#pricing" className="text-gray-600 hover:text-gray-900">
             Pricing
           </a>
-          <a href="#contact" className="text-gray-600 hover:text-gray-900">
+          {/* <a href="#contact" className="text-gray-600 hover:text-gray-900">
             Contact
-          </a>
+          </a> */}
         </div>
 
         {/* Desktop CTA Button */}
@@ -108,9 +108,9 @@ const NavBar: React.FC<NavBarProps> = ({ onGetStartedClick, isAuthenticated: isU
           <a href="#pricing" className="block text-gray-600 hover:text-gray-900">
             Pricing
           </a>
-          <a href="#contact" className="block text-gray-600 hover:text-gray-900">
+          {/* <a href="#contact" className="block text-gray-600 hover:text-gray-900">
             Contact
-          </a>
+          </a> */}
           <div className="pt-4">
             {isUserAuthenticated ? (
               <Button 

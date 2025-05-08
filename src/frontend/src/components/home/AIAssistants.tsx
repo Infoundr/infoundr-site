@@ -17,7 +17,7 @@ const AIAssistants: React.FC = () => {
     {
       name: 'Uncle Startups',
       description: 'Expert guidance on startup growth and market analysis',
-      icon: '/icons/i.png'
+      icon: '/icons/analytics.png'
     },
     {
       name: 'Dean',
