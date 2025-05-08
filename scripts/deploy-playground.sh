@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Starting deployment to playground..."
+echo "🚀 Starting playground deployment..."
 
 # First deployment to get the canister ID
 echo "Performing initial deployment..."
@@ -16,13 +16,18 @@ sed -i '' "s/export const LOCAL_CANISTER_ID = '.*'/export const LOCAL_CANISTER_I
 sed -i '' "s/export const MAINNET_CANISTER_ID = '.*'/\/\/ export const MAINNET_CANISTER_ID = '$CANISTER_ID'/" src/frontend/src/config.ts
 sed -i '' "s/\/\/ export const LOCAL_CANISTER_ID/export const LOCAL_CANISTER_ID/" src/frontend/src/config.ts
 
-# Update environment configuration
-echo "Updating environment configuration..."
+# Set DEV_MODE to false in mockData.ts
+echo "🔧 Disabling development mode..."
+sed -i '' "s|export const DEV_MODE = true;|export const DEV_MODE = false;|" src/frontend/src/mocks/mockData.ts
+
+# Create/update .env file for playground
+echo "📝 Creating playground environment configuration..."
 cat > src/frontend/.env << EOL
 VITE_DFX_NETWORK=ic
-VITE_IC_HOST=https://ic0.app
+VITE_IC_HOST=https://icp0.io
 VITE_CANISTER_ID=$CANISTER_ID
 VITE_AUTH_MODE=backend
+VITE_ENV_MODE=playground
 EOL
 
 # Second deployment to ensure everything is properly configured

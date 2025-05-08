@@ -6,13 +6,15 @@ import { Actor } from '@dfinity/agent';
 import { createActor } from "../../../../../declarations/backend";
 import { HttpAgent } from "@dfinity/agent";
 import { _SERVICE } from "../../../../../declarations/backend/backend.did";
-import { CANISTER_ID, ENV } from '../../../config';
+import { CANISTER_ID } from '../../../config';
+
 import { Link, useNavigate, Outlet, useLocation, Routes, Route } from 'react-router-dom';
 import { logout } from '../../../services/auth';
 import Analytics from './Analytics';
 import Tasks from './Tasks';
-import { mockActor, useMockData } from '../../../mocks/mockData';
+import { mockActor } from '../../../mocks/mockData';
 import Ideation from './Ideation';
+import { useMockData as mockDataBoolean } from '../../../mocks/mockData';
 import LoadingSpinner from '../../../components/LoadingSpinner';
 
 const DashboardLayout: React.FC = () => {
@@ -20,21 +22,10 @@ const DashboardLayout: React.FC = () => {
     const location = useLocation();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [actor, setActor] = useState<Actor | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const initActor = async () => {
             try {
-                console.log("Initializing actor...");
-                console.log("Using mock data:", useMockData);
-                
-                if (useMockData) {
-                    console.log("Using mock actor");
-                    setActor(mockActor as unknown as Actor);
-                    setIsLoading(false);
-                    return;
-                }
-
                 const agent = new HttpAgent({});
                 
                 if (import.meta.env.VITE_DFX_NETWORK !== 'ic') {
@@ -45,8 +36,6 @@ const DashboardLayout: React.FC = () => {
                 setActor(actor);
             } catch (error) {
                 console.error("Failed to initialize actor:", error);
-            } finally {
-                setIsLoading(false);
             }
         };
 
@@ -54,19 +43,10 @@ const DashboardLayout: React.FC = () => {
     }, []);
 
     const renderContent = () => {
-        if (isLoading) {
+        if (!actor) {
             return (
                 <div className="flex items-center justify-center h-screen">
                     <LoadingSpinner size="lg" />
-                </div>
-            );
-        }
-
-        if (!actor) {
-            console.error("No actor available");
-            return (
-                <div className="flex items-center justify-center h-screen">
-                    <div className="text-red-500">Failed to initialize application</div>
                 </div>
             );
         }
@@ -77,24 +57,28 @@ const DashboardLayout: React.FC = () => {
         if (path === '/dashboard' || path === '/dashboard/home') {
             return (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
-                    <ChatHistory actor={actor as unknown as _SERVICE} useMockData={useMockData} />
-                    <TaskList actor={actor as unknown as _SERVICE} useMockData={useMockData} />
-                    <GithubIssues actor={actor as unknown as _SERVICE} useMockData={useMockData} />
+                    <ChatHistory actor={actor as unknown as _SERVICE} useMockData={mockDataBoolean} />
+                    <TaskList actor={actor as unknown as _SERVICE} useMockData={mockDataBoolean} />
+                    <GithubIssues actor={actor as unknown as _SERVICE} useMockData={mockDataBoolean} />
                 </div>
             );
         }
 
         // Individual routes show single components
         if (path === '/dashboard/ai-assistants') {
-            return <ChatHistory actor={actor as unknown as _SERVICE} useMockData={useMockData} />;
+            return <ChatHistory actor={actor as unknown as _SERVICE} useMockData={mockDataBoolean} />;
         }
 
         if (path === '/dashboard/tasks') {
-            return <TaskList actor={actor as unknown as _SERVICE} useMockData={useMockData} />;
+            return <TaskList actor={actor as unknown as _SERVICE} useMockData={mockDataBoolean} />;
         }
 
         if (path === '/dashboard/github') {
-            return <GithubIssues actor={actor as unknown as _SERVICE} useMockData={useMockData} />;
+            return <GithubIssues actor={actor as unknown as _SERVICE} useMockData={mockDataBoolean} />;
+        }
+
+        if (path === '/dashboard/tasks') {
+            return <Tasks />;
         }
 
         if (path === '/dashboard/analytics') {
@@ -109,6 +93,9 @@ const DashboardLayout: React.FC = () => {
             return <Ideation />;
         }
 
+        // Default case
+
+        // Default case
         return null;
     };
 

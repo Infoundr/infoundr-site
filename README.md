@@ -62,6 +62,26 @@ This will:
 2. Update the configuration with the new playground canister ID
 3. Start the development server
 
+### Deploying to Mainnet
+To deploy to the Internet Computer mainnet:
+
+```bash
+npm run deploy:mainnet
+```
+
+This will:
+1. Deploy your canisters to mainnet
+2. Update the configuration with the mainnet canister ID
+3. Set the environment to use mainnet mode
+4. Configure authentication to use backend mode (no mock authentication)
+5. Update the frontend configuration for production
+
+Important: Before deploying to mainnet, ensure you:
+1. Have sufficient cycles in your canister
+2. Have tested thoroughly in playground
+3. Have the correct authentication configuration
+4. Have backed up your canister ID
+
 ## Project Structure
 
 ```
