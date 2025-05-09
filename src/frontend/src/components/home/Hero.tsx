@@ -15,7 +15,7 @@ const Hero: React.FC<HeroProps> = ({ onGetStartedClick }) => {
   return (
     <section id="home" className="relative min-h-screen flex items-center justify-center">
       {/* Content Container */}
-      <div className="container mx-auto px-4 sm:px-6 pt-24 sm:pt-32 pb-8 sm:pb-16">
+      <div className="container mx-auto px-4 sm:px-6 pt-32 sm:pt-40 pb-8 sm:pb-16">
         <div className="flex flex-col lg:flex-row items-center justify-center gap-8 sm:gap-12 max-w-7xl mx-auto">
           {/* Left Column - Text Content */}
           <div className="flex-1 w-full lg:w-1/2 text-center lg:text-left">
