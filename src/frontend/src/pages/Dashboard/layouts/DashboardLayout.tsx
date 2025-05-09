@@ -12,9 +12,8 @@ import { Link, useNavigate, Outlet, useLocation, Routes, Route } from 'react-rou
 import { logout } from '../../../services/auth';
 import Analytics from './Analytics';
 import Tasks from './Tasks';
-import { mockActor } from '../../../mocks/mockData';
+import { mockActor, useMockData } from '../../../mocks/mockData';
 import Ideation from './Ideation';
-import { useMockData as mockDataBoolean } from '../../../mocks/mockData';
 import LoadingSpinner from '../../../components/LoadingSpinner';
 
 const DashboardLayout: React.FC = () => {
@@ -25,6 +24,13 @@ const DashboardLayout: React.FC = () => {
 
     useEffect(() => {
         const initActor = async () => {
+            // If we're using mock data, use the mock actor instead
+            if (useMockData) {
+                console.log("Using mock actor for development");
+                setActor(mockActor as unknown as Actor);
+                return;
+            }
+
             try {
                 const agent = new HttpAgent({});
                 
@@ -57,24 +63,24 @@ const DashboardLayout: React.FC = () => {
         if (path === '/dashboard' || path === '/dashboard/home') {
             return (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
-                    <ChatHistory actor={actor as unknown as _SERVICE} useMockData={mockDataBoolean} />
-                    <TaskList actor={actor as unknown as _SERVICE} useMockData={mockDataBoolean} />
-                    <GithubIssues actor={actor as unknown as _SERVICE} useMockData={mockDataBoolean} />
+                    <ChatHistory actor={actor as unknown as _SERVICE} useMockData={useMockData} />
+                    <TaskList actor={actor as unknown as _SERVICE} useMockData={useMockData} />
+                    <GithubIssues actor={actor as unknown as _SERVICE} useMockData={useMockData} />
                 </div>
             );
         }
 
         // Individual routes show single components
         if (path === '/dashboard/ai-assistants') {
-            return <ChatHistory actor={actor as unknown as _SERVICE} useMockData={mockDataBoolean} />;
+            return <ChatHistory actor={actor as unknown as _SERVICE} useMockData={useMockData} />;
         }
 
         if (path === '/dashboard/tasks') {
-            return <TaskList actor={actor as unknown as _SERVICE} useMockData={mockDataBoolean} />;
+            return <TaskList actor={actor as unknown as _SERVICE} useMockData={useMockData} />;
         }
 
         if (path === '/dashboard/github') {
-            return <GithubIssues actor={actor as unknown as _SERVICE} useMockData={mockDataBoolean} />;
+            return <GithubIssues actor={actor as unknown as _SERVICE} useMockData={useMockData} />;
         }
 
         if (path === '/dashboard/tasks') {
@@ -93,9 +99,6 @@ const DashboardLayout: React.FC = () => {
             return <Ideation />;
         }
 
-        // Default case
-
-        // Default case
         return null;
     };
 

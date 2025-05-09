@@ -6,10 +6,10 @@ export const LOCAL_CANISTER_ID = "72j4w-6qaaa-aaaab-qacxq-cai";
 
 // Environment Configuration
 export const ENV = {
-  // Host configuration - always use icp0.io for mainnet
+  // Host configuration - use icp0.io for mainnet, localhost:4943 for local development
   host: import.meta.env.VITE_DFX_NETWORK === 'ic' 
     ? 'https://icp0.io'
-    : 'http://localhost:8080'
+    : import.meta.env.VITE_IC_HOST || 'http://localhost:4943'
 };
 
 // Use the appropriate canister ID based on environment
