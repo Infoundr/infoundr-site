@@ -48,8 +48,8 @@ fn post_upgrade() {
         users,
         waitlist,
         chat_history,
-        connected_accounts,
-        tasks,
+        _connected_accounts,
+        _tasks,
         openchat_users,
         dashboard_tokens,
     ): (

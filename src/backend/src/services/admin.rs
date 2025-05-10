@@ -4,7 +4,7 @@ use crate::models::waitlist::WaitlistEntry;
 use crate::storage::memory::{USERS, WAITLIST};
 use candid::Principal;
 use ic_cdk::caller;
-use ic_cdk::query;
+use ic_cdk::query; 
 
 // Admin callers
 #[query]
