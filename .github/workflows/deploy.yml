@@ -181,9 +181,6 @@ jobs:
           
           # Update mockData.ts if it exists
           if [ -f "src/frontend/src/mocks/mockData.ts" ]; then
-            if grep -q "DEV_MODE" src/frontend/src/mocks/mockData.ts; then
-              sed -i "s|export const DEV_MODE = true;|export const DEV_MODE = false;|" src/frontend/src/mocks/mockData.ts
-            else
-              echo "export const DEV_MODE = false;" >> src/frontend/src/mocks/mockData.ts
-            fi
+            # Update DEV_MODE to false
+            sed -i 's/export const DEV_MODE = true;/export const DEV_MODE = false;/' src/frontend/src/mocks/mockData.ts
           fi
