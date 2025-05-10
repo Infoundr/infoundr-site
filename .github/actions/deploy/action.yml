@@ -31,4 +31,4 @@ runs:
     - name: Deploy
       shell: bash
       run: |
-        dfx canister install ${{ inputs.canister_name }} --network ${{ inputs.network }} --wasm ${{ inputs.wasm_file }} --mode upgrade
+        dfx canister install ${{ inputs.canister_name }} --network ${{ inputs.network }} --wasm ${{ inputs.wasm_file }} --mode upgrade --yes
