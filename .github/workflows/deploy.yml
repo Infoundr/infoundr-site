@@ -82,9 +82,11 @@ jobs:
           npm install
           dfx generate || true  # Continue even if generate fails
           npm run build
+          # Wait a moment to ensure all files are written
+          sleep 2
           # Create the wasm file from the built assets
           cd dist
-          tar -czf frontend.wasm.gz .
+          tar -czf ../frontend.wasm.gz .
 
       - name: Upload Backend Artifact
         uses: actions/upload-artifact@v4
