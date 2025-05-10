@@ -69,6 +69,24 @@ jobs:
           package: ${{ env.BACKEND_PACKAGE }}
           build_args: "--no-default-features"  # Skip some checks
 
+      - name: Update Mock Data
+        run: |
+          # Update mockData.ts if it exists
+          if [ -f "src/frontend/src/mocks/mockData.ts" ]; then
+            # Create a temporary file
+            TMP_FILE=$(mktemp)
+            # Read the file and replace DEV_MODE
+            while IFS= read -r line; do
+              if [[ $line == *"export const DEV_MODE"* ]]; then
+                echo "export const DEV_MODE = false;" >> "$TMP_FILE"
+              else
+                echo "$line" >> "$TMP_FILE"
+              fi
+            done < "src/frontend/src/mocks/mockData.ts"
+            # Replace the original file
+            mv "$TMP_FILE" "src/frontend/src/mocks/mockData.ts"
+          fi
+
       - name: Prepare Frontend Build
         run: |
           source "$HOME/.local/share/dfx/env"
@@ -177,20 +195,4 @@ jobs:
             else
               echo "authMode: 'backend'," >> src/frontend/src/config.ts
             fi
-          fi
-          
-          # Update mockData.ts if it exists
-          if [ -f "src/frontend/src/mocks/mockData.ts" ]; then
-            # Create a temporary file
-            TMP_FILE=$(mktemp)
-            # Read the file and replace DEV_MODE
-            while IFS= read -r line; do
-              if [[ $line == *"export const DEV_MODE"* ]]; then
-                echo "export const DEV_MODE = false;" >> "$TMP_FILE"
-              else
-                echo "$line" >> "$TMP_FILE"
-              fi
-            done < "src/frontend/src/mocks/mockData.ts"
-            # Replace the original file
-            mv "$TMP_FILE" "src/frontend/src/mocks/mockData.ts"
           fi
