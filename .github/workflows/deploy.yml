@@ -145,13 +145,8 @@ jobs:
           # Get the mainnet canister ID
           CANISTER_ID=$(dfx canister --network ic id backend)
           
-          # Update config.ts with mainnet settings
-          sed -i "s|export const MAINNET_CANISTER_ID = \".*\";|export const MAINNET_CANISTER_ID = \"$CANISTER_ID\";|" src/frontend/src/config.ts
-          
-          # Set DEV_MODE to false
-          sed -i "s|export const DEV_MODE = true;|export const DEV_MODE = false;|" src/frontend/src/mocks/mockData.ts
-          
           # Create mainnet environment configuration
+          mkdir -p src/frontend
           cat > src/frontend/.env << EOL
           VITE_DFX_NETWORK=ic
           VITE_IC_HOST=https://icp0.io
@@ -160,6 +155,35 @@ jobs:
           VITE_ENV_MODE=mainnet
           EOL
           
-          # Update config.ts to use mainnet mode
-          sed -i "s|mode: import.meta.env.VITE_ENV_MODE || 'local'|mode: 'mainnet'|" src/frontend/src/config.ts
-          sed -i "s|authMode: import.meta.env.VITE_AUTH_MODE || 'backend'|authMode: 'backend'|" src/frontend/src/config.ts
+          # Update config.ts if it exists
+          if [ -f "src/frontend/src/config.ts" ]; then
+            # Update MAINNET_CANISTER_ID
+            if grep -q "MAINNET_CANISTER_ID" src/frontend/src/config.ts; then
+              sed -i "s|export const MAINNET_CANISTER_ID = \".*\";|export const MAINNET_CANISTER_ID = \"$CANISTER_ID\";|" src/frontend/src/config.ts
+            else
+              echo "export const MAINNET_CANISTER_ID = \"$CANISTER_ID\";" >> src/frontend/src/config.ts
+            fi
+            
+            # Update mode
+            if grep -q "mode:" src/frontend/src/config.ts; then
+              sed -i "s|mode: import.meta.env.VITE_ENV_MODE || 'local'|mode: 'mainnet'|" src/frontend/src/config.ts
+            else
+              echo "mode: 'mainnet'," >> src/frontend/src/config.ts
+            fi
+            
+            # Update authMode
+            if grep -q "authMode:" src/frontend/src/config.ts; then
+              sed -i "s|authMode: import.meta.env.VITE_AUTH_MODE || 'backend'|authMode: 'backend'|" src/frontend/src/config.ts
+            else
+              echo "authMode: 'backend'," >> src/frontend/src/config.ts
+            fi
+          fi
+          
+          # Update mockData.ts if it exists
+          if [ -f "src/frontend/src/mocks/mockData.ts" ]; then
+            if grep -q "DEV_MODE" src/frontend/src/mocks/mockData.ts; then
+              sed -i "s|export const DEV_MODE = true;|export const DEV_MODE = false;|" src/frontend/src/mocks/mockData.ts
+            else
+              echo "export const DEV_MODE = false;" >> src/frontend/src/mocks/mockData.ts
+            fi
+          fi
