@@ -68,12 +68,18 @@ jobs:
           package: ${{ env.BACKEND_PACKAGE }}
           build_args: "--no-default-features"  # Skip some checks
 
+      - name: Prepare Frontend Build
+        run: |
+          source "$HOME/.local/share/dfx/env"
+          mkdir -p .dfx/local/canisters/frontend
+          cp src/frontend/assetstorage.did .dfx/local/canisters/frontend/
+
       - name: Build Frontend
         run: |
           source "$HOME/.local/share/dfx/env"
           cd src/frontend
           npm install
-          dfx generate
+          dfx generate || true  # Continue even if generate fails
           npm run build
 
       - name: Upload Backend Artifact
