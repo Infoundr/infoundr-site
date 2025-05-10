@@ -46,9 +46,8 @@ jobs:
 
       - name: Install dfx
         run: |
-          curl -fsSL https://internetcomputer.org/install.sh | sh
-          dfxvm install ${{ env.DFX_VERSION }}
-          dfxvm use ${{ env.DFX_VERSION }}
+          sh -ci "$(curl -fsSL https://internetcomputer.org/install.sh)" -- --yes
+          export PATH="$PATH:$HOME/.local/share/dfx/bin"
           dfx --version
 
       - name: Build Backend
