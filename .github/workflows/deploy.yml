@@ -45,9 +45,11 @@ jobs:
         run: $POCKET_IC_BIN --version
 
       - name: Install dfx
-        uses: dfinity/setup-dfx@main
-        with:
-          version: ${{ env.DFX_VERSION }}
+        run: |
+          curl -fsSL https://internetcomputer.org/install.sh | sh
+          dfxvm install ${{ env.DFX_VERSION }}
+          dfxvm use ${{ env.DFX_VERSION }}
+          dfx --version
 
       - name: Build Backend
         uses: ./.github/actions/build
