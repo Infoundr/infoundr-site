@@ -1,4 +1,4 @@
-name: Build and Deploy canister
+name: Build and Deploy to ICP
 
 on:
   push:
@@ -16,11 +16,20 @@ env:
   VERSION: ${{ github.sha }}  
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install
 
       - name: Setup Rust
         uses: actions-rs/toolchain@v1
@@ -35,7 +44,7 @@ jobs:
       - name: Confirm successful installation
         run: $POCKET_IC_BIN --version
 
-      - name: Build
+      - name: Build Backend
         uses: ./.github/actions/build
         with:
           lint: "false"  # Disable linting temporarily
@@ -45,33 +54,79 @@ jobs:
           package: ${{ env.BACKEND_PACKAGE }}
           build_args: "--no-default-features"  # Skip some checks
 
-      - name: Upload Artifact
+      - name: Build Frontend
+        run: |
+          cd src/frontend
+          npm install
+          npm run build
+
+      - name: Upload Backend Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.BACKEND_PACKAGE }}_${{ github.sha }}  # Changed from PACKAGE
-          path: wasm/${{ env.BACKEND_PACKAGE }}_${{ env.VERSION }}.wasm.gz  # Changed from PACKAGE
+          name: ${{ env.BACKEND_PACKAGE }}_${{ github.sha }}
+          path: wasm/${{ env.BACKEND_PACKAGE }}_${{ env.VERSION }}.wasm.gz
           if-no-files-found: error
 
-  deploy:
-    runs-on: ubuntu-latest
-    needs: [build]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Upload Frontend Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.FRONTEND_PACKAGE }}_${{ github.sha }}
+          path: src/frontend/dist
+          if-no-files-found: error
 
-      - name: Prepare Wasm Directory
-        run: mkdir -p wasm
+      - name: Prepare Deployment
+        run: |
+          mkdir -p wasm
+          mkdir -p src/frontend/dist
 
-      - name: Download Artifact
+      - name: Download Artifacts
         uses: actions/download-artifact@v4
         with:
-          name: ${{ env.BACKEND_PACKAGE }}_${{ github.sha }}  # Changed from PACKAGE
+          name: ${{ env.BACKEND_PACKAGE }}_${{ github.sha }}
           path: wasm
 
-      - name: Deploy
+      - name: Download Frontend Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.FRONTEND_PACKAGE }}_${{ github.sha }}
+          path: src/frontend/dist
+
+      - name: Deploy Backend
         uses: ./.github/actions/deploy
         with:
           identity: ${{ secrets.IC_IDENTITY }}
-          canister_name: ${{ env.BACKEND_PACKAGE }}  # Changed from PACKAGE
+          canister_name: ${{ env.BACKEND_PACKAGE }}
           network: ic
-          wasm_file: wasm/${{ env.BACKEND_PACKAGE }}_${{ env.VERSION }}.wasm.gz  # Changed from PACKAGE
+          wasm_file: wasm/${{ env.BACKEND_PACKAGE }}_${{ env.VERSION }}.wasm.gz
+
+      - name: Deploy Frontend
+        uses: ./.github/actions/deploy
+        with:
+          identity: ${{ secrets.IC_IDENTITY }}
+          canister_name: ${{ env.FRONTEND_PACKAGE }}
+          network: ic
+          wasm_file: src/frontend/dist/${{ env.FRONTEND_PACKAGE }}.wasm.gz
+
+      - name: Update Configuration
+        run: |
+          # Get the mainnet canister ID
+          CANISTER_ID=$(dfx canister --network ic id backend)
+          
+          # Update config.ts with mainnet settings
+          sed -i "s|export const MAINNET_CANISTER_ID = \".*\";|export const MAINNET_CANISTER_ID = \"$CANISTER_ID\";|" src/frontend/src/config.ts
+          
+          # Set DEV_MODE to false
+          sed -i "s|export const DEV_MODE = true;|export const DEV_MODE = false;|" src/frontend/src/mocks/mockData.ts
+          
+          # Create mainnet environment configuration
+          cat > src/frontend/.env << EOL
+          VITE_DFX_NETWORK=ic
+          VITE_IC_HOST=https://icp0.io
+          VITE_CANISTER_ID=$CANISTER_ID
+          VITE_AUTH_MODE=backend
+          VITE_ENV_MODE=mainnet
+          EOL
+          
+          # Update config.ts to use mainnet mode
+          sed -i "s|mode: import.meta.env.VITE_ENV_MODE || 'local'|mode: 'mainnet'|" src/frontend/src/config.ts
+          sed -i "s|authMode: import.meta.env.VITE_AUTH_MODE || 'backend'|authMode: 'backend'|" src/frontend/src/config.ts
