@@ -55,7 +55,7 @@ jobs:
         run: |
           source "$HOME/.local/share/dfx/env"
           dfxvm install ${{ env.DFX_VERSION }}
-          dfxvm use ${{ env.DFX_VERSION }}
+          dfxvm default ${{ env.DFX_VERSION }}
           dfx --version
 
       - name: Build Backend
