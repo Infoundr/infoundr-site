@@ -25,7 +25,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
 
       - name: Install Dependencies
@@ -44,6 +44,11 @@ jobs:
       - name: Confirm successful installation
         run: $POCKET_IC_BIN --version
 
+      - name: Install dfx
+        uses: dfinity/setup-dfx@main
+        with:
+          version: ${{ env.DFX_VERSION }}
+
       - name: Build Backend
         uses: ./.github/actions/build
         with:
@@ -58,6 +63,7 @@ jobs:
         run: |
           cd src/frontend
           npm install
+          dfx generate
           npm run build
 
       - name: Upload Backend Artifact
