@@ -24,11 +24,11 @@ runs:
     - name: Authenticate dfx
       shell: bash
       run: |
-        # Remove existing identity if it exists
-        dfx identity remove deploy_identity || true
-        # Import the new identity
-        echo ${{ inputs.identity }} | base64 --decode > deploy_identity.pem
-        dfx identity import --storage-mode=plaintext deploy_identity deploy_identity.pem
+        # Check if identity exists, if not create it
+        if ! dfx identity list | grep -q "deploy_identity"; then
+          echo ${{ inputs.identity }} | base64 --decode > deploy_identity.pem
+          dfx identity import --storage-mode=plaintext deploy_identity deploy_identity.pem
+        fi
         dfx identity use deploy_identity
 
     - name: Deploy
