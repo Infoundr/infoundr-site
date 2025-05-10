@@ -51,6 +51,13 @@ jobs:
           install-dfxvm: true
           install-dfx: true
 
+      - name: Setup dfx environment
+        run: |
+          source "$HOME/.local/share/dfx/env"
+          dfxvm install ${{ env.DFX_VERSION }}
+          dfxvm use ${{ env.DFX_VERSION }}
+          dfx --version
+
       - name: Build Backend
         uses: ./.github/actions/build
         with:
@@ -63,6 +70,7 @@ jobs:
 
       - name: Build Frontend
         run: |
+          source "$HOME/.local/share/dfx/env"
           cd src/frontend
           npm install
           dfx generate
@@ -117,6 +125,7 @@ jobs:
 
       - name: Update Configuration
         run: |
+          source "$HOME/.local/share/dfx/env"
           # Get the mainnet canister ID
           CANISTER_ID=$(dfx canister --network ic id backend)
           
