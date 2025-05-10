@@ -82,6 +82,9 @@ jobs:
           npm install
           dfx generate || true  # Continue even if generate fails
           npm run build
+          # Create the wasm file from the built assets
+          cd dist
+          tar -czf frontend.wasm.gz .
 
       - name: Upload Backend Artifact
         uses: actions/upload-artifact@v4
@@ -128,7 +131,7 @@ jobs:
           identity: ${{ secrets.IC_IDENTITY }}
           canister_name: ${{ env.FRONTEND_PACKAGE }}
           network: ic
-          wasm_file: src/frontend/dist/${{ env.FRONTEND_PACKAGE }}.wasm.gz
+          wasm_file: src/frontend/dist/frontend.wasm.gz
 
       - name: Update Configuration
         run: |
