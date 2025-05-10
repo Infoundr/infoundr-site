@@ -52,31 +52,56 @@ const ChatHistory: React.FC<Props> = ({ actor, useMockData = mockDataBoolean }) 
     );
 
     return (
-        <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-2xl font-bold mb-4">AI Assistant Chat History</h2>
-            <div className="space-y-4">
+        <div className="bg-white rounded-xl shadow-lg p-8 max-w-4xl mx-auto">
+            <div className="flex items-center justify-between mb-8">
+                <h2 className="text-2xl font-bold text-gray-800">
+                    <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                        AI Assistant Chat History
+                    </span>
+                </h2>
+                <div className="bg-purple-50 rounded-full px-4 py-2 text-sm text-purple-700 font-medium">
+                    {messages.length} Conversations
+                </div>
+            </div>
+            
+            <div className="space-y-6">
                 {messages.map((message, index) => (
-                    <div key={index} className="border rounded-lg p-4">
-                        <div className="flex justify-between items-start mb-2">
-                            <span className="text-sm text-gray-500">
-                                {new Date(Number(message.timestamp) / 1_000_000).toLocaleString()}
-                            </span>
+                    <div 
+                        key={index} 
+                        className="border border-gray-100 rounded-xl p-6 hover:shadow-md transition-shadow duration-200 bg-gradient-to-r from-white to-gray-50"
+                    >
+                        <div className="flex justify-between items-center mb-4">
+                            <div className="flex items-center space-x-3">
+                                <div className="w-2 h-2 rounded-full bg-green-400"></div>
+                                <span className="text-sm text-gray-600 font-medium">
+                                    {new Date(Number(message.timestamp) / 1_000_000).toLocaleString()}
+                                </span>
+                            </div>
                             {message.bot_name && (
-                                <span className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded">
+                                <span className="bg-purple-100 text-purple-800 text-sm font-medium px-4 py-1.5 rounded-full">
                                     {message.bot_name}
                                 </span>
                             )}
                         </div>
                         {message.question_asked && (
-                            <div className="bg-gray-50 p-3 rounded mb-2">
-                                <p className="text-gray-700">Q: {message.question_asked}</p>
+                            <div className="bg-gray-50 p-4 rounded-lg mb-4 border-l-4 border-purple-400">
+                                <p className="text-gray-700 font-medium">
+                                    <span className="text-purple-600">Q: </span>
+                                    {message.question_asked}
+                                </p>
                             </div>
                         )}
-                        <p className="text-gray-900">{message.content}</p>
+                        <div className="bg-white p-4 rounded-lg shadow-sm">
+                            <p className="text-gray-800 leading-relaxed">{message.content}</p>
+                        </div>
                     </div>
                 ))}
                 {messages.length === 0 && (
-                    <p className="text-gray-500 text-center">No chat history found</p>
+                    <div className="text-center py-12">
+                        <div className="text-gray-400 text-6xl mb-4">💬</div>
+                        <p className="text-gray-500 text-lg">No chat history found yet</p>
+                        <p className="text-gray-400 text-sm mt-2">Start a conversation with our AI Assistant</p>
+                    </div>
                 )}
             </div>
         </div>
