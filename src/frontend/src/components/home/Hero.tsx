@@ -20,7 +20,7 @@ const Hero: React.FC<HeroProps> = ({ onGetStartedClick }) => {
           {/* Left Column - Text Content */}
           <div className="flex-1 w-full lg:w-1/2 text-center lg:text-left">
             <h1 className="text-3xl sm:text-4xl lg:text-[56px] font-bold leading-tight mb-6 sm:mb-8 tracking-normal">
-              Personal Board of AI Advisors
+              Your Personal Board of AI Advisors
             </h1>
             <p className="text-gray-600 text-base sm:text-lg lg:text-xl mb-8 sm:mb-10 max-w-3xl mx-auto lg:mx-0 leading-relaxed">
               Meet Infoundr - a suite of AI-powered bots modeled after successful entrepreneurs. 
