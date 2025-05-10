@@ -78,25 +78,19 @@ jobs:
       - name: Build Frontend
         run: |
           source "$HOME/.local/share/dfx/env"
-          # Create necessary directories first
+          # Create necessary directories
           mkdir -p $GITHUB_WORKSPACE/wasm
           cd $GITHUB_WORKSPACE/src/frontend
           npm install
-          dfx generate || true  # Continue even if generate fails
+          # Build the frontend assets
           npm run build
-          # Wait a moment to ensure all files are written
-          sleep 2
-          # Create a temporary directory for the archive
-          mkdir -p $GITHUB_WORKSPACE/wasm/frontend_assets
-          cd dist
-          # Copy all files to a temporary directory
-          cp -r . $GITHUB_WORKSPACE/wasm/frontend_assets/
-          cd $GITHUB_WORKSPACE/wasm/frontend_assets
-          # Create the archive from the temporary directory
-          tar -czf ../frontend.wasm.gz .
-          # Clean up
-          cd ..
-          rm -rf frontend_assets
+          # Create the frontend canister
+          cd $GITHUB_WORKSPACE
+          dfx canister create frontend --network ic || true
+          # Build the frontend canister
+          dfx build frontend --network ic
+          # Copy the wasm file to the wasm directory
+          cp .dfx/ic/canisters/frontend/frontend.wasm.gz $GITHUB_WORKSPACE/wasm/frontend.wasm.gz
 
       - name: Upload Backend Artifact
         uses: actions/upload-artifact@v4
