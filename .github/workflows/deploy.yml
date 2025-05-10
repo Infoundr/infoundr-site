@@ -14,6 +14,7 @@ env:
   BACKEND_PACKAGE: "backend"  # Backend canister name
   FRONTEND_PACKAGE: "frontend"  # Frontend canister name
   VERSION: ${{ github.sha }}  
+  DFX_WARNING: "-mainnet_plaintext_identity"
 
 jobs:
   build-and-deploy:
