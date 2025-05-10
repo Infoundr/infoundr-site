@@ -78,6 +78,8 @@ jobs:
       - name: Build Frontend
         run: |
           source "$HOME/.local/share/dfx/env"
+          # Create necessary directories first
+          mkdir -p wasm
           cd src/frontend
           npm install
           dfx generate || true  # Continue even if generate fails
@@ -85,7 +87,7 @@ jobs:
           # Wait a moment to ensure all files are written
           sleep 2
           # Create a temporary directory for the archive
-          mkdir -p ../../wasm
+          mkdir -p ../../wasm/frontend_assets
           cd dist
           # Copy all files to a temporary directory
           cp -r . ../../wasm/frontend_assets/
