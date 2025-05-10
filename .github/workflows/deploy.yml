@@ -84,11 +84,17 @@ jobs:
           npm run build
           # Wait a moment to ensure all files are written
           sleep 2
-          # Create the wasm file from the built assets
+          # Create a temporary directory for the archive
+          mkdir -p ../../wasm
           cd dist
-          tar -czf frontend.wasm.gz .
-          # Move the wasm file to the correct location
-          mv frontend.wasm.gz ../../wasm/
+          # Copy all files to a temporary directory
+          cp -r . ../../wasm/frontend_assets/
+          cd ../../wasm/frontend_assets
+          # Create the archive from the temporary directory
+          tar -czf ../frontend.wasm.gz .
+          # Clean up
+          cd ..
+          rm -rf frontend_assets
 
       - name: Upload Backend Artifact
         uses: actions/upload-artifact@v4
