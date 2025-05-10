@@ -45,10 +45,11 @@ jobs:
         run: $POCKET_IC_BIN --version
 
       - name: Install dfx
-        run: |
-          sh -ci "$(curl -fsSL https://internetcomputer.org/install.sh)" -- --yes
-          export PATH="$PATH:$HOME/.local/share/dfx/bin"
-          dfx --version
+        uses: dfinity/setup-dfx@main
+        with:
+          version: ${{ env.DFX_VERSION }}
+          install-dfxvm: true
+          install-dfx: true
 
       - name: Build Backend
         uses: ./.github/actions/build
