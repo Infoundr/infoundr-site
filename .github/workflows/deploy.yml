@@ -86,7 +86,9 @@ jobs:
           sleep 2
           # Create the wasm file from the built assets
           cd dist
-          tar -czf ../frontend.wasm.gz .
+          tar -czf frontend.wasm.gz .
+          # Move the wasm file to the correct location
+          mv frontend.wasm.gz ../../wasm/
 
       - name: Upload Backend Artifact
         uses: actions/upload-artifact@v4
@@ -99,7 +101,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.FRONTEND_PACKAGE }}_${{ github.sha }}
-          path: src/frontend/dist
+          path: wasm/frontend.wasm.gz
           if-no-files-found: error
 
       - name: Prepare Deployment
@@ -117,7 +119,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ env.FRONTEND_PACKAGE }}_${{ github.sha }}
-          path: src/frontend/dist
+          path: wasm
 
       - name: Deploy Backend
         uses: ./.github/actions/deploy
@@ -133,7 +135,7 @@ jobs:
           identity: ${{ secrets.IC_IDENTITY }}
           canister_name: ${{ env.FRONTEND_PACKAGE }}
           network: ic
-          wasm_file: src/frontend/dist/frontend.wasm.gz
+          wasm_file: wasm/frontend.wasm.gz
 
       - name: Update Configuration
         run: |
