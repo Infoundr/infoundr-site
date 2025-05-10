@@ -79,19 +79,19 @@ jobs:
         run: |
           source "$HOME/.local/share/dfx/env"
           # Create necessary directories first
-          mkdir -p wasm
-          cd src/frontend
+          mkdir -p $GITHUB_WORKSPACE/wasm
+          cd $GITHUB_WORKSPACE/src/frontend
           npm install
           dfx generate || true  # Continue even if generate fails
           npm run build
           # Wait a moment to ensure all files are written
           sleep 2
           # Create a temporary directory for the archive
-          mkdir -p ../../wasm/frontend_assets
+          mkdir -p $GITHUB_WORKSPACE/wasm/frontend_assets
           cd dist
           # Copy all files to a temporary directory
-          cp -r . ../../wasm/frontend_assets/
-          cd ../../wasm/frontend_assets
+          cp -r . $GITHUB_WORKSPACE/wasm/frontend_assets/
+          cd $GITHUB_WORKSPACE/wasm/frontend_assets
           # Create the archive from the temporary directory
           tar -czf ../frontend.wasm.gz .
           # Clean up
