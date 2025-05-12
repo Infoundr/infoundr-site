@@ -1,7 +1,11 @@
 import React from 'react';
 import Button from '../common/Button';
 
-const Pricing: React.FC = () => {
+interface PricingProps {
+  onGetStartedClick: () => void;
+}
+
+const Pricing: React.FC<PricingProps> = ({ onGetStartedClick }) => {
   const plans = [
     {
       name: 'Starter',
@@ -64,6 +68,11 @@ const Pricing: React.FC = () => {
     }
   ];
 
+  const handleButtonClick = (planName: string) => {
+    // Open the waitlist modal for all plans
+    onGetStartedClick();
+  };
+
   return (
     <section id="pricing" className="py-12 sm:py-16 bg-[#E5E7EB]">
       <div className="container mx-auto max-w-7xl px-4 sm:px-6">
@@ -109,7 +118,7 @@ const Pricing: React.FC = () => {
                     ? 'bg-purple-600 text-white hover:bg-purple-700' 
                     : (plan.buttonClassName || 'bg-gray-900 text-white hover:bg-gray-800')
                 }`}
-                onClick={() => console.log(`${plan.buttonText} clicked`)}
+                onClick={() => handleButtonClick(plan.name)}
               >
                 {plan.buttonText}
               </Button>
