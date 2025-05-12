@@ -20,7 +20,7 @@ const SlackIntegration: React.FC = () => {
   ];
 
   return (
-    <section className="py-16 sm:py-20 bg-gradient-to-b from-white to-purple-50">
+    <section id="slack-integration" className="py-16 sm:py-20 bg-gradient-to-b from-white to-purple-50">
       <div className="container mx-auto px-4 sm:px-6">
         <div className="flex flex-col lg:flex-row items-center justify-center gap-8 sm:gap-12 max-w-7xl mx-auto">
           {/* Left Column - Text Content */}

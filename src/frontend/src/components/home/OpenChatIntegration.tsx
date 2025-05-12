@@ -20,7 +20,7 @@ const OpenChatIntegration: React.FC = () => {
   ];
 
   return (
-    <section className="py-16 sm:py-20 bg-gradient-to-b from-purple-50 to-white">
+    <section id="openchat-integration" className="py-16 sm:py-20 bg-gradient-to-b from-purple-50 to-white">
       <div className="container mx-auto px-4 sm:px-6">
         <div className="flex flex-col lg:flex-row-reverse items-center justify-center gap-8 sm:gap-12 max-w-7xl mx-auto">
           {/* Left side - Features (on right in desktop) */}
