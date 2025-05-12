@@ -4,6 +4,7 @@ import Hero from './components/home/Hero';
 import AIAssistants from './components/home/AIAssistants';
 import Features from './components/home/Features';
 import SlackIntegration from './components/home/SlackIntegration';
+import OpenChatIntegration from './components/home/OpenChatIntegration';
 import Pricing from './components/home/Pricing';
 import Footer from './components/layout/Footer';
 import WaitlistModal from './components/common/WaitlistModal';
@@ -56,6 +57,7 @@ const App: React.FC = () => {
                 <Hero onGetStartedClick={() => setIsWaitlistModalOpen(true)} />
                 <Features />
                 <SlackIntegration />
+                <OpenChatIntegration />
                 <AIAssistants />
                 <Pricing onGetStartedClick={() => setIsWaitlistModalOpen(true)} />
               </main>
