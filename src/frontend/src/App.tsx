@@ -57,7 +57,7 @@ const App: React.FC = () => {
                 <Features />
                 <SlackIntegration />
                 <AIAssistants />
-                <Pricing />
+                <Pricing onGetStartedClick={() => setIsWaitlistModalOpen(true)} />
               </main>
               <Footer />
             </>

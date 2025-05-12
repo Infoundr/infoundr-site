@@ -83,7 +83,8 @@ const SlackIntegration: React.FC = () => {
         {/* Call to Action */}
         <div className="mt-16 text-center">
           <a 
-            href="#" 
+            target="_blank"
+            href="https://slack.infoundr.com/" 
             className="inline-flex items-center justify-center px-8 py-3 text-base font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors duration-200"
           >
             Add to Slack
