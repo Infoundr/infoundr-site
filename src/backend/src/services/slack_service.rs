@@ -1,5 +1,5 @@
 use crate::models::slack_user::SlackUser;
-use crate::models::stable_principal::StablePrincipal;
+// use crate::models::stable_principal::StablePrincipal;
 use crate::models::stable_string::StableString;
 use crate::storage::memory::SLACK_USERS;
 use candid::Principal;

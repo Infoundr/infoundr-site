@@ -30,6 +30,8 @@ fn pre_upgrade() {
     let connected_accounts = CONNECTED_ACCOUNTS.with(|ca| ca.borrow().iter().collect::<Vec<_>>());
     let tasks = TASKS.with(|t| t.borrow().iter().collect::<Vec<_>>());
     let openchat_users = OPENCHAT_USERS.with(|u| u.borrow().iter().collect::<Vec<_>>());
+    let slack_users = SLACK_USERS.with(|u| u.borrow().iter().collect::<Vec<_>>());
+    let discord_users = DISCORD_USERS.with(|u| u.borrow().iter().collect::<Vec<_>>());
     let dashboard_tokens = DASHBOARD_TOKENS.with(|t| t.borrow().iter().collect::<Vec<_>>());
 
     stable_save((
@@ -39,6 +41,8 @@ fn pre_upgrade() {
         connected_accounts,
         tasks,
         openchat_users,
+        slack_users,
+        discord_users,
         dashboard_tokens,
     ))
     .expect("Failed to save stable state");
@@ -53,6 +57,8 @@ fn post_upgrade() {
         _connected_accounts,
         _tasks,
         openchat_users,
+        slack_users,
+        discord_users,
         dashboard_tokens,
     ): (
         Vec<(StablePrincipal, User)>,
@@ -61,10 +67,12 @@ fn post_upgrade() {
         Vec<(StablePrincipal, ConnectedAccounts)>,
         Vec<((StablePrincipal, StableString), Task)>,
         Vec<(StableString, OpenChatUser)>,
+        Vec<(StableString, SlackUser)>,
+        Vec<(StableString, DiscordUser)>,
         Vec<(StableString, DashboardToken)>,
     ) = match stable_restore() {
         Ok(data) => data,
-        Err(_) => (vec![], vec![], vec![], vec![], vec![], vec![], vec![]),
+        Err(_) => (vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![]),
     };
 
     // Initialize empty collections for new storage
@@ -115,6 +123,22 @@ fn post_upgrade() {
     OPENCHAT_USERS.with(|u| {
         let mut u = u.borrow_mut();
         for (k, v) in openchat_users {
+            u.insert(k, v);
+        }
+    });
+
+    // Restore Slack users
+    SLACK_USERS.with(|u| {
+        let mut u = u.borrow_mut();
+        for (k, v) in slack_users {
+            u.insert(k, v);
+        }
+    });
+
+    // Restore Discord users
+    DISCORD_USERS.with(|u| {
+        let mut u = u.borrow_mut();
+        for (k, v) in discord_users {
             u.insert(k, v);
         }
     });

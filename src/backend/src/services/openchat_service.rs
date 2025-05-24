@@ -1,5 +1,5 @@
 use crate::models::openchat_user::OpenChatUser;
-use crate::models::stable_principal::StablePrincipal;
+// use crate::models::stable_principal::StablePrincipal;
 use crate::models::stable_string::StableString;
 use crate::storage::memory::OPENCHAT_USERS;
 use candid::Principal;
