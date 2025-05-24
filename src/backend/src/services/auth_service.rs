@@ -1,9 +1,7 @@
 use crate::models::dashboard_token::DashboardToken;
+use crate::models::stable_principal::StablePrincipal;
 use crate::models::stable_string::StableString;
-use crate::services::openchat_service::link_accounts as link_openchat_accounts;
-use crate::services::slack_service::link_accounts as link_slack_accounts;
-use crate::services::discord_service::link_accounts as link_discord_accounts;
-use crate::storage::memory::DASHBOARD_TOKENS;
+use crate::storage::memory::{DASHBOARD_TOKENS, OPENCHAT_USERS, SLACK_USERS, DISCORD_USERS};
 use candid::Principal;
 use ic_cdk::{query, update};
 
@@ -30,18 +28,9 @@ pub fn link_token_to_principal(token: String, principal: Principal) -> Result<()
     DASHBOARD_TOKENS.with(|tokens| {
         let mut tokens = tokens.borrow_mut();
         if let Some(token_record) = tokens.get(&StableString::from(token.clone())) {
-            // Try to link based on the platform ID
-            let result = if token_record.openchat_id.starts_with("U") {
-                // Slack ID format
-                link_slack_accounts(principal, token_record.openchat_id.clone())
-            } else if token_record.openchat_id.parse::<u64>().is_ok() {
-                // Discord ID format (numeric)
-                link_discord_accounts(principal, token_record.openchat_id.clone())
-            } else {
-                // Assume OpenChat ID
-                link_openchat_accounts(principal, token_record.openchat_id.clone())
-            };
-
+            // Link the account using the centralized function
+            let result = link_accounts(principal, token_record.openchat_id.clone());
+            
             // Remove the token after linking
             tokens.remove(&StableString::from(token));
             result
@@ -57,4 +46,71 @@ pub fn get_token_info(token: String) -> Option<DashboardToken> {
         let tokens = tokens.borrow();
         tokens.get(&StableString::from(token))
     })
+}
+
+#[derive(Debug)]
+pub enum Platform {
+    OpenChat,
+    Slack,
+    Discord,
+}
+
+#[update]
+pub fn link_accounts(site_principal: Principal, platform_id: String) -> Result<(), String> {
+    // Determine platform based on ID format
+    let platform = if platform_id.starts_with('U') {
+        Platform::Slack
+    } else if platform_id.chars().all(|c| c.is_numeric()) {
+        Platform::Discord
+    } else {
+        Platform::OpenChat
+    };
+
+    match platform {
+        Platform::OpenChat => {
+            OPENCHAT_USERS.with(|users| {
+                let mut users = users.borrow_mut();
+                if let Some(mut user) = users.get(&StableString::from(platform_id.clone())) {
+                    if user.site_principal.is_some() {
+                        return Err("Account already linked".to_string());
+                    }
+                    user.site_principal = Some(StablePrincipal::new(site_principal));
+                    users.insert(StableString::from(platform_id), user);
+                    Ok(())
+                } else {
+                    Err("OpenChat user not found".to_string())
+                }
+            })
+        }
+        Platform::Slack => {
+            SLACK_USERS.with(|users| {
+                let mut users = users.borrow_mut();
+                if let Some(mut user) = users.get(&StableString::from(platform_id.clone())) {
+                    if user.site_principal.is_some() {
+                        return Err("Account already linked".to_string());
+                    }
+                    user.site_principal = Some(StablePrincipal::new(site_principal));
+                    users.insert(StableString::from(platform_id), user);
+                    Ok(())
+                } else {
+                    Err("Slack user not found".to_string())
+                }
+            })
+        }
+        Platform::Discord => {
+            DISCORD_USERS.with(|users| {
+                let mut users = users.borrow_mut();
+                if let Some(mut user) = users.get(&StableString::from(platform_id.clone())) {
+                    if user.site_principal.is_some() {
+                        return Err("Account already linked".to_string());
+                    }
+                    user.site_principal = Some(StablePrincipal::new(site_principal));
+                    users.insert(StableString::from(platform_id), user);
+                    Ok(())
+                } else {
+                    Err("Discord user not found".to_string())
+                }
+            })
+        }
+    }
 } 

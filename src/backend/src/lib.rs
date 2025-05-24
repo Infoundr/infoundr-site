@@ -17,7 +17,7 @@ use crate::models::{
 use crate::services::account_service::ConnectionStatus;
 use crate::services::account_service::{UserActivity, UserIdentifier};
 use crate::storage::memory::{
-    CHAT_HISTORY, CONNECTED_ACCOUNTS, DASHBOARD_TOKENS, OPENCHAT_USERS, TASKS, USERS, WAITLIST,
+    CHAT_HISTORY, CONNECTED_ACCOUNTS, DASHBOARD_TOKENS, OPENCHAT_USERS, SLACK_USERS, DISCORD_USERS, TASKS, USERS, WAITLIST,
 };
 use candid::Principal;
 use ic_cdk::storage::{stable_restore, stable_save};
