@@ -7,6 +7,8 @@ use crate::models::connected_accounts::ConnectedAccounts;
 use crate::models::dashboard_token::DashboardToken;
 use crate::models::github::Issue;
 use crate::models::openchat_user::OpenChatUser;
+use crate::models::discord_user::DiscordUser;
+use crate::models::slack_user::SlackUser;
 use crate::models::task::Task;
 use crate::models::{
     chat::ChatMessage, stable_principal::StablePrincipal, stable_string::StableString, user::User,

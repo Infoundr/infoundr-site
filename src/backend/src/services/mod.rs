@@ -4,3 +4,5 @@ pub mod auth;
 pub mod chat;
 pub mod openchat_service;
 pub mod waitlist;
+pub mod slack_service;
+pub mod discord_service;
