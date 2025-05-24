@@ -9,6 +9,9 @@ Before you begin, ensure you have the following installed:
 - [npm](https://www.npmjs.com/) (v7 or higher)
 - [DFX](https://internetcomputer.org/docs/current/developer-docs/build/install-upgrade-remove) (latest version)
 
+--- 
+- Backend canister available at [link](https://a4gq6-oaaaa-aaaab-qaa4q-cai.raw.icp0.io/?id=g7ko2-fyaaa-aaaam-qdlea-cai)
+
 ## Getting Started
 
 1. Clone the repository:
