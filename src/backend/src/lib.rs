@@ -17,7 +17,7 @@ use crate::models::{
 use crate::services::account_service::ConnectionStatus;
 use crate::services::account_service::{UserActivity, UserIdentifier};
 use crate::storage::memory::{
-    CHAT_HISTORY, CONNECTED_ACCOUNTS, DASHBOARD_TOKENS, OPENCHAT_USERS, SLACK_USERS, DISCORD_USERS, TASKS, USERS, WAITLIST,
+    CHAT_HISTORY, CONNECTED_ACCOUNTS, DASHBOARD_TOKENS, OPENCHAT_USERS, SLACK_USERS, DISCORD_USERS, TASKS, USERS, WAITLIST, GITHUB_ISSUES,
 };
 use candid::Principal;
 use ic_cdk::storage::{stable_restore, stable_save};
@@ -29,6 +29,7 @@ fn pre_upgrade() {
     let chat_history = CHAT_HISTORY.with(|h| h.borrow().iter().collect::<Vec<_>>());
     let connected_accounts = CONNECTED_ACCOUNTS.with(|ca| ca.borrow().iter().collect::<Vec<_>>());
     let tasks = TASKS.with(|t| t.borrow().iter().collect::<Vec<_>>());
+    let github_issues = GITHUB_ISSUES.with(|i| i.borrow().iter().collect::<Vec<_>>());
     let openchat_users = OPENCHAT_USERS.with(|u| u.borrow().iter().collect::<Vec<_>>());
     let slack_users = SLACK_USERS.with(|u| u.borrow().iter().collect::<Vec<_>>());
     let discord_users = DISCORD_USERS.with(|u| u.borrow().iter().collect::<Vec<_>>());
@@ -40,6 +41,7 @@ fn pre_upgrade() {
         chat_history,
         connected_accounts,
         tasks,
+        github_issues,
         openchat_users,
         slack_users,
         discord_users,
@@ -54,8 +56,9 @@ fn post_upgrade() {
         users,
         waitlist,
         chat_history,
-        _connected_accounts,
-        _tasks,
+        connected_accounts,
+        tasks,
+        github_issues,
         openchat_users,
         slack_users,
         discord_users,
@@ -66,18 +69,15 @@ fn post_upgrade() {
         Vec<((StablePrincipal, u64), ChatMessage)>,
         Vec<(StablePrincipal, ConnectedAccounts)>,
         Vec<((StablePrincipal, StableString), Task)>,
+        Vec<((StablePrincipal, StableString), Issue)>,
         Vec<(StableString, OpenChatUser)>,
         Vec<(StableString, SlackUser)>,
         Vec<(StableString, DiscordUser)>,
         Vec<(StableString, DashboardToken)>,
     ) = match stable_restore() {
         Ok(data) => data,
-        Err(_) => (vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![]),
+        Err(_) => (vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![]),
     };
-
-    // Initialize empty collections for new storage
-    let connected_accounts: Vec<(StablePrincipal, ConnectedAccounts)> = vec![];
-    let tasks: Vec<((StablePrincipal, StableString), Task)> = vec![];
 
     // Restore users
     USERS.with(|u| {
@@ -116,6 +116,14 @@ fn post_upgrade() {
         let mut t = t.borrow_mut();
         for (k, v) in tasks {
             t.insert(k, v);
+        }
+    });
+
+    // Restore GitHub issues
+    GITHUB_ISSUES.with(|i| {
+        let mut i = i.borrow_mut();
+        for (k, v) in github_issues {
+            i.insert(k, v);
         }
     });
 

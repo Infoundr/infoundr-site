@@ -54,15 +54,20 @@ sequenceDiagram
     participant U as User
     participant P as Platform
     participant S as Platform Service
+    participant T as Token Service
     participant A as Auth Service
     participant D as Dashboard
     
     U->>P: Authenticate
     P->>S: Request Token
-    S->>S: Generate Token
+    S->>T: Generate Token
+    T->>T: Create Token Record
+    T->>S: Return Token
     S->>U: Return Token
     U->>D: Access Dashboard
     D->>A: Verify Token
+    A->>T: Validate Token
+    T->>A: Token Info
     A->>S: Link Account
     S->>A: Confirm Link
     A->>D: Grant Access
@@ -84,11 +89,24 @@ Manages authentication and account linking:
 - `link_token_to_principal`: Links platform accounts to site principals
 - `get_token_info`: Retrieves token information
 
-### 3. Platform Services
+### 3. Token Service
+Centralizes token management across platforms:
+- `generate_dashboard_token`: Creates new tokens for any platform
+- `validate_dashboard_token`: Verifies token validity and expiry
+- Handles token cleanup and expiration
+- Manages token storage and retrieval
+
+### 4. Platform Services
 Platform-specific implementations:
 - `openchat_service.rs`: OpenChat integration
 - `slack_service.rs`: Slack integration
 - `discord_service.rs`: Discord integration
+
+Each platform service provides:
+- User management (ensure, link, get)
+- Platform-specific user data
+- Integration with token service
+- Account linking functionality
 
 ## Data Models
 
@@ -174,8 +192,10 @@ graph TD
 ### 1. Token Security
 - Short expiration time (2 minutes)
 - Single-use tokens
-- Secure random generation
+- Secure random generation using IC's raw_rand
 - Immediate removal after use
+- Centralized token management
+- Automatic cleanup of expired tokens
 
 ### 2. Account Protection
 - One-to-one mapping between platform IDs and principals

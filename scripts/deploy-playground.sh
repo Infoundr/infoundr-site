@@ -2,6 +2,10 @@
 
 echo "🚀 Starting playground deployment..."
 
+# Generate the candid interface
+echo "Generating candid interface..."
+npx generate-did backend
+
 # First deployment to get the canister ID
 echo "Performing initial deployment..."
 dfx deploy --playground
