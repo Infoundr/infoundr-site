@@ -30,8 +30,8 @@ const SlackIntegration: React.FC = () => {
             </h2>
             <div className="space-y-6">
               {features.map((feature, index) => (
-                <div key={index} className="flex gap-4 items-start">
-                  <div className="text-2xl sm:text-3xl flex-shrink-0">
+                <div key={index} className="flex gap-2 sm:gap-4 items-start">
+                  <div className="text-xl sm:text-2xl lg:text-3xl flex-shrink-0 mt-1">
                     {feature.icon}
                   </div>
                   <div>

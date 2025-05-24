@@ -1,32 +1,32 @@
 import React from 'react';
 
-const OpenChatIntegration: React.FC = () => {
+const DiscordIntegration: React.FC = () => {
   const features = [
     {
-      icon: '🤖',
-      title: 'Expert AI Advisors',
-      description: 'Chat with AI advisors modeled after successful founders. Get strategic advice from experts like Benny for fintech or Felix for crypto regulation.'
+      icon: '🎮',
+      title: 'Community Collaboration',
+      description: 'Connect with fellow founders in Discord servers. Get advice, share insights, and collaborate with AI advisors in real-time conversations.'
     },
     {
-      icon: '⚙️',
-      title: 'Seamless Integrations',
-      description: 'Connect your workflow tools directly in chat. Create Asana tasks, manage GitHub issues, and track your progress without switching contexts.'
+      icon: '⚡',
+      title: 'Instant AI Support',
+      description: 'Use slash commands to get immediate help from our AI mentors. Create tasks, get strategic advice, and manage your startup workflow seamlessly.'
     },
     {
-      icon: '📊',
-      title: 'Dashboard Analytics',
-      description: 'Access your interaction history, track your startup progress, and review all your conversations with a simple /dashboard command.'
+      icon: '🚀',
+      title: 'Build in Public',
+      description: 'Share your startup journey with the community. Get feedback, track progress, and celebrate milestones with other entrepreneurs.'
     }
   ];
 
   return (
-    <section id="openchat-integration" className="py-16 sm:py-20 bg-gradient-to-b from-purple-50 to-white">
+    <section id="discord-integration" className="py-16 sm:py-20 bg-gradient-to-b from-white to-purple-50">
       <div className="container mx-auto px-4 sm:px-6">
-        <div className="flex flex-col lg:flex-row-reverse items-center justify-center gap-8 sm:gap-12 max-w-7xl mx-auto">
-          {/* Left side - Features (on right in desktop) */}
+        <div className="flex flex-col lg:flex-row items-center justify-center gap-8 sm:gap-12 max-w-7xl mx-auto">
+          {/* Left Column - Text Content */}
           <div className="flex-1 w-full lg:w-1/2 text-center lg:text-left">
             <h2 className="text-3xl sm:text-4xl font-bold mb-6 text-gray-900">
-              Infoundr on OpenChat
+              Infoundr on Discord
             </h2>
             <div className="space-y-6">
               {features.map((feature, index) => (
@@ -47,32 +47,32 @@ const OpenChatIntegration: React.FC = () => {
             </div>
           </div>
 
-          {/* Right side - Image (on left in desktop) */}
+          {/* Right Column - Image */}
           <div className="w-full lg:w-1/2 flex justify-center items-center">
             <div className="relative w-full max-w-[600px] h-[400px] flex items-center justify-center">
               {/* Main image */}
-              <div className="absolute z-30 transform rotate-[2deg] shadow-xl">
+              <div className="absolute z-30 transform rotate-[-2deg] shadow-xl">
                 <img 
-                  src="/images/ask-response.png" 
-                  alt="OpenChat Ask Response"
+                  src="/images/discord1.png" 
+                  alt="Discord Integration Main"
                   className="w-full max-w-[250px] lg:max-w-[300px] h-[290px] lg:h-[300px] object-cover rounded-lg"
                 />
               </div>
               
               {/* Second image */}
-              <div className="absolute z-20 transform translate-x-[-80px] translate-y-[-60px] rotate-[-3deg] shadow-xl">
+              <div className="absolute z-20 transform translate-x-[-80px] translate-y-[-60px] rotate-[3deg] shadow-xl">
                 <img 
-                  src="/images/help-response.png" 
-                  alt="OpenChat Help Response"
+                  src="/images/discord2.png" 
+                  alt="Discord Integration Features"
                   className="w-full max-w-[220px] lg:max-w-[270px] h-[260px] lg:h-[270px] object-cover rounded-lg"
                 />
               </div>
               
               {/* Third image */}
-              <div className="absolute z-10 transform translate-x-[80px] translate-y-[40px] rotate-[1deg] shadow-xl">
+              <div className="absolute z-10 transform translate-x-[80px] translate-y-[40px] rotate-[-1deg] shadow-xl">
                 <img 
-                  src="/images/project-created.png" 
-                  alt="OpenChat Project Created"
+                  src="/images/discord3.png" 
+                  alt="Discord Integration Example"
                   className="w-full max-w-[220px] lg:max-w-[270px] h-[260px] lg:h-[270px] object-cover rounded-lg"
                 />
               </div>
@@ -83,12 +83,12 @@ const OpenChatIntegration: React.FC = () => {
         {/* Call to Action */}
         <div className="mt-12 text-center">
           <a 
-            href="https://oc.app/user/infoundr" 
+            href="#" 
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center justify-center px-6 sm:px-8 py-3 text-base font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors duration-200"
           >
-            Try on OpenChat
+            Invite Infoundr to your Discord Server
             <svg className="ml-2 -mr-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
             </svg>
@@ -99,4 +99,4 @@ const OpenChatIntegration: React.FC = () => {
   );
 };
 
-export default OpenChatIntegration; 
+export default DiscordIntegration; 
