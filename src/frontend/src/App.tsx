@@ -3,6 +3,8 @@ import NavBar from './components/layout/NavBar';
 import Hero from './components/home/Hero';
 import AIAssistants from './components/home/AIAssistants';
 import Features from './components/home/Features';
+import SlackIntegration from './components/home/SlackIntegration';
+import OpenChatIntegration from './components/home/OpenChatIntegration';
 import Pricing from './components/home/Pricing';
 import Footer from './components/layout/Footer';
 import WaitlistModal from './components/common/WaitlistModal';
@@ -54,8 +56,10 @@ const App: React.FC = () => {
               <main>
                 <Hero onGetStartedClick={() => setIsWaitlistModalOpen(true)} />
                 <Features />
+                <SlackIntegration />
+                <OpenChatIntegration />
                 <AIAssistants />
-                <Pricing />
+                <Pricing onGetStartedClick={() => setIsWaitlistModalOpen(true)} />
               </main>
               <Footer />
             </>
@@ -65,26 +69,11 @@ const App: React.FC = () => {
           <Route path="/dashboard" element={<Auth />} />
 
           {/* Protected Dashboard Routes */}
-          <Route path="/dashboard" element={
+          <Route path="/dashboard/*" element={
             <ProtectedRoute>
               <DashboardLayout />
             </ProtectedRoute>
-          }>
-            <Route path="home" element={<Dashboard />} />
-            <Route path="ai-assistants" element={<AIAssistantsPage />} />
-            <Route path="tasks" element={<div>Tasks Page</div>} />
-            <Route path="analytics" element={<div>Analytics Page</div>} />
-            <Route path="team" element={<div>Team Page</div>} />
-            <Route path="ideation" element={<Ideation />} />
-            <Route path="github" element={<GithubIssues actor={actor as unknown as _SERVICE} useMockData={mockDataBoolean} />} />
-            
-          </Route>
-
-          {/* Admin Route */}
-          <Route path="/admin" element={<AdminPanel />} />
-
-          {/* Bot Login Route */}
-          <Route path="/bot-login" element={<BotLogin />} />
+          } />
         </Routes>
 
         <WaitlistModal 

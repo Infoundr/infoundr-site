@@ -10,10 +10,38 @@ interface NavBarProps {
 
 const NavBar: React.FC<NavBarProps> = ({ onGetStartedClick, isAuthenticated: isUserAuthenticated, onAuthChange }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [showFeaturesDropdown, setShowFeaturesDropdown] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleLogout = async () => {
     await logout();
     onAuthChange(false);
+  };
+
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
+    e.preventDefault();
+    const element = document.getElementById(targetId);
+    if (element) {
+      const navbarHeight = 96; // Height of navbar (24px logo height + padding)
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - navbarHeight;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+      setIsMenuOpen(false);
+      setShowFeaturesDropdown(false);
+    }
   };
 
   const checkAuth = async () => {
@@ -22,7 +50,11 @@ const NavBar: React.FC<NavBarProps> = ({ onGetStartedClick, isAuthenticated: isU
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-md">
+    <nav className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
+      isScrolled 
+        ? 'bg-white/95 backdrop-blur-md shadow-md' 
+        : 'bg-white/80 backdrop-blur-sm'
+    }`}>
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center">
@@ -33,16 +65,56 @@ const NavBar: React.FC<NavBarProps> = ({ onGetStartedClick, isAuthenticated: isU
 
         {/* Desktop Navigation Links */}
         <div className="hidden md:flex items-center space-x-8">
-          <a href="#home" className="text-gray-600 hover:text-gray-900">
+          <a 
+            href="#home" 
+            onClick={(e) => handleNavClick(e, 'home')}
+            className="text-gray-600 hover:text-gray-900 transition-colors duration-200"
+          >
             Home
           </a>
           {/* <a href="#bots" className="text-gray-600 hover:text-gray-900">
             Bots
           </a> */}
-          <a href="#features" className="text-gray-600 hover:text-gray-900">
-            Features
-          </a>
-          <a href="#pricing" className="text-gray-600 hover:text-gray-900">
+          <div className="relative group">
+            <a 
+              href="#features" 
+              onClick={(e) => handleNavClick(e, 'features')}
+              className="text-gray-600 hover:text-gray-900 transition-colors duration-200 flex items-center"
+              onMouseEnter={() => setShowFeaturesDropdown(true)}
+              onMouseLeave={() => setShowFeaturesDropdown(false)}
+            >
+              Features
+              <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </a>
+            <div 
+              className={`absolute left-0 mt-2 w-48 bg-white/95 backdrop-blur-md shadow-lg rounded-md transition-all duration-200 ease-in-out overflow-hidden z-50
+                ${showFeaturesDropdown ? 'opacity-100 max-h-96 visible' : 'opacity-0 max-h-0 invisible'}`}
+              onMouseEnter={() => setShowFeaturesDropdown(true)}
+              onMouseLeave={() => setShowFeaturesDropdown(false)}
+            >
+              <a 
+                href="#slack-integration" 
+                onClick={(e) => handleNavClick(e, 'slack-integration')}
+                className="block px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200"
+              >
+                Try on Slack
+              </a>
+              <a 
+                href="#openchat-integration" 
+                onClick={(e) => handleNavClick(e, 'openchat-integration')}
+                className="block px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200"
+              >
+                Try on OpenChat
+              </a>
+            </div>
+          </div>
+          <a 
+            href="#pricing" 
+            onClick={(e) => handleNavClick(e, 'pricing')}
+            className="text-gray-600 hover:text-gray-900 transition-colors duration-200"
+          >
             Pricing
           </a>
           {/* <a href="#contact" className="text-gray-600 hover:text-gray-900">
@@ -55,7 +127,7 @@ const NavBar: React.FC<NavBarProps> = ({ onGetStartedClick, isAuthenticated: isU
           {isUserAuthenticated ? (
             <Button 
               variant="primary"
-              className="!bg-[#8B5CF6] hover:!bg-[#7C3AED]"
+              className="!bg-[#8B5CF6] hover:!bg-[#7C3AED] transition-colors duration-200"
               onClick={handleLogout}
             >
               Disconnect
@@ -64,6 +136,7 @@ const NavBar: React.FC<NavBarProps> = ({ onGetStartedClick, isAuthenticated: isU
             <Button 
               variant="primary"
               onClick={onGetStartedClick}
+              className="transition-colors duration-200"
             >
               Get Started
             </Button>
@@ -73,7 +146,7 @@ const NavBar: React.FC<NavBarProps> = ({ onGetStartedClick, isAuthenticated: isU
         {/* Mobile Menu Button */}
         <button 
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="md:hidden p-2 text-gray-600 hover:text-gray-900"
+          className="md:hidden p-2 text-gray-600 hover:text-gray-900 transition-colors duration-200"
         >
           {isMenuOpen ? (
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -90,22 +163,48 @@ const NavBar: React.FC<NavBarProps> = ({ onGetStartedClick, isAuthenticated: isU
       {/* Mobile Menu Dropdown */}
       <div 
         className={`
-          md:hidden bg-white border-t
+          md:hidden bg-white/95 backdrop-blur-md border-t shadow-lg
           transition-all duration-300 ease-in-out
-          ${isMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible h-0'}
+          ${isMenuOpen ? 'max-h-96 opacity-100 visible' : 'max-h-0 opacity-0 invisible'}
+          overflow-hidden
         `}
       >
         <div className="px-6 py-4 space-y-4">
-          <a href="#home" className="block text-gray-600 hover:text-gray-900">
+          <a 
+            href="#home" 
+            onClick={(e) => handleNavClick(e, 'home')}
+            className="block text-gray-600 hover:text-gray-900 transition-colors duration-200"
+          >
             Home
           </a>
-          <a href="#bots" className="block text-gray-600 hover:text-gray-900">
-            Bots
-          </a>
-          <a href="#features" className="block text-gray-600 hover:text-gray-900">
+          <a 
+            href="#features" 
+            onClick={(e) => handleNavClick(e, 'features')}
+            className="block text-gray-600 hover:text-gray-900 transition-colors duration-200"
+          >
             Features
           </a>
-          <a href="#pricing" className="block text-gray-600 hover:text-gray-900">
+          <div className="pl-4 space-y-2">
+            <a 
+              href="#slack-integration" 
+              onClick={(e) => handleNavClick(e, 'slack-integration')}
+              className="block text-gray-600 hover:text-gray-900 transition-colors duration-200"
+            >
+              - Try on Slack
+            </a>
+            <a 
+              href="#openchat-integration" 
+              onClick={(e) => handleNavClick(e, 'openchat-integration')}
+              className="block text-gray-600 hover:text-gray-900 transition-colors duration-200"
+            >
+              - Try on OpenChat
+            </a>
+          </div>
+          <a 
+            href="#pricing" 
+            onClick={(e) => handleNavClick(e, 'pricing')}
+            className="block text-gray-600 hover:text-gray-900 transition-colors duration-200"
+          >
             Pricing
           </a>
           {/* <a href="#contact" className="block text-gray-600 hover:text-gray-900">
@@ -115,7 +214,7 @@ const NavBar: React.FC<NavBarProps> = ({ onGetStartedClick, isAuthenticated: isU
             {isUserAuthenticated ? (
               <Button 
                 variant="primary"
-                className="w-full !bg-[#8B5CF6] hover:!bg-[#7C3AED]"
+                className="w-full !bg-[#8B5CF6] hover:!bg-[#7C3AED] transition-colors duration-200"
                 onClick={handleLogout}
               >
                 Disconnect
@@ -123,7 +222,7 @@ const NavBar: React.FC<NavBarProps> = ({ onGetStartedClick, isAuthenticated: isU
             ) : (
               <Button 
                 variant="primary" 
-                className="w-full"
+                className="w-full transition-colors duration-200"
                 onClick={onGetStartedClick}
               >
                 Get Started
