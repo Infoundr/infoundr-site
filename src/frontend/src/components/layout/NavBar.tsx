@@ -108,6 +108,13 @@ const NavBar: React.FC<NavBarProps> = ({ onGetStartedClick, isAuthenticated: isU
               >
                 Try on OpenChat
               </a>
+              <a 
+                href="#discord-integration" 
+                onClick={(e) => handleNavClick(e, 'discord-integration')}
+                className="block px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200"
+              >
+                Try on Discord
+              </a>
             </div>
           </div>
           <a 
@@ -198,6 +205,13 @@ const NavBar: React.FC<NavBarProps> = ({ onGetStartedClick, isAuthenticated: isU
               className="block text-gray-600 hover:text-gray-900 transition-colors duration-200"
             >
               - Try on OpenChat
+            </a>
+            <a 
+              href="#discord-integration" 
+              onClick={(e) => handleNavClick(e, 'discord-integration')}
+              className="block text-gray-600 hover:text-gray-900 transition-colors duration-200"
+            >
+              - Try on Discord
             </a>
           </div>
           <a 
