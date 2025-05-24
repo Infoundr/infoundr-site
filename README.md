@@ -112,7 +112,9 @@ infoundr-site/
 ## Development
 
 ### Backend Development
-The backend is written in Rust and uses the Internet Computer's Rust CDK. The main components are:
+The backend is written in Rust and uses the Internet Computer's Rust CDK. For detailed documentation about the backend architecture, including authentication flows, data models, and security considerations, please see [Backend Architecture Documentation](docs/backend-architecture.md).
+
+Key components:
 - `src/backend/src/lib.rs` - Main entry point
 - `src/backend/src/services/` - Business logic
 - `src/backend/src/models/` - Data models
@@ -223,5 +225,3 @@ The deployment scripts automatically manage this flag:
 - `setup-local.sh`: Sets `DEV_MODE=true`
 - `deploy-playground.sh`: Sets `DEV_MODE=false`
 - `deploy-mainnet.sh`: Sets `DEV_MODE=false`
-
-
