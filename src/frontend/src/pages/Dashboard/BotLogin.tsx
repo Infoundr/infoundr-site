@@ -37,6 +37,7 @@ const BotLogin: React.FC = () => {
                 // Success: set session as authenticated and redirect
                 sessionStorage.setItem('is_authenticated', 'true');
                 if (openchatId) sessionStorage.setItem('openchat_id', openchatId);
+                sessionStorage.setItem('user_principal', principal.toText());
                 navigate('/dashboard/home', { replace: true });
             } else if (result && 'Err' in result) {
                 setError(result.Err || 'Failed to link account. Please try again.');

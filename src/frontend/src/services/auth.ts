@@ -10,6 +10,7 @@ let authClient: AuthClient | null = null;
 // Identity Provider URLs
 const II_URL = {
   local: "http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:8080",
+  playground: "https://a4gq6-oaaaa-aaaab-qaa4q-cai.raw.icp0.io/?id=rdmx6-jaaaa-aaaaa-aaadq-cai",
   ic: "https://identity.ic0.app"
 };
 
@@ -76,7 +77,7 @@ export const loginWithII = async (): Promise<ActorSubclass<_SERVICE>> => {
     
     const isAuthenticated = await new Promise<boolean>((resolve) => {
         authClient.login({
-            identityProvider: II_URL.local,
+            identityProvider: import.meta.env.VITE_DFX_NETWORK === 'ic' ? II_URL.ic : II_URL.local,
             onSuccess: () => resolve(true),
             onError: () => resolve(false),
             windowOpenerFeatures: `

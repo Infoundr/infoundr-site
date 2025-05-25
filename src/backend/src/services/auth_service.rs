@@ -60,6 +60,57 @@ pub enum Platform {
 }
 
 #[update]
+pub fn unlink_accounts(platform_id: String) -> Result<(), String> {
+    // Determine platform based on ID format
+    let platform = if platform_id.starts_with('U') {
+        Platform::Slack
+    } else if platform_id.chars().all(|c| c.is_numeric()) {
+        Platform::Discord
+    } else {
+        Platform::OpenChat
+    };
+
+    match platform {
+        Platform::OpenChat => {
+            OPENCHAT_USERS.with(|users| {
+                let mut users = users.borrow_mut();
+                if let Some(mut user) = users.get(&StableString::from(platform_id.clone())) {
+                    user.site_principal = None;
+                    users.insert(StableString::from(platform_id), user);
+                    Ok(())
+                } else {
+                    Err("OpenChat user not found".to_string())
+                }
+            })
+        }
+        Platform::Slack => {
+            SLACK_USERS.with(|users| {
+                let mut users = users.borrow_mut();
+                if let Some(mut user) = users.get(&StableString::from(platform_id.clone())) {
+                    user.site_principal = None;
+                    users.insert(StableString::from(platform_id), user);
+                    Ok(())
+                } else {
+                    Err("Slack user not found".to_string())
+                }
+            })
+        }
+        Platform::Discord => {
+            DISCORD_USERS.with(|users| {
+                let mut users = users.borrow_mut();
+                if let Some(mut user) = users.get(&StableString::from(platform_id.clone())) {
+                    user.site_principal = None;
+                    users.insert(StableString::from(platform_id), user);
+                    Ok(())
+                } else {
+                    Err("Discord user not found".to_string())
+                }
+            })
+        }
+    }
+}
+
+#[update]
 pub fn link_accounts(site_principal: Principal, platform_id: String) -> Result<(), String> {
     // Determine platform based on ID format
     let platform = if platform_id.starts_with('U') {
@@ -75,8 +126,10 @@ pub fn link_accounts(site_principal: Principal, platform_id: String) -> Result<(
             OPENCHAT_USERS.with(|users| {
                 let mut users = users.borrow_mut();
                 if let Some(mut user) = users.get(&StableString::from(platform_id.clone())) {
+                    ic_cdk::println!("[link_accounts] OpenChat: platform_id={}, current site_principal={:?}, new principal={:?}", platform_id, user.site_principal, site_principal);
+                    // If already linked, unlink first
                     if user.site_principal.is_some() {
-                        return Err("Account already linked".to_string());
+                        user.site_principal = None;
                     }
                     user.site_principal = Some(StablePrincipal::new(site_principal));
                     users.insert(StableString::from(platform_id), user);
@@ -90,8 +143,10 @@ pub fn link_accounts(site_principal: Principal, platform_id: String) -> Result<(
             SLACK_USERS.with(|users| {
                 let mut users = users.borrow_mut();
                 if let Some(mut user) = users.get(&StableString::from(platform_id.clone())) {
+                    ic_cdk::println!("[link_accounts] Slack: platform_id={}, current site_principal={:?}, new principal={:?}", platform_id, user.site_principal, site_principal);
+                    // If already linked, unlink first
                     if user.site_principal.is_some() {
-                        return Err("Account already linked".to_string());
+                        user.site_principal = None;
                     }
                     user.site_principal = Some(StablePrincipal::new(site_principal));
                     users.insert(StableString::from(platform_id), user);
@@ -105,8 +160,10 @@ pub fn link_accounts(site_principal: Principal, platform_id: String) -> Result<(
             DISCORD_USERS.with(|users| {
                 let mut users = users.borrow_mut();
                 if let Some(mut user) = users.get(&StableString::from(platform_id.clone())) {
+                    ic_cdk::println!("[link_accounts] Discord: platform_id={}, current site_principal={:?}, new principal={:?}", platform_id, user.site_principal, site_principal);
+                    // If already linked, unlink first
                     if user.site_principal.is_some() {
-                        return Err("Account already linked".to_string());
+                        user.site_principal = None;
                     }
                     user.site_principal = Some(StablePrincipal::new(site_principal));
                     users.insert(StableString::from(platform_id), user);

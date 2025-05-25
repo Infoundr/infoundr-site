@@ -31,6 +31,7 @@ VITE_CANISTER_ID=$CANISTER_ID
 VITE_PLAYGROUND_CANISTER_ID=$CANISTER_ID
 VITE_AUTH_MODE=backend
 VITE_ENV_MODE=playground
+VITE_II_URL=https://identity.ic0.app
 EOL
 
 # Second deployment to ensure everything is properly configured

@@ -153,6 +153,7 @@ service : {
   store_chat_message : (UserIdentifier, ChatMessage) -> ();
   store_github_connection : (UserIdentifier, text, opt text) -> ();
   store_github_issue : (UserIdentifier, Issue) -> (Result_4);
+  unlink_accounts : (text) -> (Result_4);
   update_github_selected_repo : (UserIdentifier, text) -> (Result_4);
   validate_dashboard_token : (blob) -> (opt text) query;
   verify_connections : (principal) -> (Result_6) query;
