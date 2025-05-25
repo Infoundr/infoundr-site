@@ -75,6 +75,7 @@ type Task = record {
   platform : text;
   created_at : nat64;
 };
+type TokenValidationResult = record { platform_id : text; platform : text };
 type User = record {
   "principal" : principal;
   name : text;
@@ -155,7 +156,7 @@ service : {
   store_github_issue : (UserIdentifier, Issue) -> (Result_4);
   unlink_accounts : (text) -> (Result_4);
   update_github_selected_repo : (UserIdentifier, text) -> (Result_4);
-  validate_dashboard_token : (blob) -> (opt text) query;
+  validate_dashboard_token : (blob) -> (opt TokenValidationResult) query;
   verify_connections : (principal) -> (Result_6) query;
   verify_token : (text) -> (Result_4);
 }

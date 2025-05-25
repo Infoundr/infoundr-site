@@ -260,6 +260,8 @@ const createAuthenticatedActor = async () => {
 export const loginWithBotToken = async (token: string): Promise<{
     isValid: boolean;
     openchatId: string | null;
+    slackId?: string | null;
+    platform?: string;
 }> => {
     try {
         console.log("Starting token validation process");
@@ -318,25 +320,27 @@ export const loginWithBotToken = async (token: string): Promise<{
         console.log("Token bytes (frontend):", Array.from(tokenBytes));
         
         // Validate token with backend
-        const response = await actor.validate_dashboard_token(Array.from(tokenBytes));
+        let response = await actor.validate_dashboard_token(Array.from(tokenBytes));
         console.log("Backend response:", response);
-        
-        if (!response || (Array.isArray(response) && response.length === 0)) {
+
+        // Candid returns [TokenValidationResult] or []
+        const result = Array.isArray(response) ? response[0] : undefined;
+
+        if (!result || !result.platform || !result.platform_id) {
             console.error('Invalid or expired token');
             return { isValid: false, openchatId: null };
         }
 
-        // Handle the response based on its type
-        const openchatId = Array.isArray(response) ? response[0] : response;
-        
-        if (typeof openchatId === 'string' && openchatId) {
-            console.log("Valid OpenChat ID found:", openchatId);
-            sessionStorage.setItem('openchat_id', openchatId);
-            return { isValid: true, openchatId };
+        if (result.platform === 'slack') {
+            sessionStorage.setItem('slack_id', result.platform_id);
+            return { isValid: true, openchatId: null, slackId: result.platform_id, platform: 'slack' };
+        } else if (result.platform === 'openchat') {
+            sessionStorage.setItem('openchat_id', result.platform_id);
+            return { isValid: true, openchatId: result.platform_id, platform: 'openchat' };
+        } else {
+            // fallback for unknown platform
+            return { isValid: true, openchatId: result.platform_id, platform: result.platform };
         }
-        
-        console.error('Invalid response format from backend');
-        return { isValid: false, openchatId: null };
     } catch (error) {
         console.error('Token validation error:', error);
         return { isValid: false, openchatId: null };
@@ -387,4 +391,4 @@ export const linkAccounts = async (openchatId: string): Promise<boolean> => {
         console.error('Error linking accounts:', error);
         return false;
     }
-}; 
+};

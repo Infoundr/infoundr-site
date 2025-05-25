@@ -75,8 +75,11 @@ const App: React.FC = () => {
             </ProtectedRoute>
           } />
 
-          {/* Add BotLogin route outside of dashboard */}
+          {/* BotLogin route outside of dashboard */}
           <Route path="/bot-login" element={<BotLogin />} />
+
+          {/* Add AdminPanel route outside of dashboard */}
+          <Route path="/admin" element={<AdminPanel />} />
         </Routes>
 
         <WaitlistModal 

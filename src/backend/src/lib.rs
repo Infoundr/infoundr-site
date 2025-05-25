@@ -21,6 +21,7 @@ use crate::storage::memory::{
 };
 use candid::Principal;
 use ic_cdk::storage::{stable_restore, stable_save};
+use crate::services::token_service::TokenValidationResult;
 
 #[ic_cdk::pre_upgrade]
 fn pre_upgrade() {

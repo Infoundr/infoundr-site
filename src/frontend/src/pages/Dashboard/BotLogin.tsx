@@ -74,12 +74,23 @@ const BotLogin: React.FC = () => {
         const validateToken = async () => {
             try {
                 const validationResult = await loginWithBotToken(urlToken);
-                if (!validationResult.isValid || !validationResult.openchatId) {
+                if (!validationResult.isValid) {
                     setError('Invalid or expired token. Please request a new login link from the bot.');
                     setIsLoading(false);
                     return;
                 }
-                setOpenchatId(validationResult.openchatId);
+
+                // Store the platform ID based on the platform type
+                if (validationResult.platform === 'slack' && validationResult.slackId) {
+                    setOpenchatId(null); // Slack users don't have an OpenChat ID
+                } else if (validationResult.platform === 'openchat' && validationResult.openchatId) {
+                    setOpenchatId(validationResult.openchatId);
+                } else {
+                    setError('Unknown platform or missing ID. Please try again.');
+                    setIsLoading(false);
+                    return;
+                }
+
                 // Token is valid, prompt for auth method
                 setShowAuthOptions(true);
             } catch (err) {

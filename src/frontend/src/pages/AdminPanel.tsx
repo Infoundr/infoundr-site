@@ -38,6 +38,20 @@ const AdminPanel: React.FC = () => {
 
     useEffect(() => {
         initializeActor();
+        // TEST: Call get_admins and log the result
+        (async () => {
+            try {
+                const agent = new HttpAgent({});
+                if (import.meta.env.VITE_DFX_NETWORK !== 'ic') {
+                    await agent.fetchRootKey();
+                }
+                const actor = createActor(CANISTER_ID, { agent });
+                const admins = await actor.get_admins();
+                console.log('TEST get_admins result:', admins);
+            } catch (err) {
+                console.error('TEST get_admins error:', err);
+            }
+        })();
     }, []);
 
     const initializeActor = async () => {
