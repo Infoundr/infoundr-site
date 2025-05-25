@@ -16,13 +16,22 @@ const BotLogin: React.FC = () => {
     const [openchatId, setOpenchatId] = useState<string | null>(null);
 
     const handleAuthAndLink = async (method: 'ii' | 'nfid') => {
+        console.log('handleAuthAndLink called', method);
         try {
             setIsLoading(true);
             setError(null);
 
+            console.log('About to call loginWithII or loginWithNFID');
             // Authenticate with chosen method
             const actor = method === 'ii' ? await loginWithII() : await loginWithNFID();
             const authClient = await AuthClient.create();
+            const isAuthenticated = await authClient.isAuthenticated();
+            console.log('AuthClient isAuthenticated after login:', isAuthenticated);
+            if (!isAuthenticated) {
+                setError('Authentication failed: AuthClient is not authenticated after II/NFID login.');
+                setIsLoading(false);
+                return;
+            }
             const identity = authClient.getIdentity();
             const principal = identity.getPrincipal();
 
@@ -38,7 +47,8 @@ const BotLogin: React.FC = () => {
                 sessionStorage.setItem('is_authenticated', 'true');
                 if (openchatId) sessionStorage.setItem('openchat_id', openchatId);
                 sessionStorage.setItem('user_principal', principal.toText());
-                navigate('/dashboard/home', { replace: true });
+                sessionStorage.setItem('bot_login_success', 'true');
+                window.location.replace('/dashboard/home');
             } else if (result && 'Err' in result) {
                 setError(result.Err || 'Failed to link account. Please try again.');
             } else {
@@ -98,6 +108,7 @@ const BotLogin: React.FC = () => {
     }
 
     if (showAuthOptions) {
+        console.log('showAuthOptions:', showAuthOptions);
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
                 <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-xl">

@@ -29,6 +29,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
         checkAuth();
     }, [location]);
 
+    const isBotLogin = sessionStorage.getItem('bot_login_success') === 'true';
+    const isDashboardHome = location.pathname === '/dashboard/home';
+
     if (isAuthenticated === null) {
         console.log("ProtectedRoute: Still checking auth...");
         return (
@@ -39,6 +42,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     }
 
     if (!isAuthenticated) {
+        if (isBotLogin && isDashboardHome) {
+            // Clear the flag after first use for security
+            sessionStorage.removeItem('bot_login_success');
+            console.log("ProtectedRoute: Allowing /dashboard/home for bot login");
+            return <>{children}</>;
+        }
         console.log("ProtectedRoute: Not authenticated, redirecting to /dashboard");
         return <Navigate to="/dashboard" state={{ from: location }} replace />;
     }
