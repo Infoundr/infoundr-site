@@ -24,7 +24,18 @@ const TaskList: React.FC<Props> = ({ actor, useMockData = true }) => {
                 }
 
                 const user = await getCurrentUser();
-                if (user && user[0]) {
+                const platform = sessionStorage.getItem('platform');
+                const slackId = sessionStorage.getItem('slack_id');
+                const openchatId = sessionStorage.getItem('openchat_id');
+
+                if (platform === 'slack' && slackId) {
+                    // For Slack users, use their Slack ID
+                    const userTasks = await actor.get_user_tasks({
+                        SlackId: slackId
+                    });
+                    setTasks(userTasks);
+                } else if (user && user[0]) {
+                    // For OpenChat users, use their principal
                     const userTasks = await actor.get_user_tasks({
                         Principal: user[0].principal
                     });

@@ -73,8 +73,14 @@ const BotLogin: React.FC = () => {
 
         const validateToken = async () => {
             try {
+                console.log("Starting token validation in BotLogin.tsx");
+                console.log("URL token:", urlToken);
+                
                 const validationResult = await loginWithBotToken(urlToken);
+                console.log("Validation result:", validationResult);
+                
                 if (!validationResult.isValid) {
+                    console.log("Token validation failed - invalid token");
                     setError('Invalid or expired token. Please request a new login link from the bot.');
                     setIsLoading(false);
                     return;
@@ -82,16 +88,20 @@ const BotLogin: React.FC = () => {
 
                 // Store the platform ID based on the platform type
                 if (validationResult.platform === 'slack' && validationResult.slackId) {
+                    console.log("Token validated for Slack user:", validationResult.slackId);
                     setOpenchatId(null); // Slack users don't have an OpenChat ID
                 } else if (validationResult.platform === 'openchat' && validationResult.openchatId) {
+                    console.log("Token validated for OpenChat user:", validationResult.openchatId);
                     setOpenchatId(validationResult.openchatId);
                 } else {
+                    console.log("Unknown platform or missing ID");
                     setError('Unknown platform or missing ID. Please try again.');
                     setIsLoading(false);
                     return;
                 }
 
                 // Token is valid, prompt for auth method
+                console.log("Token validation successful, showing auth options");
                 setShowAuthOptions(true);
             } catch (err) {
                 console.error('Validation error:', err);

@@ -264,13 +264,15 @@ export const loginWithBotToken = async (token: string): Promise<{
     platform?: string;
 }> => {
     try {
-        console.log("Starting token validation process");
+        console.log("Starting token validation process with token:", token);
         const agent = new HttpAgent({});
         
         if (import.meta.env.VITE_DFX_NETWORK !== 'ic') {
+            console.log("Fetching root key for local development");
             await agent.fetchRootKey();
         }
         
+        console.log("Creating actor with canister ID:", CANISTER_ID);
         const actor = createActor(CANISTER_ID, { agent });
         
         // Improved token cleaning
@@ -282,8 +284,7 @@ export const loginWithBotToken = async (token: string): Promise<{
             .replace(/\s+/g, '')      // Remove all whitespace
             .trim();
         
-        // Log the cleaned token for debugging
-        console.log("Cleaned token (frontend):", cleanToken);
+        console.log("Cleaned token:", cleanToken);
         
         // Ensure the token is properly base64 formatted
         while (cleanToken.length % 4) {
@@ -292,7 +293,7 @@ export const loginWithBotToken = async (token: string): Promise<{
         
         let tokenBytes;
         try {
-            // First attempt: direct base64 decode
+            console.log("Attempting direct base64 decode");
             tokenBytes = Uint8Array.from(
                 atob(cleanToken)
                     .split('')
@@ -317,7 +318,8 @@ export const loginWithBotToken = async (token: string): Promise<{
             }
         }
         
-        console.log("Token bytes (frontend):", Array.from(tokenBytes));
+        console.log("Token bytes:", Array.from(tokenBytes));
+        console.log("About to call validate_dashboard_token");
         
         // Validate token with backend
         let response = await actor.validate_dashboard_token(Array.from(tokenBytes));
