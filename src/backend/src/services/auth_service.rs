@@ -7,14 +7,18 @@ use ic_cdk::{query, update};
 
 #[update]
 pub fn verify_token(token: String) -> Result<(), String> {
+    ic_cdk::println!("Verifying token: {}", token);
     DASHBOARD_TOKENS.with(|tokens| {
         let tokens = tokens.borrow();
         if let Some(token_record) = tokens.get(&StableString::from(token.clone())) {
+            ic_cdk::println!("Token found. Expires at: {}, Current time: {}", token_record.expires_at, ic_cdk::api::time());
             if token_record.expires_at < ic_cdk::api::time() {
+                ic_cdk::println!("Token expired.");
                 return Err("Token expired".to_string());
             }
             Ok(())
         } else {
+            ic_cdk::println!("Token not found in storage.");
             Err("Invalid token".to_string())
         }
     })

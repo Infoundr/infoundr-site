@@ -270,16 +270,19 @@ export const loginWithBotToken = async (token: string): Promise<{
         
         const actor = createActor(CANISTER_ID, { agent });
         
-        // Clean and normalize the token
+        // Improved token cleaning
         let cleanToken = token
-            .replace(/^DIDL.*?,/, '') // Remove DIDL prefix
-            .replace(/\s+/g, '') // Remove all whitespace
-            .trim(); // Trim any remaining whitespace
-            
-        console.log("Cleaned token:", cleanToken);
+            .replace(/^DIDL.*?,/, '') // Remove DIDL prefix and comma
+            .replace(/\\u0000/g, '') // Remove unicode nulls
+            .replace(/\\u0001/g, '') // Remove unicode ones
+            .replace(/\\/g, '')      // Remove stray backslashes
+            .replace(/\s+/g, '')      // Remove all whitespace
+            .trim();
+        
+        // Log the cleaned token for debugging
+        console.log("Cleaned token (frontend):", cleanToken);
         
         // Ensure the token is properly base64 formatted
-        // Add padding if necessary
         while (cleanToken.length % 4) {
             cleanToken += '=';
         }
@@ -311,7 +314,7 @@ export const loginWithBotToken = async (token: string): Promise<{
             }
         }
         
-        console.log("Token bytes:", Array.from(tokenBytes));
+        console.log("Token bytes (frontend):", Array.from(tokenBytes));
         
         // Validate token with backend
         const response = await actor.validate_dashboard_token(Array.from(tokenBytes));

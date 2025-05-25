@@ -74,6 +74,9 @@ const App: React.FC = () => {
               <DashboardLayout />
             </ProtectedRoute>
           } />
+
+          {/* Add BotLogin route outside of dashboard */}
+          <Route path="/bot-login" element={<BotLogin />} />
         </Routes>
 
         <WaitlistModal 

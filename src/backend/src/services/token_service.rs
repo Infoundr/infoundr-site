@@ -18,6 +18,9 @@ pub async fn generate_dashboard_token(platform_id: String) -> String {
     // Create base64 encoded token
     let token_string = BASE64.encode(&token);
 
+    // Log the generated token for debugging
+    ic_cdk::println!("Generated dashboard token (base64): {}", token_string);
+
     let now = ic_cdk::api::time();
 
     // Create token record
@@ -54,16 +57,21 @@ pub async fn generate_dashboard_token(platform_id: String) -> String {
 pub fn validate_dashboard_token(token: Vec<u8>) -> Option<String> {
     let token_key = BASE64.encode(&token);
     let now = ic_cdk::api::time();
+    ic_cdk::println!("validate_dashboard_token called with token bytes: {:?}", token);
+    ic_cdk::println!("Base64-encoded token key: {}", token_key);
 
     DASHBOARD_TOKENS.with(|tokens| {
         let tokens = tokens.borrow();
-        if let Some(token_record) = tokens.get(&StableString::from(token_key)) {
+        if let Some(token_record) = tokens.get(&StableString::from(token_key.clone())) {
+            ic_cdk::println!("Token found. Expires at: {}, Current time: {}", token_record.expires_at, now);
             if token_record.expires_at > now {
-                Some(token_record.openchat_id)
+                Some(token_record.openchat_id.clone())
             } else {
+                ic_cdk::println!("Token expired.");
                 None
             }
         } else {
+            ic_cdk::println!("Token not found in storage.");
             None
         }
     })
