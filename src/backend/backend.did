@@ -79,10 +79,12 @@ type TokenValidationResult = record { platform_id : text; platform : text };
 type User = record {
   "principal" : principal;
   name : text;
+  slack_id : opt text;
   created_at : nat64;
   email : opt text;
   openchat_id : opt text;
   subscription_tier : SubscriptionTier;
+  discord_id : opt text;
 };
 type UserActivity = record {
   tasks : vec Task;
@@ -128,7 +130,6 @@ service : {
   get_slack_user_by_principal : (principal) -> (opt SlackUser) query;
   get_token_info : (text) -> (opt DashboardToken) query;
   get_user_activity : (UserIdentifier) -> (UserActivity) query;
-  get_user_by_openchat_id : (text) -> (opt User) query;
   get_user_connections : (principal) -> (opt ConnectedAccounts) query;
   get_user_issues : (UserIdentifier) -> (vec Issue) query;
   get_user_tasks : (UserIdentifier) -> (vec Task) query;
@@ -137,7 +138,6 @@ service : {
   is_admin : () -> (bool) query;
   is_allowed_principal : () -> (bool) query;
   is_discord_user_registered : (text) -> (bool) query;
-  is_openchat_user_registered : (text) -> (bool) query;
   is_registered : () -> (bool) query;
   is_slack_user_registered : (text) -> (bool) query;
   join_waitlist : (text) -> (Result_3);

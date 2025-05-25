@@ -24,18 +24,8 @@ const GithubIssues: React.FC<Props> = ({ actor, useMockData = mockDataBoolean })
                 }
 
                 const user = await getCurrentUser();
-                const platform = sessionStorage.getItem('platform');
-                const slackId = sessionStorage.getItem('slack_id');
-                const openchatId = sessionStorage.getItem('openchat_id');
-
-                if (platform === 'slack' && slackId) {
-                    // For Slack users, use their Slack ID
-                    const userIssues = await actor.get_user_issues({
-                        SlackId: slackId
-                    });
-                    setIssues(userIssues);
-                } else if (user && user[0]) {
-                    // For OpenChat users, use their principal
+                console.log("User is:", user);
+                if (user && user[0]) {
                     const userIssues = await actor.get_user_issues({
                         Principal: user[0].principal
                     });

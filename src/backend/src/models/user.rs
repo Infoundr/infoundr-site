@@ -12,6 +12,8 @@ pub struct User {
     pub created_at: u64,
     pub subscription_tier: SubscriptionTier,
     pub openchat_id: Option<String>,
+    pub slack_id: Option<String>,
+    pub discord_id: Option<String>,
 }
 
 #[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
