@@ -24,6 +24,7 @@ const TaskList: React.FC<Props> = ({ actor, useMockData = true }) => {
                 }
 
                 const user = await getCurrentUser();
+                console.log("User is:", user);
                 if (user && user[0]) {
                     const userTasks = await actor.get_user_tasks({
                         Principal: user[0].principal

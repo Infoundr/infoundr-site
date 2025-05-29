@@ -3,6 +3,8 @@ use crate::models::connected_accounts::ConnectedAccounts;
 use crate::models::dashboard_token::DashboardToken;
 use crate::models::github::Issue;
 use crate::models::openchat_user::OpenChatUser;
+use crate::models::slack_user::SlackUser;
+use crate::models::discord_user::DiscordUser;
 use crate::models::stable_principal::StablePrincipal;
 use crate::models::stable_string::StableString;
 use crate::models::task::Task;
@@ -69,6 +71,18 @@ thread_local! {
     pub static GITHUB_ISSUES: RefCell<StableBTreeMap<(StablePrincipal, StableString), Issue, Memory>> = RefCell::new(
         StableBTreeMap::init(
             MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(8)))
+        )
+    );
+
+    pub static SLACK_USERS: RefCell<StableBTreeMap<StableString, SlackUser, Memory>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(9)))
+        )
+    );
+
+    pub static DISCORD_USERS: RefCell<StableBTreeMap<StableString, DiscordUser, Memory>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(10)))
         )
     );
 }

@@ -24,6 +24,7 @@ const GithubIssues: React.FC<Props> = ({ actor, useMockData = mockDataBoolean })
                 }
 
                 const user = await getCurrentUser();
+                console.log("User is:", user);
                 if (user && user[0]) {
                     const userIssues = await actor.get_user_issues({
                         Principal: user[0].principal

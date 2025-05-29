@@ -10,6 +10,7 @@ let authClient: AuthClient | null = null;
 // Identity Provider URLs
 const II_URL = {
   local: "http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:8080",
+  playground: "https://a4gq6-oaaaa-aaaab-qaa4q-cai.raw.icp0.io/?id=rdmx6-jaaaa-aaaaa-aaadq-cai",
   ic: "https://identity.ic0.app"
 };
 
@@ -76,7 +77,7 @@ export const loginWithII = async (): Promise<ActorSubclass<_SERVICE>> => {
     
     const isAuthenticated = await new Promise<boolean>((resolve) => {
         authClient.login({
-            identityProvider: II_URL.local,
+            identityProvider: import.meta.env.VITE_DFX_NETWORK === 'ic' ? II_URL.ic : II_URL.local,
             onSuccess: () => resolve(true),
             onError: () => resolve(false),
             windowOpenerFeatures: `
@@ -259,34 +260,40 @@ const createAuthenticatedActor = async () => {
 export const loginWithBotToken = async (token: string): Promise<{
     isValid: boolean;
     openchatId: string | null;
+    slackId?: string | null;
+    platform?: string;
 }> => {
     try {
-        console.log("Starting token validation process");
+        console.log("Starting token validation process with token:", token);
         const agent = new HttpAgent({});
         
         if (import.meta.env.VITE_DFX_NETWORK !== 'ic') {
+            console.log("Fetching root key for local development");
             await agent.fetchRootKey();
         }
         
+        console.log("Creating actor with canister ID:", CANISTER_ID);
         const actor = createActor(CANISTER_ID, { agent });
         
-        // Clean and normalize the token
+        // Improved token cleaning
         let cleanToken = token
-            .replace(/^DIDL.*?,/, '') // Remove DIDL prefix
-            .replace(/\s+/g, '') // Remove all whitespace
-            .trim(); // Trim any remaining whitespace
-            
+            .replace(/^DIDL.*?,/, '') // Remove DIDL prefix and comma
+            .replace(/\\u0000/g, '') // Remove unicode nulls
+            .replace(/\\u0001/g, '') // Remove unicode ones
+            .replace(/\\/g, '')      // Remove stray backslashes
+            .replace(/\s+/g, '')      // Remove all whitespace
+            .trim();
+        
         console.log("Cleaned token:", cleanToken);
         
         // Ensure the token is properly base64 formatted
-        // Add padding if necessary
         while (cleanToken.length % 4) {
             cleanToken += '=';
         }
         
         let tokenBytes;
         try {
-            // First attempt: direct base64 decode
+            console.log("Attempting direct base64 decode");
             tokenBytes = Uint8Array.from(
                 atob(cleanToken)
                     .split('')
@@ -312,27 +319,30 @@ export const loginWithBotToken = async (token: string): Promise<{
         }
         
         console.log("Token bytes:", Array.from(tokenBytes));
+        console.log("About to call validate_dashboard_token");
         
         // Validate token with backend
-        const response = await actor.validate_dashboard_token(Array.from(tokenBytes));
+        let response = await actor.validate_dashboard_token(Array.from(tokenBytes));
         console.log("Backend response:", response);
-        
-        if (!response || (Array.isArray(response) && response.length === 0)) {
+
+        // Candid returns [TokenValidationResult] or []
+        const result = Array.isArray(response) ? response[0] : undefined;
+
+        if (!result || !result.platform || !result.platform_id) {
             console.error('Invalid or expired token');
             return { isValid: false, openchatId: null };
         }
 
-        // Handle the response based on its type
-        const openchatId = Array.isArray(response) ? response[0] : response;
-        
-        if (typeof openchatId === 'string' && openchatId) {
-            console.log("Valid OpenChat ID found:", openchatId);
-            sessionStorage.setItem('openchat_id', openchatId);
-            return { isValid: true, openchatId };
+        if (result.platform === 'slack') {
+            sessionStorage.setItem('slack_id', result.platform_id);
+            return { isValid: true, openchatId: null, slackId: result.platform_id, platform: 'slack' };
+        } else if (result.platform === 'openchat') {
+            sessionStorage.setItem('openchat_id', result.platform_id);
+            return { isValid: true, openchatId: result.platform_id, platform: 'openchat' };
+        } else {
+            // fallback for unknown platform
+            return { isValid: true, openchatId: result.platform_id, platform: result.platform };
         }
-        
-        console.error('Invalid response format from backend');
-        return { isValid: false, openchatId: null };
     } catch (error) {
         console.error('Token validation error:', error);
         return { isValid: false, openchatId: null };
@@ -383,4 +393,4 @@ export const linkAccounts = async (openchatId: string): Promise<boolean> => {
         console.error('Error linking accounts:', error);
         return false;
     }
-}; 
+};

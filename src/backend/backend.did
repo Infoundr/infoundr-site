@@ -22,6 +22,18 @@ type ConnectionStatus = record {
   asana_connected : bool;
   asana_workspace : opt text;
 };
+type DashboardToken = record {
+  token : blob;
+  created_at : nat64;
+  openchat_id : text;
+  expires_at : nat64;
+};
+type DiscordUser = record {
+  site_principal : opt principal;
+  username : opt text;
+  guild_id : opt text;
+  discord_id : text;
+};
 type GitHubAccount = record { token : text; selected_repo : opt text };
 type Issue = record {
   id : text;
@@ -46,6 +58,12 @@ type Result_3 = variant { Ok : WaitlistEntry; Err : text };
 type Result_4 = variant { Ok; Err : text };
 type Result_5 = variant { Ok : User; Err : text };
 type Result_6 = variant { Ok; Err : vec text };
+type SlackUser = record {
+  site_principal : opt principal;
+  slack_id : text;
+  team_id : opt text;
+  display_name : opt text;
+};
 type SubscriptionTier = variant { Enterprise; Free; Professional };
 type Task = record {
   id : text;
@@ -57,13 +75,16 @@ type Task = record {
   platform : text;
   created_at : nat64;
 };
+type TokenValidationResult = record { platform_id : text; platform : text };
 type User = record {
   "principal" : principal;
   name : text;
+  slack_id : opt text;
   created_at : nat64;
   email : opt text;
   openchat_id : opt text;
   subscription_tier : SubscriptionTier;
+  discord_id : opt text;
 };
 type UserActivity = record {
   tasks : vec Task;
@@ -71,7 +92,12 @@ type UserActivity = record {
   issues : vec Issue;
   chat_history : vec ChatMessage;
 };
-type UserIdentifier = variant { Principal : principal; OpenChatId : text };
+type UserIdentifier = variant {
+  Principal : principal;
+  SlackId : text;
+  DiscordId : text;
+  OpenChatId : text;
+};
 type WaitlistEntry = record {
   status : WaitlistStatus;
   name : text;
@@ -82,7 +108,9 @@ type WaitlistStatus = variant { Approved; Rejected; Pending };
 service : {
   add_chat_message : (text, BotType) -> (Result);
   check_auth : () -> (bool) query;
+  ensure_discord_user : (text) -> ();
   ensure_openchat_user : (text) -> ();
+  ensure_slack_user : (text) -> ();
   generate_dashboard_token : (text) -> (text);
   get_active_openchat_users : (nat64) -> (vec OpenChatUser) query;
   get_admins : () -> (vec principal) query;
@@ -90,12 +118,18 @@ service : {
   get_connection_status : (UserIdentifier) -> (ConnectionStatus) query;
   get_current_repo : (principal) -> (opt text) query;
   get_current_user : () -> (opt User) query;
+  get_discord_user : (text) -> (opt DiscordUser) query;
+  get_discord_user_by_principal : (principal) -> (opt DiscordUser) query;
   get_openchat_user : (text) -> (opt OpenChatUser) query;
   get_openchat_user_by_principal : (principal) -> (opt OpenChatUser) query;
+  get_registered_discord_users : () -> (vec DiscordUser) query;
   get_registered_openchat_users : () -> (vec OpenChatUser) query;
+  get_registered_slack_users : () -> (vec SlackUser) query;
   get_registered_users : () -> (Result_1) query;
+  get_slack_user : (text) -> (opt SlackUser) query;
+  get_slack_user_by_principal : (principal) -> (opt SlackUser) query;
+  get_token_info : (text) -> (opt DashboardToken) query;
   get_user_activity : (UserIdentifier) -> (UserActivity) query;
-  get_user_by_openchat_id : (text) -> (opt User) query;
   get_user_connections : (principal) -> (opt ConnectedAccounts) query;
   get_user_issues : (UserIdentifier) -> (vec Issue) query;
   get_user_tasks : (UserIdentifier) -> (vec Task) query;
@@ -103,10 +137,12 @@ service : {
   get_waitlist : () -> (Result_2) query;
   is_admin : () -> (bool) query;
   is_allowed_principal : () -> (bool) query;
-  is_openchat_user_registered : (text) -> (bool) query;
+  is_discord_user_registered : (text) -> (bool) query;
   is_registered : () -> (bool) query;
+  is_slack_user_registered : (text) -> (bool) query;
   join_waitlist : (text) -> (Result_3);
   link_accounts : (principal, text) -> (Result_4);
+  link_token_to_principal : (text, principal) -> (Result_4);
   register_user : (text) -> (Result_5);
   store_asana_connection : (
       UserIdentifier,
@@ -118,7 +154,9 @@ service : {
   store_chat_message : (UserIdentifier, ChatMessage) -> ();
   store_github_connection : (UserIdentifier, text, opt text) -> ();
   store_github_issue : (UserIdentifier, Issue) -> (Result_4);
+  unlink_accounts : (text) -> (Result_4);
   update_github_selected_repo : (UserIdentifier, text) -> (Result_4);
-  validate_dashboard_token : (blob) -> (opt text) query;
+  validate_dashboard_token : (blob) -> (opt TokenValidationResult) query;
   verify_connections : (principal) -> (Result_6) query;
+  verify_token : (text) -> (Result_4);
 }

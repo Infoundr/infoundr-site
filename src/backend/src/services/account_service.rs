@@ -4,8 +4,9 @@ use crate::models::github::Issue;
 use crate::models::stable_string::StableString;
 use crate::models::task::Task;
 use crate::services::openchat_service::ensure_openchat_user;
-use crate::storage::memory::OPENCHAT_USERS;
-use crate::storage::memory::{CHAT_HISTORY, CONNECTED_ACCOUNTS, GITHUB_ISSUES, TASKS};
+use crate::services::slack_service::ensure_slack_user;
+use crate::services::discord_service::ensure_discord_user;
+use crate::storage::memory::{OPENCHAT_USERS, CHAT_HISTORY, CONNECTED_ACCOUNTS, GITHUB_ISSUES, TASKS, SLACK_USERS, DISCORD_USERS};
 use candid::Principal;
 use ic_cdk::{query, update};
 
@@ -101,8 +102,8 @@ pub fn update_github_selected_repo(identifier: UserIdentifier, repo: String) -> 
 // Message History Management
 #[update]
 pub fn store_chat_message(identifier: UserIdentifier, message: ChatMessage) {
-    let store_principal = match identifier {
-        UserIdentifier::Principal(principal) => principal,
+    let store_principal = match &identifier {
+        UserIdentifier::Principal(principal) => *principal,
         UserIdentifier::OpenChatId(openchat_id) => {
             // Ensure OpenChat user exists
             ensure_openchat_user(openchat_id.clone());
@@ -118,8 +119,45 @@ pub fn store_chat_message(identifier: UserIdentifier, message: ChatMessage) {
                     })
             })
         }
+        UserIdentifier::SlackId(slack_id) => {
+            ensure_slack_user(slack_id.clone());
+
+            // Try to get linked principal, otherwise use a special Slack principal
+            SLACK_USERS.with(|users| {
+                users
+                    .borrow()
+                    .get(&StableString::from(slack_id.clone()))
+                    .and_then(|user| user.site_principal.map(|p| p.get()))
+                    .unwrap_or_else(|| {
+                        // Create a special principal for Slack messages
+                        // This is a deterministic way to create a principal from a Slack ID
+                        let mut bytes = [0u8; 29];
+                        bytes[0] = 5; // Special type for Slack
+                        // Use the first 28 bytes of the Slack ID
+                        let slack_bytes = slack_id.as_bytes();
+                        let len = std::cmp::min(slack_bytes.len(), 28);
+                        bytes[1..1+len].copy_from_slice(&slack_bytes[..len]);
+                        Principal::from_slice(&bytes)
+                    })
+            })
+        }
+        UserIdentifier::DiscordId(discord_id) => {
+            ensure_discord_user(discord_id.clone());
+
+            // Try to get linked principal, otherwise derive from discord_id
+            DISCORD_USERS.with(|users| {
+                users
+                    .borrow()
+                    .get(&StableString::from(discord_id.clone()))
+                    .and_then(|user| user.site_principal.map(|p| p.get()))
+                    .unwrap_or_else(|| {
+                        Principal::from_text(discord_id).unwrap_or_else(|_| Principal::anonymous())
+                    })
+            })
+        }
     };
 
+    // Store the message under the principal
     CHAT_HISTORY.with(|history| {
         let mut history = history.borrow_mut();
         let message_id = history
@@ -127,8 +165,37 @@ pub fn store_chat_message(identifier: UserIdentifier, message: ChatMessage) {
             .filter(|((user_id, _), _)| user_id.get() == store_principal)
             .count() as u64;
 
-        history.insert((store_principal.into(), message_id), message);
+        // Add debug logging
+        ic_cdk::println!("Storing message with ID {} for principal {:?}", message_id, store_principal);
+
+        history.insert((store_principal.into(), message_id), message.clone());
     });
+
+    // If this is a Slack message, also store under the special Slack principal
+    if let UserIdentifier::SlackId(slack_id) = &identifier {
+        // Create the special Slack principal
+        let mut bytes = [0u8; 29];
+        bytes[0] = 5; // Special type for Slack
+        // Use the first 28 bytes of the Slack ID
+        let slack_bytes = slack_id.as_bytes();
+        let len = std::cmp::min(slack_bytes.len(), 28);
+        bytes[1..1+len].copy_from_slice(&slack_bytes[..len]);
+        let slack_principal = Principal::from_slice(&bytes);
+
+        ic_cdk::println!("Created special Slack principal: {:?}", slack_principal);
+
+        CHAT_HISTORY.with(|history| {
+            let mut history = history.borrow_mut();
+            let message_id = history
+                .iter()
+                .filter(|((user_id, _), _)| user_id.get() == slack_principal)
+                .count() as u64;
+
+            ic_cdk::println!("Storing message with ID {} for special Slack principal {:?}", message_id, slack_principal);
+
+            history.insert((slack_principal.into(), message_id), message);
+        });
+    }
 }
 
 // #[query]
@@ -190,8 +257,8 @@ pub fn get_current_repo(user: Principal) -> Option<String> {
 // Asana Tasks Management
 #[update]
 pub fn store_asana_task(identifier: UserIdentifier, task: Task) -> Result<(), String> {
-    let store_principal = match identifier {
-        UserIdentifier::Principal(principal) => principal,
+    let store_principal = match &identifier {
+        UserIdentifier::Principal(principal) => *principal,
         UserIdentifier::OpenChatId(openchat_id) => {
             ensure_openchat_user(openchat_id.clone());
 
@@ -205,14 +272,63 @@ pub fn store_asana_task(identifier: UserIdentifier, task: Task) -> Result<(), St
                     })
             })
         }
+        UserIdentifier::SlackId(slack_id) => {
+            SLACK_USERS.with(|users| {
+                users
+                    .borrow()
+                    .get(&StableString::from(slack_id.clone()))
+                    .and_then(|user| user.site_principal.map(|p| p.get()))
+                    .unwrap_or_else(|| {
+                        // Create a special principal for Slack messages
+                        let mut bytes = [0u8; 29];
+                        bytes[0] = 5; // Special type for Slack
+                        let slack_bytes = slack_id.as_bytes();
+                        let len = std::cmp::min(slack_bytes.len(), 28);
+                        bytes[1..1+len].copy_from_slice(&slack_bytes[..len]);
+                        Principal::from_slice(&bytes)
+                    })
+            })
+        }
+        UserIdentifier::DiscordId(discord_id) => {
+            DISCORD_USERS.with(|users| {
+                users
+                    .borrow()
+                    .get(&StableString::from(discord_id.clone()))
+                    .and_then(|user| user.site_principal.map(|p| p.get()))
+                    .unwrap_or_else(|| {
+                        Principal::from_text(discord_id).unwrap_or_else(|_| Principal::anonymous())
+                    })
+            })
+        }
     };
 
+    // Store the task under the principal
     TASKS.with(|tasks| {
         let mut tasks = tasks.borrow_mut();
         let task_key = (store_principal.into(), StableString::from(task.id.clone()));
-        tasks.insert(task_key, task);
-        Ok(())
-    })
+        tasks.insert(task_key, task.clone());
+    });
+
+    // If this is a Slack message, also store under the special Slack principal
+    if let UserIdentifier::SlackId(slack_id) = &identifier {
+        // Create the special Slack principal
+        let mut bytes = [0u8; 29];
+        bytes[0] = 5; // Special type for Slack
+        let slack_bytes = slack_id.as_bytes();
+        let len = std::cmp::min(slack_bytes.len(), 28);
+        bytes[1..1+len].copy_from_slice(&slack_bytes[..len]);
+        let slack_principal = Principal::from_slice(&bytes);
+
+        ic_cdk::println!("Storing task for special Slack principal: {:?}", slack_principal);
+
+        TASKS.with(|tasks| {
+            let mut tasks = tasks.borrow_mut();
+            let task_key = (slack_principal.into(), StableString::from(task.id.clone()));
+            tasks.insert(task_key, task);
+        });
+    }
+
+    Ok(())
 }
 
 // #[query]
@@ -236,8 +352,8 @@ pub fn get_user_tasks(identifier: UserIdentifier) -> Vec<Task> {
 #[update]
 pub fn store_github_issue(identifier: UserIdentifier, issue: Issue) -> Result<(), String> {
     ic_cdk::println!("Storing GitHub issue");
-    let store_principal = match identifier {
-        UserIdentifier::Principal(principal) => principal,
+    let store_principal = match &identifier {
+        UserIdentifier::Principal(principal) => *principal,
         UserIdentifier::OpenChatId(openchat_id) => {
             ensure_openchat_user(openchat_id.clone());
 
@@ -251,16 +367,63 @@ pub fn store_github_issue(identifier: UserIdentifier, issue: Issue) -> Result<()
                     })
             })
         }
+        UserIdentifier::SlackId(slack_id) => {
+            SLACK_USERS.with(|users| {
+                users
+                    .borrow()
+                    .get(&StableString::from(slack_id.clone()))
+                    .and_then(|user| user.site_principal.map(|p| p.get()))
+                    .unwrap_or_else(|| {
+                        // Create a special principal for Slack messages
+                        let mut bytes = [0u8; 29];
+                        bytes[0] = 5; // Special type for Slack
+                        let slack_bytes = slack_id.as_bytes();
+                        let len = std::cmp::min(slack_bytes.len(), 28);
+                        bytes[1..1+len].copy_from_slice(&slack_bytes[..len]);
+                        Principal::from_slice(&bytes)
+                    })
+            })
+        }
+        UserIdentifier::DiscordId(discord_id) => {
+            DISCORD_USERS.with(|users| {
+                users
+                    .borrow()
+                    .get(&StableString::from(discord_id.clone()))
+                    .and_then(|user| user.site_principal.map(|p| p.get()))
+                    .unwrap_or_else(|| {
+                        Principal::from_text(discord_id).unwrap_or_else(|_| Principal::anonymous())
+                    })
+            })
+        }
     };
-    ic_cdk::println!("Storing GitHub issue for user: {}", store_principal);
 
+    // Store the issue under the principal
     GITHUB_ISSUES.with(|issues| {
         let mut issues = issues.borrow_mut();
         let issue_key = (store_principal.into(), StableString::from(issue.id.clone()));
-        issues.insert(issue_key, issue);
-        ic_cdk::println!("GitHub issue stored");
-        Ok(())
-    })
+        issues.insert(issue_key, issue.clone());
+    });
+
+    // If this is a Slack message, also store under the special Slack principal
+    if let UserIdentifier::SlackId(slack_id) = &identifier {
+        // Create the special Slack principal
+        let mut bytes = [0u8; 29];
+        bytes[0] = 5; // Special type for Slack
+        let slack_bytes = slack_id.as_bytes();
+        let len = std::cmp::min(slack_bytes.len(), 28);
+        bytes[1..1+len].copy_from_slice(&slack_bytes[..len]);
+        let slack_principal = Principal::from_slice(&bytes);
+
+        ic_cdk::println!("Storing issue for special Slack principal: {:?}", slack_principal);
+
+        GITHUB_ISSUES.with(|issues| {
+            let mut issues = issues.borrow_mut();
+            let issue_key = (slack_principal.into(), StableString::from(issue.id.clone()));
+            issues.insert(issue_key, issue);
+        });
+    }
+
+    Ok(())
 }
 
 // #[query]
@@ -342,6 +505,24 @@ fn get_principal_from_identifier(identifier: &UserIdentifier) -> Principal {
                     Principal::from_text(openchat_id).unwrap_or_else(|_| Principal::anonymous())
                 })
         }),
+        UserIdentifier::SlackId(slack_id) => SLACK_USERS.with(|users| {
+            users
+                .borrow()
+                .get(&StableString::from(slack_id.clone()))
+                .and_then(|user| user.site_principal.map(|p| p.get()))
+                .unwrap_or_else(|| {
+                    Principal::from_text(slack_id).unwrap_or_else(|_| Principal::anonymous())
+                })
+        }),
+        UserIdentifier::DiscordId(discord_id) => DISCORD_USERS.with(|users| {
+            users
+                .borrow()
+                .get(&StableString::from(discord_id.clone()))
+                .and_then(|user| user.site_principal.map(|p| p.get()))
+                .unwrap_or_else(|| {
+                    Principal::from_text(discord_id).unwrap_or_else(|_| Principal::anonymous())
+                })
+        })
     }
 }
 
@@ -350,6 +531,8 @@ fn get_principal_from_identifier(identifier: &UserIdentifier) -> Principal {
 pub enum UserIdentifier {
     Principal(Principal),
     OpenChatId(String),
+    SlackId(String),
+    DiscordId(String),
 }
 
 // Struct to hold all user activity
@@ -366,9 +549,10 @@ pub struct UserActivity {
 pub fn get_user_activity(identifier: UserIdentifier) -> UserActivity {
     let principals_to_check = match &identifier {
         UserIdentifier::Principal(principal) => {
-            // Check if this principal is linked to any OpenChat account
+            // Check if this principal is linked to any platform account
             let mut principals = vec![*principal];
 
+            // Check OpenChat
             OPENCHAT_USERS.with(|users| {
                 let users = users.borrow();
                 // Find any OpenChat user linked to this principal
@@ -384,6 +568,41 @@ pub fn get_user_activity(identifier: UserIdentifier) -> UserActivity {
                     }
                 }
             });
+
+            // Check Slack
+            SLACK_USERS.with(|users| {
+                let users = users.borrow();
+                for (_, user) in users.iter() {
+                    if let Some(p) = &user.site_principal {
+                        if p.get() == *principal {
+                            // If found, also create special Slack principal
+                            let mut bytes = [0u8; 29];
+                            bytes[0] = 5; // Special type for Slack
+                            let slack_bytes = user.slack_id.as_bytes();
+                            let len = std::cmp::min(slack_bytes.len(), 28);
+                            bytes[1..1+len].copy_from_slice(&slack_bytes[..len]);
+                            principals.push(Principal::from_slice(&bytes));
+                            break;
+                        }
+                    }
+                }
+            });
+
+            // Check Discord
+            DISCORD_USERS.with(|users| {
+                let users = users.borrow();
+                for (_, user) in users.iter() {
+                    if let Some(p) = &user.site_principal {
+                        if p.get() == *principal {
+                            if let Ok(derived_principal) = Principal::from_text(&user.discord_id) {
+                                principals.push(derived_principal);
+                            }
+                            break;
+                        }
+                    }
+                }
+            });
+
             principals
         }
         UserIdentifier::OpenChatId(openchat_id) => {
@@ -405,7 +624,56 @@ pub fn get_user_activity(identifier: UserIdentifier) -> UserActivity {
             }
             principals
         }
+        UserIdentifier::SlackId(slack_id) => {
+            let mut principals = vec![];
+
+            // Try to get linked principal
+            SLACK_USERS.with(|users| {
+                let users = users.borrow();
+                if let Some(user) = users.get(&StableString::from(slack_id.clone())) {
+                    if let Some(p) = &user.site_principal {
+                        principals.push(p.get());
+                    }
+                }
+            });
+
+            // Also include special Slack principal
+            let mut bytes = [0u8; 29];
+            bytes[0] = 5; // Special type for Slack
+            let slack_bytes = slack_id.as_bytes();
+            let len = std::cmp::min(slack_bytes.len(), 28);
+            bytes[1..1+len].copy_from_slice(&slack_bytes[..len]);
+            principals.push(Principal::from_slice(&bytes));
+
+            // Add debug logging
+            ic_cdk::println!("Slack ID: {}", slack_id);
+            ic_cdk::println!("Principals to check: {:?}", principals);
+
+            principals
+        }
+        UserIdentifier::DiscordId(discord_id) => {
+            let mut principals = vec![];
+
+            // Try to get linked principal
+            DISCORD_USERS.with(|users| {
+                let users = users.borrow();
+                if let Some(user) = users.get(&StableString::from(discord_id.clone())) {
+                    if let Some(p) = &user.site_principal {
+                        principals.push(p.get());
+                    }
+                }
+            });
+
+            // Also include derived principal from Discord ID
+            if let Ok(derived_principal) = Principal::from_text(discord_id) {
+                principals.push(derived_principal);
+            }
+            principals
+        }
     };
+
+    // Add debug logging for all principals
+    ic_cdk::println!("All principals to check: {:?}", principals_to_check);
 
     // Collect all activity across all relevant principals
     let mut all_chat_history = vec![];
@@ -416,13 +684,17 @@ pub fn get_user_activity(identifier: UserIdentifier) -> UserActivity {
     for principal in principals_to_check {
         // Get chat history
         CHAT_HISTORY.with(|history| {
-            all_chat_history.extend(
-                history
-                    .borrow()
-                    .iter()
-                    .filter(|((user_id, _), _)| user_id.get() == principal)
-                    .map(|(_, message)| message.clone()),
-            );
+            let history = history.borrow();
+            let messages: Vec<ChatMessage> = history
+                .iter()
+                .filter(|((user_id, _), _)| user_id.get() == principal)
+                .map(|(_, message)| message.clone())
+                .collect();
+            
+            // Add debug logging for found messages
+            ic_cdk::println!("Found {} messages for principal {:?}", messages.len(), principal);
+            
+            all_chat_history.extend(messages);
         });
 
         // Get tasks
@@ -452,6 +724,9 @@ pub fn get_user_activity(identifier: UserIdentifier) -> UserActivity {
             connection_status = Some(get_connection_status(identifier.clone()));
         }
     }
+
+    // Add debug logging for final results
+    ic_cdk::println!("Total chat history found: {}", all_chat_history.len());
 
     UserActivity {
         chat_history: all_chat_history,

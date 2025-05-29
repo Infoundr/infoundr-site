@@ -9,3 +9,5 @@ pub mod stable_string;
 pub mod task;
 pub mod user;
 pub mod waitlist;
+pub mod slack_user;
+pub mod discord_user;
