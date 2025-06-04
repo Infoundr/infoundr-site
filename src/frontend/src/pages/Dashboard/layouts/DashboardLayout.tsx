@@ -15,6 +15,7 @@ import Tasks from './Tasks';
 import { mockActor, useMockData } from '../../../mocks/mockData';
 import Ideation from './Ideation';
 import LoadingSpinner from '../../../components/LoadingSpinner';
+import AIAssistantsPage from './AIAssistantsPage';
 
 const DashboardLayout: React.FC = () => {
     const navigate = useNavigate();
