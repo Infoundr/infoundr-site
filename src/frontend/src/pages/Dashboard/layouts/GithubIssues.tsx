@@ -73,11 +73,11 @@ const GithubIssues: React.FC<Props> = ({ actor, useMockData = mockDataBoolean })
                                 <div className="flex items-center gap-3 mb-2">
                                     <h3 className="font-semibold text-lg text-gray-800">{issue.title}</h3>
                                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                        issue.status === 'Open' 
+                                        Object.keys(issue.status)[0] === 'Open' 
                                             ? 'bg-green-100 text-green-800' 
                                             : 'bg-gray-100 text-gray-800'
                                     }`}>
-                                        {issue.status}
+                                        {Object.keys(issue.status)[0]}
                                     </span>
                                 </div>
                                 <p className="text-gray-600 leading-relaxed">{issue.body}</p>
