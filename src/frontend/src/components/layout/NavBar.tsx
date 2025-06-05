@@ -142,7 +142,8 @@ const NavBar: React.FC<NavBarProps> = ({ onGetStartedClick, isAuthenticated: isU
           ) : (
             <Button 
               variant="primary"
-              onClick={onGetStartedClick}
+              // onClick={onGetStartedClick}
+              onClick={(e) => handleNavClick(e, 'features')}
               className="transition-colors duration-200"
             >
               Get Started

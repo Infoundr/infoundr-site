@@ -12,6 +12,23 @@ const Hero: React.FC<HeroProps> = ({ onGetStartedClick }) => {
     onGetStartedClick();
   };
 
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
+    e.preventDefault();
+    const element = document.getElementById(targetId);
+    if (element) {
+      const navbarHeight = 96; // Height of navbar (24px logo height + padding)
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - navbarHeight;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+      // setIsMenuOpen(false);
+      // setShowFeaturesDropdown(false);
+    }
+  };
+
   return (
     <section id="home" className="relative min-h-screen flex items-center justify-center">
       {/* Content Container */}
@@ -28,7 +45,8 @@ const Hero: React.FC<HeroProps> = ({ onGetStartedClick }) => {
               building faster and growing bigger than the competition.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Button variant="primary" className="w-full sm:w-auto px-8" onClick={handleGetStarted}>Get Started Free</Button>
+              {/* <Button variant="primary" className="w-full sm:w-auto px-8" onClick={handleGetStarted}>Get Started Free</Button> */}
+              <Button variant="primary" className="w-full sm:w-auto px-8" onClick={(e) => handleNavClick(e, 'features')}>Get Started Free</Button>
               {/* <Button variant="secondary" className="w-full sm:w-auto px-8">Watch Demo</Button> */}
             </div>
           </div>
