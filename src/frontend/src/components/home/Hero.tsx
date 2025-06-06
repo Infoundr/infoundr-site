@@ -12,7 +12,7 @@ const Hero: React.FC<HeroProps> = ({ onGetStartedClick }) => {
     onGetStartedClick();
   };
 
-  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
+  const handleNavClick = (e: React.MouseEvent<HTMLElement>, targetId: string) => {
     e.preventDefault();
     const element = document.getElementById(targetId);
     if (element) {
