@@ -26,6 +26,7 @@ import StartupDetails from './pages/Accelerator/Startups/StartupDetails';
 import SendInvites from './pages/Accelerator/Invites/SendInvites';
 import RolesPermissions from './pages/Accelerator/Roles/RolesPermissions';
 import Settings from './pages/Accelerator/Settings/Settings';
+import Analytics from './pages/Accelerator/Analytics/Analytics';
 import StartupsLayout from './pages/Accelerator/Startups/StartupsLayout';
 import StartupDetailsLayout from './pages/Accelerator/Startups/StartupDetailsLayout';
 import AcceleratorLogin from './pages/Accelerator/Auth/Login';
@@ -94,6 +95,7 @@ const App: React.FC = () => {
           }>
             <Route index element={<Navigate to="/accelerator/dashboard" replace />} />
             <Route path="dashboard" element={<AcceleratorDashboard />} />
+            <Route path="analytics" element={<Analytics />} />
             <Route path="invites" element={<SendInvites />} />
             <Route path="roles" element={<RolesPermissions />} />
             <Route path="settings" element={<Settings />} />
