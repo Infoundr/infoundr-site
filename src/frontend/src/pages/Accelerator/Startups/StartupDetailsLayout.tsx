@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import StartupDetailsSidebar from '../../components/layout/accelerator/StartupDetailsSidebar';
+import StartupDetailsSidebar from '../../../components/layout/accelerator/StartupDetailsSidebar';
 
 const StartupDetailsLayout: React.FC = () => {
     return (

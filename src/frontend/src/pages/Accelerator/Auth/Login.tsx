@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Button from '../../components/common/Button';
-import { loginWithII, loginWithNFID, registerUser, isRegistered, checkIsAuthenticated } from '../../services/auth';
+import Button from '../../../components/common/Button';
+import { loginWithII, loginWithNFID, registerUser, isRegistered, checkIsAuthenticated } from '../../../services/auth';
 import { ActorSubclass } from "@dfinity/agent";
-import type { _SERVICE } from "../../../../declarations/backend/backend.did.d.ts";
+import type { _SERVICE } from "../../../../../declarations/backend/backend.did.d.ts";
 import { Principal } from '@dfinity/principal';
-import { User, OpenChatUser, OpenChatUserResponse } from '../../types/user';
+import { User, OpenChatUser, OpenChatUserResponse } from '../../../types/user';
 import { AuthClient } from '@dfinity/auth-client';
-import { MOCK_USER } from '../../config';
-import { useMockData } from '../../mocks/mockData';
+import { MOCK_USER } from '../../../config';
+import { useMockData } from '../../../mocks/mockData';
 
 const Login: React.FC = () => {
     console.log("useMockData", useMockData);

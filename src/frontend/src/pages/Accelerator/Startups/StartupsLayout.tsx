@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import TopNavbar from '../../components/layout/accelerator/TopNavbar';
+import TopNavbar from '../../../components/layout/accelerator/TopNavbar';
 
 const StartupsLayout: React.FC = () => {
     return (
