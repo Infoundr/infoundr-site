@@ -10,16 +10,26 @@ import Pricing from './components/home/Pricing';
 import Footer from './components/layout/Footer';
 import WaitlistModal from './components/common/WaitlistModal';
 import { checkIsAuthenticated } from './services/auth';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import AdminPanel from './pages/AdminPanel';
 import Auth from './pages/Dashboard/Auth';
 import DashboardLayout from './pages/Dashboard/layouts/DashboardLayout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import BotLogin from './pages/Dashboard/BotLogin';
-import Dashboard from './pages/Dashboard';
-import Ideation from './pages/Dashboard/layouts/Ideation';
-import AIAssistantsPage from './pages/Dashboard/layouts/AIAssistantsPage';
-import GithubIssues from './pages/Dashboard/layouts/GithubIssues';
+// import Dashboard from './pages/Dashboard';
+// import Ideation from './pages/Dashboard/layouts/Ideation';
+// import AIAssistantsPage from './pages/Dashboard/layouts/AIAssistantsPage';
+// import GithubIssues from './pages/Dashboard/layouts/GithubIssues';
+import AcceleratorLayout from './pages/Accelerator/AcceleratorLayout';
+import AcceleratorDashboard from './pages/Accelerator/Dashboard';
+import Startups from './pages/Accelerator/Startups';
+import StartupDetails from './pages/Accelerator/StartupDetails';
+import SendInvites from './pages/Accelerator/SendInvites';
+import RolesPermissions from './pages/Accelerator/RolesPermissions';
+import Settings from './pages/Accelerator/Settings';
+import StartupsLayout from './pages/Accelerator/StartupsLayout';
+import StartupDetailsLayout from './pages/Accelerator/StartupDetailsLayout';
+import AcceleratorLogin from './pages/Accelerator/Login';
 import { _SERVICE } from '../../declarations/backend/backend.did';
 import { useMockData as mockDataBoolean } from './mocks/mockData';
 import { Actor } from '@dfinity/agent';
@@ -76,6 +86,37 @@ const App: React.FC = () => {
               <DashboardLayout />
             </ProtectedRoute>
           } />
+
+          {/* Accelerator Routes */}
+          <Route path="/accelerator" element={
+            <ProtectedRoute>
+              <AcceleratorLayout />
+            </ProtectedRoute>
+          }>
+            <Route index element={<Navigate to="/accelerator/dashboard" replace />} />
+            <Route path="dashboard" element={<AcceleratorDashboard />} />
+            <Route path="invites" element={<SendInvites />} />
+            <Route path="roles" element={<RolesPermissions />} />
+            <Route path="settings" element={<Settings />} />
+          </Route>
+
+          <Route path="/accelerator/startups" element={
+            <ProtectedRoute>
+              <StartupsLayout />
+            </ProtectedRoute>
+          }>
+            <Route index element={<Startups />} />
+          </Route>
+
+          <Route path="/accelerator/startups/:startupId" element={
+            <ProtectedRoute>
+              <StartupDetailsLayout />
+            </ProtectedRoute> 
+          }>
+            <Route index element={<StartupDetails />} />
+          </Route>
+
+          <Route path="/accelerator/login" element={<AcceleratorLogin />} />
 
           {/* BotLogin route outside of dashboard */}
           <Route path="/bot-login" element={<BotLogin />} />

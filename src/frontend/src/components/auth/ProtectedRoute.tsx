@@ -48,8 +48,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
             console.log("ProtectedRoute: Allowing /dashboard/home for bot login");
             return <>{children}</>;
         }
-        console.log("ProtectedRoute: Not authenticated, redirecting to /dashboard");
-        return <Navigate to="/dashboard" state={{ from: location }} replace />;
+        
+        const isAcceleratorRoute = location.pathname.startsWith('/accelerator');
+        const redirectTo = isAcceleratorRoute ? '/accelerator/login' : '/dashboard';
+
+        console.log(`ProtectedRoute: Not authenticated, redirecting to ${redirectTo}`);
+        return <Navigate to={redirectTo} state={{ from: location }} replace />;
     }
 
     console.log("ProtectedRoute: Authenticated, rendering children");
