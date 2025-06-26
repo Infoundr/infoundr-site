@@ -12,6 +12,7 @@ use crate::models::{chat::ChatMessage, user::User, waitlist::WaitlistEntry};
 use ic_stable_structures::memory_manager::{MemoryId, MemoryManager, VirtualMemory};
 use ic_stable_structures::{DefaultMemoryImpl, StableBTreeMap};
 use std::cell::RefCell;
+use crate::models::accelerator::Accelerator;
 
 pub type Memory = VirtualMemory<DefaultMemoryImpl>;
 
@@ -83,6 +84,12 @@ thread_local! {
     pub static DISCORD_USERS: RefCell<StableBTreeMap<StableString, DiscordUser, Memory>> = RefCell::new(
         StableBTreeMap::init(
             MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(10)))
+        )
+    );
+
+    pub static ACCELERATORS: RefCell<StableBTreeMap<StablePrincipal, Accelerator, Memory>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(11)))
         )
     );
 }
