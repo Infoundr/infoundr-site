@@ -163,11 +163,11 @@ fn test_admin_functions() {
     let caller_principal = Principal::anonymous();
 
     // Test get_all_accelerators (as admin)
-    let all_accelerators = call_get_all_accelerators(&pic, canister_id);
+    let _all_accelerators = call_get_all_accelerators(&pic, canister_id);
     // Note: This will fail if caller is not admin, which is expected behavior
     
     // Test get_accelerator_by_id (as admin)
-    let accelerator = call_get_accelerator_by_id(&pic, canister_id, caller_principal);
+    let _accelerator = call_get_accelerator_by_id(&pic, canister_id, caller_principal);
     // Note: This will fail if caller is not admin, which is expected behavior
 
     // Test admin_update_accelerator
