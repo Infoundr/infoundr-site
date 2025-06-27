@@ -31,7 +31,11 @@ dfx deps deploy
 
 # Generate candid file for backend
 printf "\n${GREEN}Generating candid file for backend...${NC}\n"
-npx generate-did backend
+cd src/backend
+cargo install generate-did
+cargo install candid-extractor
+cd ../../
+generate-did backend
 
 # Deploy canisters
 printf "\n${GREEN}Deploying canisters...${NC}\n"
