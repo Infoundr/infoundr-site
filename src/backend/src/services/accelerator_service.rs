@@ -7,7 +7,6 @@ use ic_cdk::{caller, update};
 /// Input struct for sign-up (only required fields)
 #[derive(Clone, Debug, CandidType, Deserialize)]
 pub struct AcceleratorSignUp {
-    pub id: StablePrincipal,
     pub name: String,
     pub website: String,
     pub email: String,
@@ -16,20 +15,16 @@ pub struct AcceleratorSignUp {
 #[update]
 pub fn sign_up_accelerator(input: AcceleratorSignUp) -> Result<(), String> {
     let caller_principal = caller();
-    
-    // Verify that the caller is the one specified in the ID
-    if input.id.get() != caller_principal {
-        return Err("Unauthorized: You can only sign up with your own principal".to_string());
-    }
+    let accelerator_id = StablePrincipal::new(caller_principal);
 
     // Check if already exists
-    let exists = ACCELERATORS.with(|accs| accs.borrow().contains_key(&input.id));
+    let exists = ACCELERATORS.with(|accs| accs.borrow().contains_key(&accelerator_id));
     if exists {
         return Err("Accelerator with this principal already exists".to_string());
     }
 
     let accelerator = Accelerator {
-        id: input.id.clone(),
+        id: accelerator_id.clone(),
         name: input.name,
         website: input.website,
         email: input.email,
@@ -42,7 +37,7 @@ pub fn sign_up_accelerator(input: AcceleratorSignUp) -> Result<(), String> {
         recent_activity: vec![],
     };
 
-    ACCELERATORS.with(|accs| accs.borrow_mut().insert(input.id, accelerator));
+    ACCELERATORS.with(|accs| accs.borrow_mut().insert(accelerator_id, accelerator));
     Ok(())
 }
 
