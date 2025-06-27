@@ -54,6 +54,7 @@ pub fn get_accelerator_by_id(id: StablePrincipal) -> Result<Option<Accelerator>,
     Ok(accelerator)
 }
 
+#[update]
 pub fn get_my_accelerator() -> Result<Option<Accelerator>, String> {
     let caller_principal = caller();
     let accelerator_id = StablePrincipal::new(caller_principal);
@@ -105,6 +106,7 @@ pub fn update_accelerator(id: StablePrincipal, updates: AcceleratorUpdate) -> Re
     Ok(())
 }
 
+#[update]
 pub fn update_my_accelerator(updates: AcceleratorUpdate) -> Result<(), String> {
     let caller_principal = caller();
     let accelerator_id = StablePrincipal::new(caller_principal);
@@ -112,7 +114,7 @@ pub fn update_my_accelerator(updates: AcceleratorUpdate) -> Result<(), String> {
     update_accelerator(accelerator_id, updates)
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, CandidType, Deserialize)]
 pub struct AcceleratorUpdate {
     pub name: Option<String>,
     pub website: Option<String>,
