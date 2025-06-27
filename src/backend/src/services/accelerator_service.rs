@@ -16,16 +16,20 @@ pub struct AcceleratorSignUp {
 #[update]
 pub fn sign_up_accelerator(input: AcceleratorSignUp) -> Result<(), String> {
     let caller_principal = caller();
-    let accelerator_id = StablePrincipal::new(caller_principal);
+    
+    // Verify that the caller is the one specified in the ID
+    if input.id.get() != caller_principal {
+        return Err("Unauthorized: You can only sign up with your own principal".to_string());
+    }
 
     // Check if already exists
-    let exists = ACCELERATORS.with(|accs| accs.borrow().contains_key(&accelerator_id));
+    let exists = ACCELERATORS.with(|accs| accs.borrow().contains_key(&input.id));
     if exists {
         return Err("Accelerator with this principal already exists".to_string());
     }
 
     let accelerator = Accelerator {
-        id: accelerator_id.clone(),
+        id: input.id.clone(),
         name: input.name,
         website: input.website,
         email: input.email,
@@ -38,7 +42,7 @@ pub fn sign_up_accelerator(input: AcceleratorSignUp) -> Result<(), String> {
         recent_activity: vec![],
     };
 
-    ACCELERATORS.with(|accs| accs.borrow_mut().insert(accelerator_id, accelerator));
+    ACCELERATORS.with(|accs| accs.borrow_mut().insert(input.id, accelerator));
     Ok(())
 }
 
