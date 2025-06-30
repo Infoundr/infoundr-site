@@ -3,6 +3,13 @@ use crate::models::stable_principal::StablePrincipal;
 use crate::storage::memory::ACCELERATORS;
 use candid::{CandidType, Deserialize};
 use ic_cdk::{caller, update};
+use rand::RngCore;
+use rand::rngs::OsRng;
+use base64::{engine::general_purpose::STANDARD as BASE64, Engine as _};
+
+// ==================================================================================================
+// Accelerator Sign Up
+// ===============================================================================================
 
 /// Input struct for sign-up (only required fields)
 #[derive(Clone, Debug, CandidType, Deserialize)]
@@ -127,6 +134,10 @@ pub struct AcceleratorUpdate {
     pub graduated_startups: Option<u32>,
 }
 
+// ==================================================================================================
+// TEAM MEMBER INVITES
+// ==================================================================================================
+
 #[derive(Clone, Debug, CandidType, Deserialize)]
 pub struct TeamMemberInvite {
     pub email: String,
@@ -134,7 +145,7 @@ pub struct TeamMemberInvite {
 }
 
 #[update]
-pub fn invite_team_member(invite: TeamMemberInvite) -> Result<(), String> {
+pub fn invite_team_member(invite: TeamMemberInvite) -> Result<String, String> {
     let caller_principal = caller();
     let accelerator_id = StablePrincipal::new(caller_principal);
 
@@ -160,15 +171,52 @@ pub fn invite_team_member(invite: TeamMemberInvite) -> Result<(), String> {
         return Err("This email is already a team member or has a pending invite".to_string());
     }
 
-    // Add the new team member as pending
+    // Generate a secure random token
+    let mut token_bytes = [0u8; 32];
+    OsRng.fill_bytes(&mut token_bytes);
+    let token = BASE64.encode(&token_bytes);
+
+    // Add the new team member as pending with token
     accelerator.team_members.push(TeamMember {
         email: invite.email,
         role: invite.role,
         status: MemberStatus::Pending,
+        token: Some(token.clone()),
+        principal: None,
     });
     accelerator.invites_sent += 1;
 
     // Save the updated accelerator
     ACCELERATORS.with(|accs| accs.borrow_mut().insert(accelerator_id, accelerator));
-    Ok(())
+    Ok(token)
+}
+
+#[update]
+pub fn accept_invitation(token: String) -> Result<(), String> {
+    let caller_principal = caller();
+    let mut found = false;
+
+    ACCELERATORS.with(|accs| {
+        let mut accs = accs.borrow_mut();
+        let keys: Vec<_> = accs.iter().map(|(k, _)| k.clone()).collect();
+        for key in keys {
+            if let Some(accelerator) = accs.get(&key) {
+                let mut accelerator = accelerator.clone();
+                if let Some(member) = accelerator.team_members.iter_mut().find(|m| m.token.as_ref() == Some(&token) && m.status == MemberStatus::Pending) {
+                    member.status = MemberStatus::Active;
+                    member.principal = Some(caller_principal);
+                    member.token = None;
+                    accs.insert(key, accelerator);
+                    found = true;
+                    break;
+                }
+            }
+        }
+    });
+
+    if found {
+        Ok(())
+    } else {
+        Err("Invalid or already used invitation token".to_string())
+    }
 } 

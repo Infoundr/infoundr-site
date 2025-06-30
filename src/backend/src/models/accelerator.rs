@@ -1,5 +1,5 @@
 use crate::models::stable_principal::StablePrincipal;
-use candid::{CandidType, Decode, Encode};
+use candid::{CandidType, Decode, Encode, Principal};
 use ic_stable_structures::{BoundedStorable, Storable};
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
@@ -23,6 +23,8 @@ pub struct TeamMember {
     pub email: String,
     pub role: Role,
     pub status: MemberStatus,
+    pub token: Option<String>,
+    pub principal: Option<Principal>,
 }
 
 #[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
