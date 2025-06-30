@@ -183,7 +183,7 @@ fn test_admin_functions() {
         graduated_startups: None,
     };
 
-    let update_result = call_admin_update_accelerator(&pic, canister_id, caller_principal, admin_updates);
+    let _update_result = call_admin_update_accelerator(&pic, canister_id, caller_principal, admin_updates);
     // Note: This will fail if caller is not admin, which is expected behavior
 
     println!("✅ Test 5: Admin functions structure created (will fail without admin privileges)");
