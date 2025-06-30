@@ -1,8 +1,8 @@
-use crate::models::accelerator::{Accelerator, Role, TeamMember, MemberStatus};
+use crate::models::accelerator::{Accelerator, Role, TeamMember, MemberStatus, Activity, ActivityType};
 use crate::models::stable_principal::StablePrincipal;
 use crate::storage::memory::ACCELERATORS;
 use candid::{CandidType, Deserialize};
-use ic_cdk::{caller, update};
+use ic_cdk::{caller, update, query};
 use rand::RngCore;
 use rand::rngs::OsRng;
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine as _};
@@ -20,7 +20,7 @@ pub struct AcceleratorSignUp {
 }
 
 #[update]
-pub fn sign_up_accelerator(input: AcceleratorSignUp) -> Result<(), String> {
+pub fn sign_up_accelerator(input: AcceleratorSignUp) -> Result<String, String> {
     let caller_principal = caller();
     let accelerator_id = StablePrincipal::new(caller_principal);
 
@@ -29,6 +29,19 @@ pub fn sign_up_accelerator(input: AcceleratorSignUp) -> Result<(), String> {
     if exists {
         return Err("Accelerator with this principal already exists".to_string());
     }
+    let team_members = vec![TeamMember {
+        email: input.email.clone(),
+        role: Role::SuperAdmin,
+        status: MemberStatus::Active,
+        token: None,
+        principal: Some(caller_principal),
+    }];
+    
+    let recent_activity = vec![Activity {
+        timestamp: ic_cdk::api::time(),
+        description: "Accelerator created".to_string(),
+        activity_type: ActivityType::AcceleratorCreated,
+    }];
 
     let accelerator = Accelerator {
         id: accelerator_id.clone(),
@@ -41,12 +54,12 @@ pub fn sign_up_accelerator(input: AcceleratorSignUp) -> Result<(), String> {
         invites_sent: 0,
         active_startups: 0,
         graduated_startups: 0,
-        recent_activity: vec![],
-        team_members: vec![],
+        recent_activity,
+        team_members,
     };
-
-    ACCELERATORS.with(|accs| accs.borrow_mut().insert(accelerator_id, accelerator));
-    Ok(())
+    
+    ACCELERATORS.with(|accs| accs.borrow_mut().insert(accelerator_id.clone(), accelerator));
+    Ok(accelerator_id.to_string())
 }
 
 pub fn get_accelerator_by_id(id: StablePrincipal) -> Result<Option<Accelerator>, String> {
@@ -62,12 +75,22 @@ pub fn get_accelerator_by_id(id: StablePrincipal) -> Result<Option<Accelerator>,
 }
 
 #[update]
-pub fn get_my_accelerator() -> Result<Option<Accelerator>, String> {
+pub fn get_my_accelerator(accelerator_id: String) -> Result<Option<Accelerator>, String> {
     let caller_principal = caller();
-    let accelerator_id = StablePrincipal::new(caller_principal);
-    
-    let accelerator = ACCELERATORS.with(|accs| accs.borrow().get(&accelerator_id));
-    Ok(accelerator)
+    let accelerator = ACCELERATORS.with(|accs| {
+        accs.borrow().iter().find(|(k, _)| k.to_string() == accelerator_id).map(|(_, v)| v.clone())
+    });
+    match accelerator {
+        Some(acc) => {
+            let is_member = acc.team_members.iter().any(|m| m.principal == Some(caller_principal) && m.status == MemberStatus::Active);
+            if is_member {
+                Ok(Some(acc))
+            } else {
+                Err("Unauthorized: Not a team member".to_string())
+            }
+        },
+        None => Err("Accelerator not found".to_string()),
+    }
 }
 
 pub fn update_accelerator(id: StablePrincipal, updates: AcceleratorUpdate) -> Result<(), String> {
@@ -113,12 +136,64 @@ pub fn update_accelerator(id: StablePrincipal, updates: AcceleratorUpdate) -> Re
     Ok(())
 }
 
+#[derive(Clone, Debug, CandidType, Deserialize)]
+pub struct AcceleratorUpdateWithId {
+    pub accelerator_id: String,
+    pub updates: AcceleratorUpdate,
+}
+
 #[update]
-pub fn update_my_accelerator(updates: AcceleratorUpdate) -> Result<(), String> {
+pub fn update_my_accelerator(input: AcceleratorUpdateWithId) -> Result<(), String> {
     let caller_principal = caller();
-    let accelerator_id = StablePrincipal::new(caller_principal);
-    
-    update_accelerator(accelerator_id, updates)
+    let accelerator = ACCELERATORS.with(|accs| {
+        accs.borrow().iter().find(|(k, _)| k.to_string() == input.accelerator_id).map(|(_, v)| v.clone())
+    });
+    let mut accelerator = match accelerator {
+        Some(acc) => acc,
+        None => return Err("Accelerator not found".to_string()),
+    };
+    // Only allow Admin or SuperAdmin
+    let caller_member = accelerator.team_members.iter().find(|m| m.principal == Some(caller_principal) && m.status == MemberStatus::Active);
+    let is_admin = caller_member.map(|m| m.role == Role::SuperAdmin || m.role == Role::Admin).unwrap_or(false);
+    if !is_admin {
+        return Err("Only SuperAdmins or Admins can update accelerator".to_string());
+    }
+    // Apply updates
+    if let Some(name) = input.updates.name {
+        accelerator.name = name;
+    }
+    if let Some(website) = input.updates.website {
+        accelerator.website = website;
+    }
+    if let Some(email) = input.updates.email {
+        accelerator.email = email;
+    }
+    if let Some(email_verified) = input.updates.email_verified {
+        accelerator.email_verified = email_verified;
+    }
+    if let Some(logo) = input.updates.logo {
+        accelerator.logo = logo;
+    }
+    if let Some(total_startups) = input.updates.total_startups {
+        accelerator.total_startups = total_startups;
+    }
+    if let Some(invites_sent) = input.updates.invites_sent {
+        accelerator.invites_sent = invites_sent;
+    }
+    if let Some(active_startups) = input.updates.active_startups {
+        accelerator.active_startups = active_startups;
+    }
+    if let Some(graduated_startups) = input.updates.graduated_startups {
+        accelerator.graduated_startups = graduated_startups;
+    }
+    // Save updated accelerator
+    ACCELERATORS.with(|accs| {
+        let key = accs.borrow().iter().find(|(k, _)| k.to_string() == input.accelerator_id).map(|(k, _)| k.clone());
+        if let Some(key) = key {
+            accs.borrow_mut().insert(key, accelerator);
+        }
+    });
+    Ok(())
 }
 
 #[derive(Clone, Debug, CandidType, Deserialize)]
@@ -139,35 +214,36 @@ pub struct AcceleratorUpdate {
 // ==================================================================================================
 
 #[derive(Clone, Debug, CandidType, Deserialize)]
-pub struct TeamMemberInvite {
+pub struct TeamMemberInviteWithId {
+    pub accelerator_id: String,
     pub email: String,
     pub role: Role,
 }
 
 #[update]
-pub fn invite_team_member(invite: TeamMemberInvite) -> Result<String, String> {
+pub fn invite_team_member(input: TeamMemberInviteWithId) -> Result<String, String> {
     let caller_principal = caller();
-    let accelerator_id = StablePrincipal::new(caller_principal);
-
-    // Get the accelerator
-    let accelerator = ACCELERATORS.with(|accs| accs.borrow().get(&accelerator_id))
-        .ok_or("Accelerator not found")?;
-    let mut accelerator = accelerator.clone();
-
+    let accelerator = ACCELERATORS.with(|accs| {
+        accs.borrow().iter().find(|(k, _)| k.to_string() == input.accelerator_id).map(|(_, v)| v.clone())
+    });
+    let mut accelerator = match accelerator {
+        Some(acc) => acc,
+        None => return Err("Accelerator not found".to_string()),
+    };
     // Find the caller's team member record
-    let caller_member = accelerator.team_members.iter().find(|m| m.email == accelerator.email && m.status == MemberStatus::Active);
+    let caller_member = accelerator.team_members.iter().find(|m| m.principal == Some(caller_principal) && m.status == MemberStatus::Active);
     let is_admin = caller_member.map(|m| m.role == Role::SuperAdmin || m.role == Role::Admin).unwrap_or(false);
     if !is_admin {
         return Err("Only SuperAdmins or Admins can invite team members".to_string());
     }
 
     // Only SuperAdmin can invite another SuperAdmin
-    if invite.role == Role::SuperAdmin && caller_member.map(|m| m.role != Role::SuperAdmin).unwrap_or(true) {
+    if input.role == Role::SuperAdmin && caller_member.map(|m| m.role != Role::SuperAdmin).unwrap_or(true) {
         return Err("Only SuperAdmin can invite another SuperAdmin".to_string());
     }
 
     // Check if email is already in team_members
-    if accelerator.team_members.iter().any(|m| m.email == invite.email) {
+    if accelerator.team_members.iter().any(|m| m.email == input.email) {
         return Err("This email is already a team member or has a pending invite".to_string());
     }
 
@@ -178,8 +254,8 @@ pub fn invite_team_member(invite: TeamMemberInvite) -> Result<String, String> {
 
     // Add the new team member as pending with token
     accelerator.team_members.push(TeamMember {
-        email: invite.email,
-        role: invite.role,
+        email: input.email,
+        role: input.role,
         status: MemberStatus::Pending,
         token: Some(token.clone()),
         principal: None,
@@ -187,7 +263,12 @@ pub fn invite_team_member(invite: TeamMemberInvite) -> Result<String, String> {
     accelerator.invites_sent += 1;
 
     // Save the updated accelerator
-    ACCELERATORS.with(|accs| accs.borrow_mut().insert(accelerator_id, accelerator));
+    ACCELERATORS.with(|accs| {
+        let key = accs.borrow().iter().find(|(k, _)| k.to_string() == input.accelerator_id).map(|(k, _)| k.clone());
+        if let Some(key) = key {
+            accs.borrow_mut().insert(key, accelerator);
+        }
+    });
     Ok(token)
 }
 
@@ -219,4 +300,137 @@ pub fn accept_invitation(token: String) -> Result<(), String> {
     } else {
         Err("Invalid or already used invitation token".to_string())
     }
+}
+
+#[query]
+pub fn list_team_members(accelerator_id: String) -> Result<Vec<TeamMember>, String> {
+    let caller_principal = caller();
+    let accelerator = ACCELERATORS.with(|accs| {
+        accs.borrow().iter().find(|(k, _)| k.to_string() == accelerator_id).map(|(_, v)| v.clone())
+    });
+    let accelerator = match accelerator {
+        Some(acc) => acc,
+        None => return Err("Accelerator not found".to_string()),
+    };
+    // Check if caller is an active team member
+    let is_member = accelerator.team_members.iter().any(|m| m.principal == Some(caller_principal) && m.status == MemberStatus::Active);
+    if !is_member {
+        return Err("Unauthorized: Not a team member".to_string());
+    }
+    Ok(accelerator.team_members)
+}
+
+#[derive(Clone, Debug, CandidType, Deserialize)]
+pub struct UpdateTeamMemberRole {
+    pub accelerator_id: String,
+    pub email: String,
+    pub new_role: Role,
+}
+
+#[update]
+pub fn update_team_member_role(input: UpdateTeamMemberRole) -> Result<(), String> {
+    let caller_principal = caller();
+    let accelerator = ACCELERATORS.with(|accs| {
+        accs.borrow().iter().find(|(k, _)| k.to_string() == input.accelerator_id).map(|(_, v)| v.clone())
+    });
+    let mut accelerator = match accelerator {
+        Some(acc) => acc,
+        None => return Err("Accelerator not found".to_string()),
+    };
+    
+    // Find caller's member record
+    let caller_member = accelerator.team_members.iter().find(|m| m.principal == Some(caller_principal) && m.status == MemberStatus::Active);
+    let is_admin = caller_member.map(|m| m.role == Role::SuperAdmin || m.role == Role::Admin).unwrap_or(false);
+    if !is_admin {
+        return Err("Only SuperAdmins or Admins can update team member roles".to_string());
+    }
+
+    // Cannot update own role
+    if input.email == caller_member.map(|m| m.email.clone()).unwrap_or_default() {
+        return Err("You cannot update your own role".to_string());
+    }
+
+    // Only SuperAdmin can promote to SuperAdmin
+    if input.new_role == Role::SuperAdmin && caller_member.map(|m| m.role != Role::SuperAdmin).unwrap_or(true) {
+        return Err("Only SuperAdmin can promote to SuperAdmin".to_string());
+    }
+
+    // Find and update the member
+    let mut found = false;
+    for member in accelerator.team_members.iter_mut() {
+        if member.email == input.email && member.status == MemberStatus::Active {
+            member.role = input.new_role.clone();
+            found = true;
+            break;
+        }
+    }
+    if !found {
+        return Err("Team member not found or not active".to_string());
+    }
+
+    // Prevent demoting last SuperAdmin
+    if input.new_role != Role::SuperAdmin {
+        let super_admins = accelerator.team_members.iter().filter(|m| m.role == Role::SuperAdmin && m.status == MemberStatus::Active).count();
+        if super_admins == 0 {
+            return Err("Cannot demote the last SuperAdmin".to_string());
+        }
+    }
+    // Save updated accelerator
+    ACCELERATORS.with(|accs| {
+        let key = accs.borrow().iter().find(|(k, _)| k.to_string() == input.accelerator_id).map(|(k, _)| k.clone());
+        if let Some(key) = key {
+            accs.borrow_mut().insert(key, accelerator);
+        }
+    });
+    Ok(())
+}
+
+#[derive(Clone, Debug, CandidType, Deserialize)]
+pub struct RemoveTeamMember {
+    pub accelerator_id: String,
+    pub email: String,
+}
+
+#[update]
+pub fn remove_team_member(input: RemoveTeamMember) -> Result<(), String> {
+    let caller_principal = caller();
+    let accelerator = ACCELERATORS.with(|accs| {
+        accs.borrow().iter().find(|(k, _)| k.to_string() == input.accelerator_id).map(|(_, v)| v.clone())
+    });
+    let mut accelerator = match accelerator {
+        Some(acc) => acc,
+        None => return Err("Accelerator not found".to_string()),
+    };
+    // Find caller's member record
+    let caller_member = accelerator.team_members.iter().find(|m| m.principal == Some(caller_principal) && m.status == MemberStatus::Active);
+    let is_admin = caller_member.map(|m| m.role == Role::SuperAdmin || m.role == Role::Admin).unwrap_or(false);
+    if !is_admin {
+        return Err("Only SuperAdmins or Admins can remove team members".to_string());
+    }
+
+    // Cannot remove self
+    if input.email == caller_member.map(|m| m.email.clone()).unwrap_or_default() {
+        return Err("You cannot remove yourself".to_string());
+    }
+
+    // Find and remove the member
+    let orig_len = accelerator.team_members.len();
+    accelerator.team_members.retain(|m| !(m.email == input.email && m.status == MemberStatus::Active));
+    if accelerator.team_members.len() == orig_len {
+        return Err("Team member not found or not active".to_string());
+    }
+
+    // Prevent removing last SuperAdmin
+    let super_admins = accelerator.team_members.iter().filter(|m| m.role == Role::SuperAdmin && m.status == MemberStatus::Active).count();
+    if super_admins == 0 {
+        return Err("Cannot remove the last SuperAdmin".to_string());
+    }
+    // Save updated accelerator
+    ACCELERATORS.with(|accs| {
+        let key = accs.borrow().iter().find(|(k, _)| k.to_string() == input.accelerator_id).map(|(k, _)| k.clone());
+        if let Some(key) = key {
+            accs.borrow_mut().insert(key, accelerator);
+        }
+    });
+    Ok(())
 } 

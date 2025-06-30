@@ -52,6 +52,7 @@ pub struct Activity {
 
 #[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
 pub enum ActivityType {
+    AcceleratorCreated,
     Joined,
     UpdatedPitchDeck,
     SentInvite,
