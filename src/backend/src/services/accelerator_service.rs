@@ -1,4 +1,4 @@
-use crate::models::accelerator::Accelerator;
+use crate::models::accelerator::{Accelerator, Role, TeamMember, MemberStatus};
 use crate::models::stable_principal::StablePrincipal;
 use crate::storage::memory::ACCELERATORS;
 use candid::{CandidType, Deserialize};
@@ -35,6 +35,7 @@ pub fn sign_up_accelerator(input: AcceleratorSignUp) -> Result<(), String> {
         active_startups: 0,
         graduated_startups: 0,
         recent_activity: vec![],
+        team_members: vec![],
     };
 
     ACCELERATORS.with(|accs| accs.borrow_mut().insert(accelerator_id, accelerator));
@@ -124,4 +125,50 @@ pub struct AcceleratorUpdate {
     pub invites_sent: Option<u32>,
     pub active_startups: Option<u32>,
     pub graduated_startups: Option<u32>,
+}
+
+#[derive(Clone, Debug, CandidType, Deserialize)]
+pub struct TeamMemberInvite {
+    pub email: String,
+    pub role: Role,
+}
+
+#[update]
+pub fn invite_team_member(invite: TeamMemberInvite) -> Result<(), String> {
+    let caller_principal = caller();
+    let accelerator_id = StablePrincipal::new(caller_principal);
+
+    // Get the accelerator
+    let accelerator = ACCELERATORS.with(|accs| accs.borrow().get(&accelerator_id))
+        .ok_or("Accelerator not found")?;
+    let mut accelerator = accelerator.clone();
+
+    // Find the caller's team member record
+    let caller_member = accelerator.team_members.iter().find(|m| m.email == accelerator.email && m.status == MemberStatus::Active);
+    let is_admin = caller_member.map(|m| m.role == Role::SuperAdmin || m.role == Role::Admin).unwrap_or(false);
+    if !is_admin {
+        return Err("Only SuperAdmins or Admins can invite team members".to_string());
+    }
+
+    // Only SuperAdmin can invite another SuperAdmin
+    if invite.role == Role::SuperAdmin && caller_member.map(|m| m.role != Role::SuperAdmin).unwrap_or(true) {
+        return Err("Only SuperAdmin can invite another SuperAdmin".to_string());
+    }
+
+    // Check if email is already in team_members
+    if accelerator.team_members.iter().any(|m| m.email == invite.email) {
+        return Err("This email is already a team member or has a pending invite".to_string());
+    }
+
+    // Add the new team member as pending
+    accelerator.team_members.push(TeamMember {
+        email: invite.email,
+        role: invite.role,
+        status: MemberStatus::Pending,
+    });
+    accelerator.invites_sent += 1;
+
+    // Save the updated accelerator
+    ACCELERATORS.with(|accs| accs.borrow_mut().insert(accelerator_id, accelerator));
+    Ok(())
 } 

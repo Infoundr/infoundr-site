@@ -22,7 +22,7 @@ use crate::storage::memory::{
 use candid::Principal;
 use ic_cdk::storage::{stable_restore, stable_save};
 use crate::services::token_service::TokenValidationResult;
-use crate::services::accelerator_service::{AcceleratorSignUp, AcceleratorUpdate};
+use crate::services::accelerator_service::{AcceleratorSignUp, AcceleratorUpdate, TeamMemberInvite};
 use crate::models::accelerator::Accelerator;
 
 #[ic_cdk::pre_upgrade]

@@ -4,6 +4,27 @@ use ic_stable_structures::{BoundedStorable, Storable};
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+pub enum Role {
+    SuperAdmin,
+    Admin,
+    ProgramManager,
+    Viewer,
+}
+
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+pub enum MemberStatus {
+    Active,
+    Pending,
+}
+
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
+pub struct TeamMember {
+    pub email: String,
+    pub role: Role,
+    pub status: MemberStatus,
+}
+
 #[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
 pub struct Accelerator {
     pub id: StablePrincipal,
@@ -17,6 +38,7 @@ pub struct Accelerator {
     pub active_startups: u32,
     pub graduated_startups: u32,
     pub recent_activity: Vec<Activity>,
+    pub team_members: Vec<TeamMember>,
 }
 
 #[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
