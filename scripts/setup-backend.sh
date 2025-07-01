@@ -38,8 +38,10 @@ cd src/backend
 
 # Install generate-did and candid-extractor
 printf "\n${GREEN}Installing generate-did and candid-extractor...${NC}\n"
-cargo install generate-did
-cargo install candid-extractor
+# cargo install candid-extractor
+# npx generate-did backend
+# # cargo install generate-did
+cargo build --target wasm32-unknown-unknown --release -p backend
 
 # Move back to root directory
 cd ../../
