@@ -2,6 +2,21 @@ mod models;
 mod services;
 mod storage;
 
+// Custom getrandom implementation - for pocket ic testing only
+use getrandom::register_custom_getrandom;
+
+fn custom_getrandom(dest: &mut [u8]) -> Result<(), getrandom::Error> {
+    // Use a simple time-based approach for testing
+    // In production, you might want to use a more sophisticated approach
+    let time = ic_cdk::api::time();
+    for (i, byte) in dest.iter_mut().enumerate() {
+        *byte = ((time + i as u64) % 256) as u8;
+    }
+    Ok(())
+}
+
+register_custom_getrandom!(custom_getrandom);
+
 use crate::models::chat::BotType;
 use crate::models::connected_accounts::ConnectedAccounts;
 use crate::models::dashboard_token::DashboardToken;
@@ -22,7 +37,7 @@ use crate::storage::memory::{
 use candid::Principal;
 use ic_cdk::storage::{stable_restore, stable_save};
 use crate::services::token_service::TokenValidationResult;
-use crate::services::accelerator_service::{AcceleratorSignUp, TeamMemberInviteWithId, UpdateTeamMemberRole, RemoveTeamMember, AcceleratorUpdateWithId};
+use crate::services::accelerator_service::{AcceleratorSignUp, TeamMemberInviteWithId, UpdateTeamMemberRole, RemoveTeamMember, AcceleratorUpdateWithId, AcceleratorUpdate};
 use crate::models::accelerator::{Accelerator, TeamMember};
 
 #[ic_cdk::pre_upgrade]

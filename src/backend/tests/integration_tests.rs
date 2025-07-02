@@ -39,7 +39,7 @@ fn test_accelerator_signup() {
     let result = call_accelerator_signup(&pic, canister_id, signup_data);
     assert!(result.is_ok(), "Sign-up should succeed");
     
-    println!("✅ Test 1: Basic sign-up passed");
+    println!("✅ Test 1: Basic sign-up passed"); 
 }
 
 #[test]

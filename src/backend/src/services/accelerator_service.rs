@@ -11,7 +11,6 @@ use base64::{engine::general_purpose::STANDARD as BASE64, Engine as _};
 // Accelerator Sign Up
 // ===============================================================================================
 
-/// Input struct for sign-up (only required fields)
 #[derive(Clone, Debug, CandidType, Deserialize)]
 pub struct AcceleratorSignUp {
     pub name: String,
@@ -24,7 +23,6 @@ pub fn sign_up_accelerator(input: AcceleratorSignUp) -> Result<String, String> {
     let caller_principal = caller();
     let accelerator_id = StablePrincipal::new(caller_principal);
 
-    // Check if already exists
     let exists = ACCELERATORS.with(|accs| accs.borrow().contains_key(&accelerator_id));
     if exists {
         return Err("Accelerator with this principal already exists".to_string());
@@ -93,6 +91,7 @@ pub fn get_my_accelerator(accelerator_id: String) -> Result<Option<Accelerator>,
     }
 }
 
+#[update]
 pub fn update_accelerator(id: StablePrincipal, updates: AcceleratorUpdate) -> Result<(), String> {
     let caller_principal = caller();
     
@@ -230,29 +229,26 @@ pub fn invite_team_member(input: TeamMemberInviteWithId) -> Result<String, Strin
         Some(acc) => acc,
         None => return Err("Accelerator not found".to_string()),
     };
-    // Find the caller's team member record
+    
+
     let caller_member = accelerator.team_members.iter().find(|m| m.principal == Some(caller_principal) && m.status == MemberStatus::Active);
     let is_admin = caller_member.map(|m| m.role == Role::SuperAdmin || m.role == Role::Admin).unwrap_or(false);
     if !is_admin {
         return Err("Only SuperAdmins or Admins can invite team members".to_string());
     }
 
-    // Only SuperAdmin can invite another SuperAdmin
     if input.role == Role::SuperAdmin && caller_member.map(|m| m.role != Role::SuperAdmin).unwrap_or(true) {
         return Err("Only SuperAdmin can invite another SuperAdmin".to_string());
     }
 
-    // Check if email is already in team_members
     if accelerator.team_members.iter().any(|m| m.email == input.email) {
         return Err("This email is already a team member or has a pending invite".to_string());
     }
 
-    // Generate a secure random token
     let mut token_bytes = [0u8; 32];
     OsRng.fill_bytes(&mut token_bytes);
     let token = BASE64.encode(&token_bytes);
 
-    // Add the new team member as pending with token
     accelerator.team_members.push(TeamMember {
         email: input.email,
         role: input.role,
@@ -262,7 +258,6 @@ pub fn invite_team_member(input: TeamMemberInviteWithId) -> Result<String, Strin
     });
     accelerator.invites_sent += 1;
 
-    // Save the updated accelerator
     ACCELERATORS.with(|accs| {
         let key = accs.borrow().iter().find(|(k, _)| k.to_string() == input.accelerator_id).map(|(k, _)| k.clone());
         if let Some(key) = key {

@@ -6,6 +6,7 @@ type Accelerator = record {
   name : text;
   email : text;
   website : text;
+  team_members : vec TeamMember;
   total_startups : nat32;
   recent_activity : vec Activity;
   email_verified : bool;
@@ -23,6 +24,10 @@ type AcceleratorUpdate = record {
   email_verified : opt bool;
   invites_sent : opt nat32;
 };
+type AcceleratorUpdateWithId = record {
+  accelerator_id : text;
+  updates : AcceleratorUpdate;
+};
 type Activity = record {
   activity_type : ActivityType;
   description : text;
@@ -33,6 +38,7 @@ type ActivityType = variant {
   UpdatedPitchDeck;
   Joined;
   Other : text;
+  AcceleratorCreated;
   SentInvite;
   MissedMilestone;
 };
@@ -82,6 +88,7 @@ type Issue = record {
   repository : text;
 };
 type IssueStatus = variant { Open; Closed };
+type MemberStatus = variant { Active; Pending };
 type MessageRole = variant { User; Assistant };
 type OpenChatUser = record {
   site_principal : opt principal;
@@ -89,15 +96,19 @@ type OpenChatUser = record {
   openchat_id : text;
   first_interaction : nat64;
 };
-type Result = variant { Ok : ChatMessage; Err : text };
-type Result_1 = variant { Ok; Err : text };
+type RemoveTeamMember = record { accelerator_id : text; email : text };
+type Result = variant { Ok; Err : text };
+type Result_1 = variant { Ok : ChatMessage; Err : text };
+type Result_10 = variant { Ok; Err : vec text };
 type Result_2 = variant { Ok : opt Accelerator; Err : text };
 type Result_3 = variant { Ok : vec Accelerator; Err : text };
 type Result_4 = variant { Ok : vec User; Err : text };
 type Result_5 = variant { Ok : vec WaitlistEntry; Err : text };
-type Result_6 = variant { Ok : WaitlistEntry; Err : text };
-type Result_7 = variant { Ok : User; Err : text };
-type Result_8 = variant { Ok; Err : vec text };
+type Result_6 = variant { Ok : text; Err : text };
+type Result_7 = variant { Ok : WaitlistEntry; Err : text };
+type Result_8 = variant { Ok : vec TeamMember; Err : text };
+type Result_9 = variant { Ok : User; Err : text };
+type Role = variant { ProgramManager; Viewer; SuperAdmin; Admin };
 type SlackUser = record {
   site_principal : opt principal;
   slack_id : text;
@@ -115,7 +126,24 @@ type Task = record {
   platform : text;
   created_at : nat64;
 };
+type TeamMember = record {
+  status : MemberStatus;
+  "principal" : opt principal;
+  token : opt text;
+  role : Role;
+  email : text;
+};
+type TeamMemberInviteWithId = record {
+  accelerator_id : text;
+  role : Role;
+  email : text;
+};
 type TokenValidationResult = record { platform_id : text; platform : text };
+type UpdateTeamMemberRole = record {
+  accelerator_id : text;
+  email : text;
+  new_role : Role;
+};
 type User = record {
   "principal" : principal;
   name : text;
@@ -146,10 +174,11 @@ type WaitlistEntry = record {
 };
 type WaitlistStatus = variant { Approved; Rejected; Pending };
 service : {
-  add_chat_message : (text, BotType) -> (Result);
-  admin_update_accelerator : (principal, AcceleratorUpdate) -> (Result_1);
+  accept_invitation : (text) -> (Result);
+  add_chat_message : (text, BotType) -> (Result_1);
+  admin_update_accelerator : (principal, AcceleratorUpdate) -> (Result);
   check_auth : () -> (bool) query;
-  delete_accelerator : (principal) -> (Result_1);
+  delete_accelerator : (principal) -> (Result);
   ensure_discord_user : (text) -> ();
   ensure_openchat_user : (text) -> ();
   ensure_slack_user : (text) -> ();
@@ -164,7 +193,7 @@ service : {
   get_current_user : () -> (opt User) query;
   get_discord_user : (text) -> (opt DiscordUser) query;
   get_discord_user_by_principal : (principal) -> (opt DiscordUser) query;
-  get_my_accelerator : () -> (Result_2);
+  get_my_accelerator : (text) -> (Result_2);
   get_openchat_user : (text) -> (opt OpenChatUser) query;
   get_openchat_user_by_principal : (principal) -> (opt OpenChatUser) query;
   get_registered_discord_users : () -> (vec DiscordUser) query;
@@ -180,30 +209,35 @@ service : {
   get_user_tasks : (UserIdentifier) -> (vec Task) query;
   get_users : () -> (Result_4) query;
   get_waitlist : () -> (Result_5) query;
+  invite_team_member : (TeamMemberInviteWithId) -> (Result_6);
   is_admin : () -> (bool) query;
   is_allowed_principal : () -> (bool) query;
   is_discord_user_registered : (text) -> (bool) query;
   is_registered : () -> (bool) query;
   is_slack_user_registered : (text) -> (bool) query;
-  join_waitlist : (text) -> (Result_6);
-  link_accounts : (principal, text) -> (Result_1);
-  link_token_to_principal : (text, principal) -> (Result_1);
-  register_user : (text) -> (Result_7);
-  sign_up_accelerator : (AcceleratorSignUp) -> (Result_1);
+  join_waitlist : (text) -> (Result_7);
+  link_accounts : (principal, text) -> (Result);
+  link_token_to_principal : (text, principal) -> (Result);
+  list_team_members : (text) -> (Result_8) query;
+  register_user : (text) -> (Result_9);
+  remove_team_member : (RemoveTeamMember) -> (Result);
+  sign_up_accelerator : (AcceleratorSignUp) -> (Result_6);
   store_asana_connection : (
       UserIdentifier,
       text,
       text,
       vec record { text; text },
     ) -> ();
-  store_asana_task : (UserIdentifier, Task) -> (Result_1);
+  store_asana_task : (UserIdentifier, Task) -> (Result);
   store_chat_message : (UserIdentifier, ChatMessage) -> ();
   store_github_connection : (UserIdentifier, text, opt text) -> ();
-  store_github_issue : (UserIdentifier, Issue) -> (Result_1);
-  unlink_accounts : (text) -> (Result_1);
-  update_github_selected_repo : (UserIdentifier, text) -> (Result_1);
-  update_my_accelerator : (AcceleratorUpdate) -> (Result_1);
+  store_github_issue : (UserIdentifier, Issue) -> (Result);
+  unlink_accounts : (text) -> (Result);
+  update_accelerator : (principal, AcceleratorUpdate) -> (Result);
+  update_github_selected_repo : (UserIdentifier, text) -> (Result);
+  update_my_accelerator : (AcceleratorUpdateWithId) -> (Result);
+  update_team_member_role : (UpdateTeamMemberRole) -> (Result);
   validate_dashboard_token : (blob) -> (opt TokenValidationResult) query;
-  verify_connections : (principal) -> (Result_8) query;
-  verify_token : (text) -> (Result_1);
+  verify_connections : (principal) -> (Result_10) query;
+  verify_token : (text) -> (Result);
 }
