@@ -510,7 +510,6 @@ pub struct StartupRegistrationInput {
     pub startup_name: String,
     pub founder_name: String,
     pub email: String,
-    pub password: String,
 }
 
 #[update]
@@ -527,7 +526,7 @@ pub fn accept_startup_invite(input: StartupRegistrationInput) -> Result<(), Stri
         return Err("Invite is not pending or already used/expired".to_string());
     }
 
-    if now > invite.expiry {
+    if now >= invite.expiry {
         STARTUP_INVITES.with(|invites| {
             if let Some(inv) = invites.borrow_mut().get_mut(&input.invite_code) {
                 inv.status = InviteStatus::Expired;
@@ -566,7 +565,7 @@ pub fn list_startup_invites(accelerator_id: String) -> Vec<StartupInvite> {
         for invite in invites_mut.values_mut() {
             if invite.accelerator_id.to_string() == accelerator_id
                 && invite.status == InviteStatus::Pending
-                && now > invite.expiry
+                && now >= invite.expiry
             {
                 invite.status = InviteStatus::Expired;
             }
@@ -608,7 +607,7 @@ pub fn revoke_startup_invite(invite_code: String) -> Result<(), String> {
                 if invite.status == InviteStatus::Used {
                     return Err("Cannot revoke an invite that has already been used".to_string());
                 }
-                if invite.status == InviteStatus::Expired || (invite.status == InviteStatus::Pending && now > invite.expiry) {
+                if invite.status == InviteStatus::Expired || (invite.status == InviteStatus::Pending && now >= invite.expiry) {
                     invite.status = InviteStatus::Expired;
                     return Err("Cannot revoke an invite that has already expired".to_string());
                 }

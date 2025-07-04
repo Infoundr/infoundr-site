@@ -142,7 +142,6 @@ type StartupInvite = record {
   registered_at : opt nat64;
 };
 type StartupRegistrationInput = record {
-  password : text;
   invite_code : text;
   startup_name : text;
   email : text;

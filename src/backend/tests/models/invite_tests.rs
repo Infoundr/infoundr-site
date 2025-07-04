@@ -44,7 +44,6 @@ pub struct StartupRegistrationInput {
     pub startup_name: String,
     pub founder_name: String,
     pub email: String,
-    pub password: String,
 }
 
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
