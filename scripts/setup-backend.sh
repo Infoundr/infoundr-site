@@ -3,6 +3,9 @@
 # Exit on error
 set -e
 
+# Make script executable
+chmod +x ./scripts/setup.sh
+
 # Colors for output
 GREEN=$(printf '\033[32m')
 RED=$(printf '\033[31m')
@@ -31,7 +34,18 @@ npm install -g canister-tools
 
 # Generate candid file for backend
 printf "\n${GREEN}Generating candid file for backend...${NC}\n"
-npx generate-did backend
+cd src/backend
+
+# Install generate-did and candid-extractor
+printf "\n${GREEN}Installing generate-did and candid-extractor...${NC}\n"
+# cargo install candid-extractor
+# npx generate-did backend
+# # cargo install generate-did
+cargo build --target wasm32-unknown-unknown --release -p backend
+
+# Move back to root directory
+cd ../../
+generate-did backend
 
 # Deploy canisters
 printf "\n${GREEN}Deploying canisters...${NC}\n"
