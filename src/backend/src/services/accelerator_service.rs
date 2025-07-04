@@ -6,6 +6,10 @@ use ic_cdk::{caller, update, query};
 use rand::RngCore;
 use rand::rngs::OsRng;
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine as _};
+use crate::models::startup_invite::{StartupInvite, InviteType, InviteStatus};
+use crate::storage::memory::STARTUP_INVITES;
+use crate::services::auth::register_startup;
+use ic_cdk::api::time;
 
 // ==================================================================================================
 // Accelerator Sign Up
@@ -427,5 +431,128 @@ pub fn remove_team_member(input: RemoveTeamMember) -> Result<(), String> {
             accs.borrow_mut().insert(key, accelerator);
         }
     });
+    Ok(())
+}
+
+// ==================================================================================================
+// STARTUP INVITES
+// ==================================================================================================
+
+#[derive(Clone, Debug, CandidType, Deserialize)]
+pub struct GenerateStartupInviteInput {
+    pub startup_name: String,
+    pub program_name: String,
+    pub accelerator_id: String,
+    pub invite_type: InviteType,
+    pub email: Option<String>,
+    pub expiry_days: Option<u64>,
+}
+
+#[update]
+pub fn generate_startup_invite(input: GenerateStartupInviteInput) -> Result<StartupInvite, String> {
+    
+    let caller_principal = caller();
+
+    
+    let accelerator = ACCELERATORS.with(|accs| {
+        accs.borrow().iter().find(|(k, _)| k.to_string() == input.accelerator_id).map(|(_, v)| v.clone())
+    });
+    let accelerator = match accelerator {
+        Some(acc) => acc,
+        None => return Err("Accelerator not found".to_string()),
+    };
+
+    let is_admin = accelerator.team_members.iter().any(|m| {
+        m.principal == Some(caller_principal) &&
+        (m.role == Role::SuperAdmin || m.role == Role::Admin) &&
+        m.status == MemberStatus::Active
+    });
+    if !is_admin {
+        return Err("Only SuperAdmins or Admins can generate invites".to_string());
+    }
+
+    let mut token_bytes = [0u8; 32];
+    OsRng.fill_bytes(&mut token_bytes);
+    let invite_code = BASE64.encode(&token_bytes);
+    let invite_id = invite_code.clone(); 
+
+    let now = ic_cdk::api::time();
+    let expiry_days = input.expiry_days.unwrap_or(3);
+    let expiry = now + expiry_days * 24 * 60 * 60 * 1_000_000_000; // nanoseconds
+
+    let invite = StartupInvite {
+        invite_id: invite_id.clone(),
+        startup_name: input.startup_name,
+        accelerator_id: accelerator.id.clone(),
+        program_name: input.program_name,
+        invite_type: input.invite_type,
+        invite_code: invite_code.clone(),
+        expiry,
+        status: InviteStatus::Pending,
+        created_at: now,
+        used_at: None,
+        email: input.email,
+        registered_principal: None,
+        registered_at: None,
+    };
+
+    
+    STARTUP_INVITES.with(|invites| {
+        invites.borrow_mut().insert(invite_id.clone(), invite.clone());
+    });
+
+    Ok(invite)
+}
+
+#[derive(Clone, Debug, CandidType, Deserialize)]
+pub struct StartupRegistrationInput {
+    pub invite_code: String,
+    pub startup_name: String,
+    pub founder_name: String,
+    pub email: String,
+    pub password: String,
+}
+
+#[update]
+pub fn accept_startup_invite(input: StartupRegistrationInput) -> Result<(), String> {
+
+    let principal = caller();
+    let now = time();
+
+    let invite = STARTUP_INVITES.with(|invites| {
+        invites.borrow().get(&input.invite_code).cloned()
+    }).ok_or("Invalid or expired invite code".to_string())?;
+
+    if invite.status != InviteStatus::Pending {
+        return Err("Invite is not pending or already used/expired".to_string());
+    }
+
+    if now > invite.expiry {
+        STARTUP_INVITES.with(|invites| {
+            if let Some(inv) = invites.borrow_mut().get_mut(&input.invite_code) {
+                inv.status = InviteStatus::Expired;
+            }
+        });
+        return Err("Invite has expired".to_string());
+    }
+
+    let registration_result = register_startup(
+        input.startup_name.clone(),
+        input.founder_name.clone(),
+        input.email.clone(),
+    );
+    if let Err(e) = registration_result {
+        return Err(format!("Failed to register startup: {}", e));
+    }
+    
+    STARTUP_INVITES.with(|invites| {
+        if let Some(inv) = invites.borrow_mut().get_mut(&input.invite_code) {
+            inv.status = InviteStatus::Used;
+            inv.used_at = Some(now);
+            inv.registered_principal = Some(principal);
+            inv.registered_at = Some(now);
+        }
+    });
+
     Ok(())
 } 

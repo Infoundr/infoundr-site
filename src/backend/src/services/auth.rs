@@ -59,6 +59,55 @@ pub fn register_user(name: String) -> Result<User, String> {
     Ok(user)
 }
 
+#[update]
+pub fn register_startup(startup_name: String, founder_name: String, email: String) -> Result<User, String> {
+    let caller = caller();
+
+    if USERS.with(|users| users.borrow().contains_key(&StablePrincipal::new(caller))) {
+        return Err("User already exists".to_string());
+    }
+
+    let openchat_id = OPENCHAT_USERS.with(|users| {
+        users
+            .borrow()
+            .iter()
+            .find(|(_, user)| user.site_principal.as_ref().map(|p| p.get()) == Some(caller))
+            .map(|(id, _)| id.as_str().to_string())
+    });
+    let slack_id = SLACK_USERS.with(|users| {
+        users
+            .borrow()
+            .iter()
+            .find(|(_, user)| user.site_principal.as_ref().map(|p| p.get()) == Some(caller))
+            .map(|(id, _)| id.as_str().to_string())
+    });
+    let discord_id = DISCORD_USERS.with(|users| {
+        users
+            .borrow()
+            .iter()
+            .find(|(_, user)| user.site_principal.as_ref().map(|p| p.get()) == Some(caller))
+            .map(|(id, _)| id.as_str().to_string())
+    });
+
+    let user = User {
+        principal: StablePrincipal::new(caller),
+        name: format!("{} ({})", startup_name, founder_name),
+        email: Some(email),
+        created_at: time(),
+        subscription_tier: SubscriptionTier::Free,
+        openchat_id,
+        slack_id,
+        discord_id,
+    };
+
+    USERS.with(|users| {
+        users
+            .borrow_mut()
+            .insert(StablePrincipal::new(caller), user.clone())
+    });
+    Ok(user)
+}
+
 #[query]
 pub fn get_current_user() -> Option<User> {
     let caller = caller();

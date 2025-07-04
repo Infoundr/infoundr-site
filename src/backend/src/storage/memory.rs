@@ -13,6 +13,8 @@ use ic_stable_structures::memory_manager::{MemoryId, MemoryManager, VirtualMemor
 use ic_stable_structures::{DefaultMemoryImpl, StableBTreeMap};
 use std::cell::RefCell;
 use crate::models::accelerator::Accelerator;
+use crate::models::startup_invite::StartupInvite;
+use std::collections::HashMap;
 
 pub type Memory = VirtualMemory<DefaultMemoryImpl>;
 
@@ -92,4 +94,6 @@ thread_local! {
             MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(11)))
         )
     );
+
+    pub static STARTUP_INVITES: RefCell<HashMap<String, StartupInvite>> = RefCell::new(HashMap::new());
 }

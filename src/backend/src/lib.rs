@@ -39,6 +39,8 @@ use ic_cdk::storage::{stable_restore, stable_save};
 use crate::services::token_service::TokenValidationResult;
 use crate::services::accelerator_service::{AcceleratorSignUp, TeamMemberInviteWithId, UpdateTeamMemberRole, RemoveTeamMember, AcceleratorUpdateWithId, AcceleratorUpdate};
 use crate::models::accelerator::{Accelerator, TeamMember};
+use crate::models::startup_invite::StartupInvite;
+use crate::services::accelerator_service::GenerateStartupInviteInput;
 
 #[ic_cdk::pre_upgrade]
 fn pre_upgrade() {
