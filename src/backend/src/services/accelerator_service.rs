@@ -559,9 +559,19 @@ pub fn accept_startup_invite(input: StartupRegistrationInput) -> Result<(), Stri
 
 #[query]
 pub fn list_startup_invites(accelerator_id: String) -> Vec<StartupInvite> {
+    let now = ic_cdk::api::time();
     STARTUP_INVITES.with(|invites| {
-        invites
-            .borrow()
+        let mut invites_mut = invites.borrow_mut();
+        // Update expired invites
+        for invite in invites_mut.values_mut() {
+            if invite.accelerator_id.to_string() == accelerator_id
+                && invite.status == InviteStatus::Pending
+                && now > invite.expiry
+            {
+                invite.status = InviteStatus::Expired;
+            }
+        }
+        invites_mut
             .values()
             .filter(|invite| invite.accelerator_id.to_string() == accelerator_id)
             .cloned()
