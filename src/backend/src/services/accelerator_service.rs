@@ -555,4 +555,16 @@ pub fn accept_startup_invite(input: StartupRegistrationInput) -> Result<(), Stri
     });
 
     Ok(())
+}
+
+#[query]
+pub fn list_startup_invites(accelerator_id: String) -> Vec<StartupInvite> {
+    STARTUP_INVITES.with(|invites| {
+        invites
+            .borrow()
+            .values()
+            .filter(|invite| invite.accelerator_id.to_string() == accelerator_id)
+            .cloned()
+            .collect()
+    })
 } 
