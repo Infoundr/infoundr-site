@@ -4,7 +4,9 @@
 use candid::{encode_one, decode_one, Principal};
 use pocket_ic::PocketIc;
 use std::fs;
-use backend::models::startup_invite::{StartupInvite, InviteType, InviteStatus};
+
+mod models;
+use models::invite_tests::*;
 
 // Test data constants
 const TEST_ACCELERATOR_NAME: &str = "Test Accelerator";
@@ -21,32 +23,6 @@ fn setup() -> (PocketIc, Principal) {
     let wasm = fs::read(BACKEND_WASM).expect("Wasm file not found, run 'dfx build'.");
     pic.install_canister(backend_canister, wasm, vec![], None);
     (pic, backend_canister)
-}
-
-#[derive(candid::CandidType, candid::Deserialize, Clone, Debug)]
-struct AcceleratorSignUp {
-    name: String,
-    website: String,
-    email: String,
-}
-
-#[derive(candid::CandidType, candid::Deserialize, Clone, Debug)]
-struct GenerateStartupInviteInput {
-    startup_name: String,
-    program_name: String,
-    accelerator_id: String,
-    invite_type: InviteType,
-    email: Option<String>,
-    expiry_days: Option<u64>,
-}
-
-#[derive(candid::CandidType, candid::Deserialize, Clone, Debug)]
-struct StartupRegistrationInput {
-    invite_code: String,
-    startup_name: String,
-    founder_name: String,
-    email: String,
-    password: String,
 }
 
 #[test]
@@ -84,7 +60,8 @@ fn test_generate_and_accept_invite() {
     ).expect("Invite generation failed");
 
     // Decode invite using candid
-    let invite: StartupInvite = decode_one(&result).unwrap();
+    let invite_result: Result<StartupInvite, String> = decode_one(&result).unwrap();
+    let invite = invite_result.expect("Invite generation should succeed");
     let invite_code = &invite.invite_code;
 
     // 3. Accept invite as a new principal
