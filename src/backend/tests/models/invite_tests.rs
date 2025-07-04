@@ -5,15 +5,15 @@ use serde::Serialize;
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize, PartialEq, Eq)]
 pub struct StablePrincipal(pub Principal);
 
-impl StablePrincipal {
-    pub fn new(principal: Principal) -> Self {
-        Self(principal)
-    }
+// impl StablePrincipal {
+//     pub fn new(principal: Principal) -> Self {
+//         Self(principal)
+//     }
 
-    pub fn get(&self) -> Principal {
-        self.0
-    }
-}
+//     pub fn get(&self) -> Principal {
+//         self.0
+//     }
+// }
 
 impl From<Principal> for StablePrincipal {
     fn from(p: Principal) -> Self {

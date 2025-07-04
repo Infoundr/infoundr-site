@@ -44,6 +44,7 @@ fn test_generate_and_accept_invite() {
 
     // 2. Generate invite as SuperAdmin
     let accelerator_id = Principal::anonymous().to_string();
+    println!("Accelerator ID: {}", accelerator_id);
     let invite_input = GenerateStartupInviteInput {
         startup_name: "Test Startup".to_string(),
         program_name: "Test Program".to_string(),
@@ -58,11 +59,13 @@ fn test_generate_and_accept_invite() {
         "generate_startup_invite",
         encode_one(invite_input).unwrap(),
     ).expect("Invite generation failed");
+    println!("Invite result: {:?}", result);
 
     // Decode invite using candid
     let invite_result: Result<StartupInvite, String> = decode_one(&result).unwrap();
     let invite = invite_result.expect("Invite generation should succeed");
     let invite_code = &invite.invite_code;
+    println!("Invite code: {}", invite_code);
 
     // 3. Accept invite as a new principal
     let new_principal = Principal::from_text("2vxsx-fae").unwrap(); // Use a different principal
@@ -79,6 +82,7 @@ fn test_generate_and_accept_invite() {
         "accept_startup_invite",
         encode_one(registration_input).unwrap(),
     );
+    println!("Accept result: {:?}", accept_result);
     assert!(accept_result.is_ok(), "Invite acceptance should succeed");
 
     // 4. List invites and check status
@@ -88,6 +92,8 @@ fn test_generate_and_accept_invite() {
         "list_startup_invites",
         encode_one(accelerator_id).unwrap(),
     ).expect("List invites failed");
+    println!("List result: {:?}", list_result);
+    
     let invites: Vec<StartupInvite> = decode_one(&list_result).unwrap();
     let used_invite = invites.iter().find(|inv| inv.invite_code == *invite_code).unwrap();
     let status = &used_invite.status;
