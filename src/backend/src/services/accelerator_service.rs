@@ -577,4 +577,45 @@ pub fn list_startup_invites(accelerator_id: String) -> Vec<StartupInvite> {
             .cloned()
             .collect()
     })
+}
+
+#[update]
+pub fn revoke_startup_invite(invite_code: String) -> Result<(), String> {
+    let principal = ic_cdk::caller();
+    let now = ic_cdk::api::time();
+    STARTUP_INVITES.with(|invites| {
+        let mut invites = invites.borrow_mut();
+        let invite = invites.get_mut(&invite_code);
+        match invite {
+            Some(invite) => {
+                let accelerator_id = &invite.accelerator_id;
+                let accelerator = ACCELERATORS.with(|accs| {
+                    accs.borrow().iter().find(|(k, _)| k.to_string() == accelerator_id.to_string()).map(|(_, v)| v.clone())
+                });
+                let accelerator = match accelerator {
+                    Some(acc) => acc,
+                    None => return Err("Accelerator not found".to_string()),
+                };
+                let is_admin = accelerator.team_members.iter().any(|m| {
+                    m.principal == Some(principal)
+                        && (m.role == Role::SuperAdmin || m.role == Role::Admin)
+                        && m.status == MemberStatus::Active
+                });
+                if !is_admin {
+                    return Err("Only SuperAdmins or Admins can revoke invites".to_string());
+                }
+                
+                if invite.status == InviteStatus::Used {
+                    return Err("Cannot revoke an invite that has already been used".to_string());
+                }
+                if invite.status == InviteStatus::Expired || (invite.status == InviteStatus::Pending && now > invite.expiry) {
+                    invite.status = InviteStatus::Expired;
+                    return Err("Cannot revoke an invite that has already expired".to_string());
+                }
+                invite.status = InviteStatus::Revoked;
+                Ok(())
+            }
+            None => Err("Invite not found".to_string()),
+        }
+    })
 } 
