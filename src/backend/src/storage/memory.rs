@@ -14,6 +14,7 @@ use ic_stable_structures::{DefaultMemoryImpl, StableBTreeMap};
 use std::cell::RefCell;
 use crate::models::accelerator::Accelerator;
 use crate::models::startup_invite::StartupInvite;
+use crate::models::startup::{Startup, StartupStatus, StartupCohort, StartupActivity};
 use std::collections::HashMap;
 
 pub type Memory = VirtualMemory<DefaultMemoryImpl>;
@@ -96,4 +97,29 @@ thread_local! {
     );
 
     pub static STARTUP_INVITES: RefCell<HashMap<String, StartupInvite>> = RefCell::new(HashMap::new());
+
+    // Startup Management Storage
+    pub static STARTUPS: RefCell<StableBTreeMap<StableString, Startup, Memory>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(12)))
+        )
+    );
+
+    pub static STARTUP_STATUSES: RefCell<StableBTreeMap<StableString, StartupStatus, Memory>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(13)))
+        )
+    );
+
+    pub static STARTUP_COHORTS: RefCell<StableBTreeMap<StableString, StartupCohort, Memory>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(14)))
+        )
+    );
+
+    pub static STARTUP_ACTIVITIES: RefCell<StableBTreeMap<(StableString, u64), StartupActivity, Memory>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(15)))
+        )
+    );
 }

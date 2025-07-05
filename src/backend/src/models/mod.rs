@@ -13,3 +13,4 @@ pub mod slack_user;
 pub mod discord_user;
 pub mod accelerator;
 pub mod startup_invite;
+pub mod startup;
