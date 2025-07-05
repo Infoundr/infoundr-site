@@ -644,13 +644,19 @@ fn record_startup_activity_internal(startup_id: &str, activity_type: StartupActi
         activities.borrow_mut().insert((StableString::new(startup_id), now), activity);
     });
 
-    // Update startup's last activity - we need to get, modify, and re-insert
-    STARTUPS.with(|startups| {
-        if let Some(mut startup) = startups.borrow().get(&StableString::new(startup_id)) {
-            startup.last_activity = now;
-            startups.borrow_mut().insert(StableString::new(startup_id), startup);
-        }
+    // Update startup's last activity - get the startup first, then update it
+    let mut startup_opt = STARTUPS.with(|startups| {
+        startups.borrow().get(&StableString::new(startup_id))
     });
+    
+    if let Some(ref mut startup) = startup_opt {
+        startup.last_activity = now;
+        
+        // Now insert the updated startup back
+        STARTUPS.with(|startups| {
+            startups.borrow_mut().insert(StableString::new(startup_id), startup.clone());
+        });
+    }
 }
 
 #[query]
