@@ -34,7 +34,7 @@ use crate::services::account_service::ConnectionStatus;
 use crate::services::account_service::{UserActivity, UserIdentifier};
 use crate::storage::memory::{
     CHAT_HISTORY, CONNECTED_ACCOUNTS, DASHBOARD_TOKENS, OPENCHAT_USERS, SLACK_USERS, DISCORD_USERS, TASKS, USERS, WAITLIST, GITHUB_ISSUES,
-    STARTUPS, STARTUP_STATUSES, STARTUP_COHORTS, STARTUP_ACTIVITIES,
+    STARTUPS, STARTUP_STATUSES, STARTUP_COHORTS, STARTUP_ACTIVITIES, ACCELERATORS, STARTUP_INVITES,
 };
 use candid::Principal;
 use ic_cdk::storage::{stable_restore, stable_save};
@@ -56,6 +56,8 @@ fn pre_upgrade() {
     let slack_users = SLACK_USERS.with(|u| u.borrow().iter().collect::<Vec<_>>());
     let discord_users = DISCORD_USERS.with(|u| u.borrow().iter().collect::<Vec<_>>());
     let dashboard_tokens = DASHBOARD_TOKENS.with(|t| t.borrow().iter().collect::<Vec<_>>());
+    let accelerators = ACCELERATORS.with(|a| a.borrow().iter().collect::<Vec<_>>());
+    let startup_invites = STARTUP_INVITES.with(|i| i.borrow().iter().collect::<Vec<_>>());
     let startups = STARTUPS.with(|s| s.borrow().iter().collect::<Vec<_>>());
     let startup_statuses = STARTUP_STATUSES.with(|s| s.borrow().iter().collect::<Vec<_>>());
     let startup_cohorts = STARTUP_COHORTS.with(|c| c.borrow().iter().collect::<Vec<_>>());
@@ -72,6 +74,8 @@ fn pre_upgrade() {
         slack_users,
         discord_users,
         dashboard_tokens,
+        accelerators,
+        startup_invites,
         startups,
         startup_statuses,
         startup_cohorts,
@@ -93,6 +97,8 @@ fn post_upgrade() {
         slack_users,
         discord_users,
         dashboard_tokens,
+        accelerators,
+        startup_invites,
         startups,
         startup_statuses,
         startup_cohorts,
@@ -108,13 +114,15 @@ fn post_upgrade() {
         Vec<(StableString, SlackUser)>,
         Vec<(StableString, DiscordUser)>,
         Vec<(StableString, DashboardToken)>,
+        Vec<(StablePrincipal, Accelerator)>,
+        Vec<(StableString, StartupInvite)>,
         Vec<(StableString, Startup)>,
         Vec<(StableString, StartupStatus)>,
         Vec<(StableString, StartupCohort)>,
         Vec<((StableString, u64), StartupActivity)>,
     ) = match stable_restore() {
         Ok(data) => data,
-        Err(_) => (vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![]),
+        Err(_) => (vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![]),
     };
 
     // Restore users
@@ -194,6 +202,22 @@ fn post_upgrade() {
         let mut t = t.borrow_mut();
         for (k, v) in dashboard_tokens {
             t.insert(k, v);
+        }
+    });
+
+    // Restore accelerators
+    ACCELERATORS.with(|a| {
+        let mut a = a.borrow_mut();
+        for (k, v) in accelerators {
+            a.insert(k, v);
+        }
+    });
+
+    // Restore startup invites
+    STARTUP_INVITES.with(|i| {
+        let mut i = i.borrow_mut();
+        for (k, v) in startup_invites {
+            i.insert(k, v);
         }
     });
 

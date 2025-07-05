@@ -15,7 +15,6 @@ use std::cell::RefCell;
 use crate::models::accelerator::Accelerator;
 use crate::models::startup_invite::StartupInvite;
 use crate::models::startup::{Startup, StartupStatus, StartupCohort, StartupActivity};
-use std::collections::HashMap;
 
 pub type Memory = VirtualMemory<DefaultMemoryImpl>;
 
@@ -96,7 +95,11 @@ thread_local! {
         )
     );
 
-    pub static STARTUP_INVITES: RefCell<HashMap<String, StartupInvite>> = RefCell::new(HashMap::new());
+    pub static STARTUP_INVITES: RefCell<StableBTreeMap<StableString, StartupInvite, Memory>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(16)))
+        )
+    );
 
     // Startup Management Storage
     pub static STARTUPS: RefCell<StableBTreeMap<StableString, Startup, Memory>> = RefCell::new(

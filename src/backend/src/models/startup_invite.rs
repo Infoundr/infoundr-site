@@ -1,6 +1,8 @@
 use crate::models::stable_principal::StablePrincipal;
-use candid::{CandidType, Deserialize, Principal};
+use candid::{CandidType, Deserialize, Principal, Decode, Encode};
 use serde::Serialize;
+use ic_stable_structures::{BoundedStorable, Storable};
+use std::borrow::Cow;
 
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize, PartialEq, Eq)]
 pub enum InviteType {
@@ -31,4 +33,19 @@ pub struct StartupInvite {
     pub email: Option<String>,            
     pub registered_principal: Option<Principal>,
     pub registered_at: Option<u64>,
-} 
+}
+
+impl Storable for StartupInvite {
+    fn to_bytes(&self) -> Cow<[u8]> {
+        Cow::Owned(Encode!(self).unwrap())
+    }
+
+    fn from_bytes(bytes: Cow<[u8]>) -> Self {
+        Decode!(bytes.as_ref(), Self).unwrap()
+    }
+}
+
+impl BoundedStorable for StartupInvite {
+    const MAX_SIZE: u32 = 2048;
+    const IS_FIXED_SIZE: bool = false;
+}

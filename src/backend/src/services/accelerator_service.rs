@@ -1,5 +1,6 @@
 use crate::models::accelerator::{Accelerator, Role, TeamMember, MemberStatus, Activity, ActivityType};
 use crate::models::stable_principal::StablePrincipal;
+use crate::models::stable_string::StableString;
 use crate::storage::memory::ACCELERATORS;
 use candid::{CandidType, Deserialize};
 use ic_cdk::{caller, update, query};
@@ -498,7 +499,7 @@ pub fn generate_startup_invite(input: GenerateStartupInviteInput) -> Result<Star
 
     
     STARTUP_INVITES.with(|invites| {
-        invites.borrow_mut().insert(invite_id.clone(), invite.clone());
+        invites.borrow_mut().insert(StableString::new(&invite_id), invite.clone());
     });
 
     Ok(invite)
@@ -519,7 +520,7 @@ pub fn accept_startup_invite(input: StartupRegistrationInput) -> Result<(), Stri
     let now = time();
 
     let invite = STARTUP_INVITES.with(|invites| {
-        invites.borrow().get(&input.invite_code).cloned()
+        invites.borrow().get(&StableString::new(&input.invite_code))
     }).ok_or("Invalid or expired invite code".to_string())?;
 
     if invite.status != InviteStatus::Pending {
@@ -528,8 +529,9 @@ pub fn accept_startup_invite(input: StartupRegistrationInput) -> Result<(), Stri
 
     if now >= invite.expiry {
         STARTUP_INVITES.with(|invites| {
-            if let Some(inv) = invites.borrow_mut().get_mut(&input.invite_code) {
+            if let Some(mut inv) = invites.borrow().get(&StableString::new(&input.invite_code)) {
                 inv.status = InviteStatus::Expired;
+                invites.borrow_mut().insert(StableString::new(&input.invite_code), inv);
             }
         });
         return Err("Invite has expired".to_string());
@@ -545,11 +547,12 @@ pub fn accept_startup_invite(input: StartupRegistrationInput) -> Result<(), Stri
     }
     
     STARTUP_INVITES.with(|invites| {
-        if let Some(inv) = invites.borrow_mut().get_mut(&input.invite_code) {
+        if let Some(mut inv) = invites.borrow().get(&StableString::new(&input.invite_code)) {
             inv.status = InviteStatus::Used;
             inv.used_at = Some(now);
             inv.registered_principal = Some(principal);
             inv.registered_at = Some(now);
+            invites.borrow_mut().insert(StableString::new(&input.invite_code), inv);
         }
     });
 
@@ -562,18 +565,27 @@ pub fn list_startup_invites(accelerator_id: String) -> Vec<StartupInvite> {
     STARTUP_INVITES.with(|invites| {
         let mut invites_mut = invites.borrow_mut();
         // Update expired invites
-        for invite in invites_mut.values_mut() {
-            if invite.accelerator_id.to_string() == accelerator_id
-                && invite.status == InviteStatus::Pending
-                && now >= invite.expiry
-            {
+        let keys_to_update: Vec<_> = invites_mut
+            .iter()
+            .filter(|(_, invite)| {
+                invite.accelerator_id.to_string() == accelerator_id
+                    && invite.status == InviteStatus::Pending
+                    && now >= invite.expiry
+            })
+            .map(|(k, _)| k.clone())
+            .collect();
+        
+        for key in keys_to_update {
+            if let Some(mut invite) = invites_mut.get(&key) {
                 invite.status = InviteStatus::Expired;
+                invites_mut.insert(key, invite);
             }
         }
+        
         invites_mut
-            .values()
+            .iter()
+            .map(|(_, invite)| invite.clone())
             .filter(|invite| invite.accelerator_id.to_string() == accelerator_id)
-            .cloned()
             .collect()
     })
 }
@@ -584,9 +596,9 @@ pub fn revoke_startup_invite(invite_code: String) -> Result<(), String> {
     let now = ic_cdk::api::time();
     STARTUP_INVITES.with(|invites| {
         let mut invites = invites.borrow_mut();
-        let invite = invites.get_mut(&invite_code);
+        let invite = invites.get(&StableString::new(&invite_code));
         match invite {
-            Some(invite) => {
+            Some(mut invite) => {
                 let accelerator_id = &invite.accelerator_id;
                 let accelerator = ACCELERATORS.with(|accs| {
                     accs.borrow().iter().find(|(k, _)| k.to_string() == accelerator_id.to_string()).map(|(_, v)| v.clone())
@@ -609,9 +621,11 @@ pub fn revoke_startup_invite(invite_code: String) -> Result<(), String> {
                 }
                 if invite.status == InviteStatus::Expired || (invite.status == InviteStatus::Pending && now >= invite.expiry) {
                     invite.status = InviteStatus::Expired;
+                    invites.insert(StableString::new(&invite_code), invite);
                     return Err("Cannot revoke an invite that has already expired".to_string());
                 }
                 invite.status = InviteStatus::Revoked;
+                invites.insert(StableString::new(&invite_code), invite);
                 Ok(())
             }
             None => Err("Invite not found".to_string()),
