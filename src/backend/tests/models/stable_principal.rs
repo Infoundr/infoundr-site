@@ -8,13 +8,13 @@ use std::fmt;
 pub struct StablePrincipal(Principal);
 
 impl StablePrincipal {
-    pub fn new(principal: Principal) -> Self {
-        Self(principal)
-    }
+    // pub fn new(principal: Principal) -> Self {
+    //     Self(principal)
+    // }
 
-    pub fn get(&self) -> Principal {
-        self.0
-    }
+    // pub fn get(&self) -> Principal {
+    //     self.0
+    // }
 }
 
 impl Default for StablePrincipal {

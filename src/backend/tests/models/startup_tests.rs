@@ -1,5 +1,5 @@
 use crate::models::stable_principal::StablePrincipal;
-use candid::{CandidType, Principal};
+use candid::CandidType;
 use serde::{Deserialize, Serialize};
 
 // Type definitions for testing - copied from backend/src/models/startup.rs
