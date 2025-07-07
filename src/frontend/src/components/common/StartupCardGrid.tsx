@@ -1,7 +1,7 @@
 import React from 'react';
-import StartupCard from './StartupCard';
+import StartupCard, { StartupCardProps } from './StartupCard';
 
-const mockStartups = [
+const mockStartups: StartupCardProps[] = [
   {
     name: 'TechLaunch',
     description: 'AI-driven quantum computing solutions',

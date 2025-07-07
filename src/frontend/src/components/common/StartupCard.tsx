@@ -1,6 +1,6 @@
 import React from 'react';
 
-interface StartupCardProps {
+export interface StartupCardProps {
   name: string;
   description: string;
   status: 'Active' | 'Graduated' | 'Invited';
