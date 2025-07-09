@@ -394,3 +394,27 @@ export const linkAccounts = async (openchatId: string): Promise<boolean> => {
         return false;
     }
 };
+
+// Function to sign up an accelerator
+export const signUpAccelerator = async (name: string, email: string, website: string) => {
+    try {
+        const authClient = await AuthClient.create();
+        const identity = authClient.getIdentity();
+        const agent = new HttpAgent({ identity });
+        
+        if (import.meta.env.VITE_DFX_NETWORK !== 'ic') {
+            await agent.fetchRootKey();
+        }
+        
+        const actor = createActor(CANISTER_ID, { agent });
+        const result = await actor.sign_up_accelerator({ name, email, website });
+        
+        if ('Err' in result) {
+            throw new Error(result.Err);
+        }
+        return result.Ok;
+    } catch (error) {
+        console.error('Error signing up accelerator:', error);
+        throw error;
+    }
+};
