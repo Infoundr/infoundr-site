@@ -12,6 +12,9 @@ use crate::models::{chat::ChatMessage, user::User, waitlist::WaitlistEntry};
 use ic_stable_structures::memory_manager::{MemoryId, MemoryManager, VirtualMemory};
 use ic_stable_structures::{DefaultMemoryImpl, StableBTreeMap};
 use std::cell::RefCell;
+use crate::models::accelerator::Accelerator;
+use crate::models::startup_invite::StartupInvite;
+use crate::models::startup::{Startup, StartupStatus, StartupCohort, StartupActivity};
 
 pub type Memory = VirtualMemory<DefaultMemoryImpl>;
 
@@ -83,6 +86,43 @@ thread_local! {
     pub static DISCORD_USERS: RefCell<StableBTreeMap<StableString, DiscordUser, Memory>> = RefCell::new(
         StableBTreeMap::init(
             MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(10)))
+        )
+    );
+
+    pub static ACCELERATORS: RefCell<StableBTreeMap<StablePrincipal, Accelerator, Memory>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(11)))
+        )
+    );
+
+    pub static STARTUP_INVITES: RefCell<StableBTreeMap<StableString, StartupInvite, Memory>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(16)))
+        )
+    );
+
+    // Startup Management Storage
+    pub static STARTUPS: RefCell<StableBTreeMap<StableString, Startup, Memory>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(12)))
+        )
+    );
+
+    pub static STARTUP_STATUSES: RefCell<StableBTreeMap<StableString, StartupStatus, Memory>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(13)))
+        )
+    );
+
+    pub static STARTUP_COHORTS: RefCell<StableBTreeMap<StableString, StartupCohort, Memory>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(14)))
+        )
+    );
+
+    pub static STARTUP_ACTIVITIES: RefCell<StableBTreeMap<(StableString, u64), StartupActivity, Memory>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(15)))
         )
     );
 }

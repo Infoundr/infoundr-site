@@ -1,3 +1,47 @@
+type Accelerator = record {
+  id : principal;
+  graduated_startups : nat32;
+  active_startups : nat32;
+  logo : opt vec blob;
+  name : text;
+  email : text;
+  website : text;
+  team_members : vec TeamMember;
+  total_startups : nat32;
+  recent_activity : vec Activity;
+  email_verified : bool;
+  invites_sent : nat32;
+};
+type AcceleratorSignUp = record { name : text; email : text; website : text };
+type AcceleratorUpdate = record {
+  graduated_startups : opt nat32;
+  active_startups : opt nat32;
+  logo : opt opt vec blob;
+  name : opt text;
+  email : opt text;
+  website : opt text;
+  total_startups : opt nat32;
+  email_verified : opt bool;
+  invites_sent : opt nat32;
+};
+type AcceleratorUpdateWithId = record {
+  accelerator_id : text;
+  updates : AcceleratorUpdate;
+};
+type Activity = record {
+  activity_type : ActivityType;
+  description : text;
+  timestamp : nat64;
+};
+type ActivityType = variant {
+  Graduated;
+  UpdatedPitchDeck;
+  Joined;
+  Other : text;
+  AcceleratorCreated;
+  SentInvite;
+  MissedMilestone;
+};
 type AsanaAccount = record {
   token : text;
   workspace_id : text;
@@ -34,7 +78,17 @@ type DiscordUser = record {
   guild_id : opt text;
   discord_id : text;
 };
+type GenerateStartupInviteInput = record {
+  accelerator_id : text;
+  program_name : text;
+  invite_type : InviteType;
+  startup_name : text;
+  email : opt text;
+  expiry_days : opt nat64;
+};
 type GitHubAccount = record { token : text; selected_repo : opt text };
+type InviteStatus = variant { Used; Revoked; Expired; Pending };
+type InviteType = variant { Code; Link };
 type Issue = record {
   id : text;
   status : IssueStatus;
@@ -44,6 +98,7 @@ type Issue = record {
   repository : text;
 };
 type IssueStatus = variant { Open; Closed };
+type MemberStatus = variant { Active; Pending };
 type MessageRole = variant { User; Assistant };
 type OpenChatUser = record {
   site_principal : opt principal;
@@ -51,18 +106,160 @@ type OpenChatUser = record {
   openchat_id : text;
   first_interaction : nat64;
 };
-type Result = variant { Ok : ChatMessage; Err : text };
-type Result_1 = variant { Ok : vec User; Err : text };
-type Result_2 = variant { Ok : vec WaitlistEntry; Err : text };
-type Result_3 = variant { Ok : WaitlistEntry; Err : text };
-type Result_4 = variant { Ok; Err : text };
-type Result_5 = variant { Ok : User; Err : text };
-type Result_6 = variant { Ok; Err : vec text };
+type RemoveTeamMember = record { accelerator_id : text; email : text };
+type Result = variant { Ok; Err : text };
+type Result_1 = variant { Ok : ChatMessage; Err : text };
+type Result_10 = variant { Ok : opt Startup; Err : text };
+type Result_11 = variant { Ok : vec StartupActivity; Err : text };
+type Result_12 = variant { Ok : StartupStats; Err : text };
+type Result_13 = variant { Ok : vec WaitlistEntry; Err : text };
+type Result_14 = variant { Ok : text; Err : text };
+type Result_15 = variant { Ok : WaitlistEntry; Err : text };
+type Result_16 = variant { Ok : vec StartupCohort; Err : text };
+type Result_17 = variant { Ok : vec StartupStatus; Err : text };
+type Result_18 = variant { Ok : vec Startup; Err : text };
+type Result_19 = variant { Ok : vec TeamMember; Err : text };
+type Result_2 = variant { Ok : nat32; Err : text };
+type Result_20 = variant { Ok : User; Err : text };
+type Result_21 = variant { Ok; Err : vec text };
+type Result_3 = variant { Ok : Startup; Err : text };
+type Result_4 = variant { Ok : StartupCohort; Err : text };
+type Result_5 = variant { Ok : StartupStatus; Err : text };
+type Result_6 = variant { Ok : StartupInvite; Err : text };
+type Result_7 = variant { Ok : opt Accelerator; Err : text };
+type Result_8 = variant { Ok : vec Accelerator; Err : text };
+type Result_9 = variant { Ok : vec User; Err : text };
+type Role = variant { ProgramManager; Viewer; SuperAdmin; Admin };
 type SlackUser = record {
   site_principal : opt principal;
   slack_id : text;
   team_id : opt text;
   display_name : opt text;
+};
+type Startup = record {
+  id : text;
+  documents_submitted : nat32;
+  updated_at : nat64;
+  accelerator_id : principal;
+  founder_principal : principal;
+  name : text;
+  contact_email : text;
+  date_joined : nat64;
+  description : opt text;
+  created_at : nat64;
+  status_id : text;
+  last_activity : nat64;
+  cohort_id : text;
+  engagement_score : nat32;
+  tasks_completed : nat32;
+  total_logins : nat32;
+  industry : opt text;
+};
+type StartupActivity = record {
+  id : text;
+  activity_type : StartupActivityType;
+  startup_id : text;
+  metadata : opt text;
+  description : text;
+  timestamp : nat64;
+};
+type StartupActivityType = variant {
+  TaskCompleted;
+  Login;
+  StatusChanged;
+  EngagementScoreUpdated;
+  DocumentSubmitted;
+  Other : text;
+  CohortChanged;
+};
+type StartupCohort = record {
+  id : text;
+  accelerator_id : principal;
+  name : text;
+  description : opt text;
+  end_date : opt nat64;
+  created_at : nat64;
+  start_date : opt nat64;
+  is_active : bool;
+};
+type StartupCohortInput = record {
+  name : text;
+  description : opt text;
+  end_date : opt nat64;
+  start_date : opt nat64;
+};
+type StartupFilter = record {
+  date_to : opt nat64;
+  date_from : opt nat64;
+  max_engagement_score : opt nat32;
+  cohort_ids : opt vec text;
+  status_ids : opt vec text;
+  min_engagement_score : opt nat32;
+  search_term : opt text;
+};
+type StartupInput = record {
+  accelerator_id : text;
+  name : text;
+  contact_email : text;
+  description : opt text;
+  status_id : opt text;
+  cohort_id : opt text;
+  industry : opt text;
+};
+type StartupInvite = record {
+  status : InviteStatus;
+  accelerator_id : principal;
+  program_name : text;
+  registered_principal : opt principal;
+  invite_id : text;
+  invite_code : text;
+  invite_type : InviteType;
+  used_at : opt nat64;
+  startup_name : text;
+  created_at : nat64;
+  email : opt text;
+  expiry : nat64;
+  registered_at : opt nat64;
+};
+type StartupRegistrationInput = record {
+  invite_code : text;
+  startup_name : text;
+  email : text;
+  founder_name : text;
+};
+type StartupStats = record {
+  graduated_startups : nat32;
+  active_startups : nat32;
+  recent_activities : vec StartupActivity;
+  startups_by_cohort : vec record { text; nat32 };
+  average_engagement_score : nat32;
+  total_startups : nat32;
+  startups_by_status : vec record { text; nat32 };
+};
+type StartupStatus = record {
+  id : text;
+  accelerator_id : principal;
+  name : text;
+  color : text;
+  sort_order : nat32;
+  description : opt text;
+  created_at : nat64;
+  is_active : bool;
+};
+type StartupStatusInput = record {
+  name : text;
+  color : text;
+  sort_order : opt nat32;
+  description : opt text;
+};
+type StartupUpdate = record {
+  name : opt text;
+  contact_email : opt text;
+  description : opt text;
+  status_id : opt text;
+  cohort_id : opt text;
+  engagement_score : opt nat32;
+  industry : opt text;
 };
 type SubscriptionTier = variant { Enterprise; Free; Professional };
 type Task = record {
@@ -75,7 +272,24 @@ type Task = record {
   platform : text;
   created_at : nat64;
 };
+type TeamMember = record {
+  status : MemberStatus;
+  "principal" : opt principal;
+  token : opt text;
+  role : Role;
+  email : text;
+};
+type TeamMemberInviteWithId = record {
+  accelerator_id : text;
+  role : Role;
+  email : text;
+};
 type TokenValidationResult = record { platform_id : text; platform : text };
+type UpdateTeamMemberRole = record {
+  accelerator_id : text;
+  email : text;
+  new_role : Role;
+};
 type User = record {
   "principal" : principal;
   name : text;
@@ -106,57 +320,95 @@ type WaitlistEntry = record {
 };
 type WaitlistStatus = variant { Approved; Rejected; Pending };
 service : {
-  add_chat_message : (text, BotType) -> (Result);
+  accept_invitation : (text) -> (Result);
+  accept_startup_invite : (StartupRegistrationInput) -> (Result);
+  add_chat_message : (text, BotType) -> (Result_1);
+  admin_update_accelerator : (principal, AcceleratorUpdate) -> (Result);
+  calculate_engagement_score : (text) -> (Result_2) query;
   check_auth : () -> (bool) query;
+  create_startup : (StartupInput) -> (Result_3);
+  create_startup_cohort : (text, StartupCohortInput) -> (Result_4);
+  create_startup_status : (text, StartupStatusInput) -> (Result_5);
+  delete_accelerator : (principal) -> (Result);
+  delete_startup : (text) -> (Result);
+  delete_startup_cohort : (text, text) -> (Result);
+  delete_startup_status : (text, text) -> (Result);
   ensure_discord_user : (text) -> ();
   ensure_openchat_user : (text) -> ();
   ensure_slack_user : (text) -> ();
   generate_dashboard_token : (text) -> (text);
+  generate_startup_invite : (GenerateStartupInviteInput) -> (Result_6);
+  get_accelerator_by_id : (principal) -> (Result_7) query;
   get_active_openchat_users : (nat64) -> (vec OpenChatUser) query;
   get_admins : () -> (vec principal) query;
+  get_all_accelerators : () -> (Result_8) query;
   get_chat_history : (UserIdentifier) -> (vec ChatMessage) query;
   get_connection_status : (UserIdentifier) -> (ConnectionStatus) query;
   get_current_repo : (principal) -> (opt text) query;
   get_current_user : () -> (opt User) query;
   get_discord_user : (text) -> (opt DiscordUser) query;
   get_discord_user_by_principal : (principal) -> (opt DiscordUser) query;
+  get_my_accelerator : (text) -> (Result_7);
   get_openchat_user : (text) -> (opt OpenChatUser) query;
   get_openchat_user_by_principal : (principal) -> (opt OpenChatUser) query;
   get_registered_discord_users : () -> (vec DiscordUser) query;
   get_registered_openchat_users : () -> (vec OpenChatUser) query;
   get_registered_slack_users : () -> (vec SlackUser) query;
-  get_registered_users : () -> (Result_1) query;
+  get_registered_users : () -> (Result_9) query;
   get_slack_user : (text) -> (opt SlackUser) query;
   get_slack_user_by_principal : (principal) -> (opt SlackUser) query;
+  get_startup : (text) -> (Result_10) query;
+  get_startup_activities : (text, opt nat64) -> (Result_11) query;
+  get_startup_stats : (text) -> (Result_12) query;
   get_token_info : (text) -> (opt DashboardToken) query;
   get_user_activity : (UserIdentifier) -> (UserActivity) query;
   get_user_connections : (principal) -> (opt ConnectedAccounts) query;
   get_user_issues : (UserIdentifier) -> (vec Issue) query;
   get_user_tasks : (UserIdentifier) -> (vec Task) query;
-  get_users : () -> (Result_1) query;
-  get_waitlist : () -> (Result_2) query;
+  get_users : () -> (Result_9) query;
+  get_waitlist : () -> (Result_13) query;
+  invite_team_member : (TeamMemberInviteWithId) -> (Result_14);
   is_admin : () -> (bool) query;
   is_allowed_principal : () -> (bool) query;
   is_discord_user_registered : (text) -> (bool) query;
   is_registered : () -> (bool) query;
   is_slack_user_registered : (text) -> (bool) query;
-  join_waitlist : (text) -> (Result_3);
-  link_accounts : (principal, text) -> (Result_4);
-  link_token_to_principal : (text, principal) -> (Result_4);
-  register_user : (text) -> (Result_5);
+  join_waitlist : (text) -> (Result_15);
+  link_accounts : (principal, text) -> (Result);
+  link_token_to_principal : (text, principal) -> (Result);
+  list_startup_cohorts : (text) -> (Result_16) query;
+  list_startup_invites : (text) -> (vec StartupInvite) query;
+  list_startup_statuses : (text) -> (Result_17) query;
+  list_startups : (text, opt StartupFilter) -> (Result_18) query;
+  list_team_members : (text) -> (Result_19) query;
+  record_startup_activity : (text, StartupActivityType, text, opt text) -> (
+      Result,
+    );
+  register_startup : (text, text, text) -> (Result_20);
+  register_user : (text) -> (Result_20);
+  remove_team_member : (RemoveTeamMember) -> (Result);
+  revoke_startup_invite : (text) -> (Result);
+  sign_up_accelerator : (AcceleratorSignUp) -> (Result_14);
   store_asana_connection : (
       UserIdentifier,
       text,
       text,
       vec record { text; text },
     ) -> ();
-  store_asana_task : (UserIdentifier, Task) -> (Result_4);
+  store_asana_task : (UserIdentifier, Task) -> (Result);
   store_chat_message : (UserIdentifier, ChatMessage) -> ();
   store_github_connection : (UserIdentifier, text, opt text) -> ();
-  store_github_issue : (UserIdentifier, Issue) -> (Result_4);
-  unlink_accounts : (text) -> (Result_4);
-  update_github_selected_repo : (UserIdentifier, text) -> (Result_4);
+  store_github_issue : (UserIdentifier, Issue) -> (Result);
+  unlink_accounts : (text) -> (Result);
+  update_accelerator : (principal, AcceleratorUpdate) -> (Result);
+  update_engagement_score : (text, nat32) -> (Result);
+  update_github_selected_repo : (UserIdentifier, text) -> (Result);
+  update_my_accelerator : (AcceleratorUpdateWithId) -> (Result);
+  update_startup : (text, StartupUpdate) -> (Result);
+  update_startup_cohort : (text, text, StartupCohortInput) -> (Result);
+  update_startup_status : (text, text, StartupStatusInput) -> (Result);
+  update_team_member_role : (UpdateTeamMemberRole) -> (Result);
   validate_dashboard_token : (blob) -> (opt TokenValidationResult) query;
-  verify_connections : (principal) -> (Result_6) query;
-  verify_token : (text) -> (Result_4);
+  verify_connections : (principal) -> (Result_21) query;
+  verify_token : (text) -> (Result);
 }

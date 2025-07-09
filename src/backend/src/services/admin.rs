@@ -1,10 +1,10 @@
 use crate::models::stable_principal::StablePrincipal;
 use crate::models::user::User;
 use crate::models::waitlist::WaitlistEntry;
-use crate::storage::memory::{USERS, WAITLIST};
+use crate::models::accelerator::Accelerator;
+use crate::storage::memory::{USERS, WAITLIST, ACCELERATORS};
 use candid::Principal;
-use ic_cdk::caller;
-use ic_cdk::query; 
+use ic_cdk::{caller, query, update};
 
 // Admin callers
 #[query]
@@ -97,4 +97,96 @@ pub fn get_admins() -> Vec<StablePrincipal> {
     .into_iter()
     .map(StablePrincipal::from)
     .collect()
+}
+
+#[query]
+pub fn get_all_accelerators() -> Result<Vec<Accelerator>, String> {
+    if !is_allowed_principal() {
+        return Err("Unauthorized: Caller is not an admin".to_string());
+    }
+
+    let accelerators = ACCELERATORS.with(|accs| {
+        accs.borrow()
+            .iter()
+            .map(|(_, accelerator)| accelerator.clone())
+            .collect::<Vec<Accelerator>>()
+    });
+
+    Ok(accelerators)
+}
+
+#[update]
+pub fn delete_accelerator(accelerator_id: Principal) -> Result<(), String> {
+    if !is_allowed_principal() {
+        return Err("Unauthorized: Caller is not an admin".to_string());
+    }
+
+    let stable_id = StablePrincipal::new(accelerator_id);
+    
+    // Check if accelerator exists
+    let exists = ACCELERATORS.with(|accs| accs.borrow().contains_key(&stable_id));
+    if !exists {
+        return Err("Accelerator not found".to_string());
+    }
+
+    // Delete the accelerator
+    ACCELERATORS.with(|accs| accs.borrow_mut().remove(&stable_id));
+    Ok(())
+}
+
+#[update]
+pub fn admin_update_accelerator(accelerator_id: Principal, updates: crate::services::accelerator_service::AcceleratorUpdate) -> Result<(), String> {
+    if !is_allowed_principal() {
+        return Err("Unauthorized: Caller is not an admin".to_string());
+    }
+
+    let stable_id = StablePrincipal::new(accelerator_id);
+    
+    // Get the current accelerator
+    let mut accelerator = ACCELERATORS.with(|accs| accs.borrow().get(&stable_id))
+        .ok_or("Accelerator not found")?;
+
+    // Apply updates
+    if let Some(name) = updates.name {
+        accelerator.name = name;
+    }
+    if let Some(website) = updates.website {
+        accelerator.website = website;
+    }
+    if let Some(email) = updates.email {
+        accelerator.email = email;
+    }
+    if let Some(email_verified) = updates.email_verified {
+        accelerator.email_verified = email_verified;
+    }
+    if let Some(logo) = updates.logo {
+        accelerator.logo = logo;
+    }
+    if let Some(total_startups) = updates.total_startups {
+        accelerator.total_startups = total_startups;
+    }
+    if let Some(invites_sent) = updates.invites_sent {
+        accelerator.invites_sent = invites_sent;
+    }
+    if let Some(active_startups) = updates.active_startups {
+        accelerator.active_startups = active_startups;
+    }
+    if let Some(graduated_startups) = updates.graduated_startups {
+        accelerator.graduated_startups = graduated_startups;
+    }
+
+    // Save the updated accelerator
+    ACCELERATORS.with(|accs| accs.borrow_mut().insert(stable_id, accelerator));
+    Ok(())
+}
+
+#[query]
+pub fn get_accelerator_by_id(accelerator_id: Principal) -> Result<Option<Accelerator>, String> {
+    if !is_allowed_principal() {
+        return Err("Unauthorized: Caller is not an admin".to_string());
+    }
+
+    let stable_id = StablePrincipal::new(accelerator_id);
+    let accelerator = ACCELERATORS.with(|accs| accs.borrow().get(&stable_id));
+    Ok(accelerator)
 }
