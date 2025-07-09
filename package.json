@@ -16,7 +16,8 @@
     "test": "npm test --workspaces --if-present",
     "upgrade": "npx generate-did backend && npx upgrade-canister backend --backend && dfx generate",
     "deploy:playground": "./scripts/deploy-playground.sh",
-    "dev:local": "npm run setup-local && cd src/frontend && npm run dev",
+    "dev:local:frontend": "npm run setup-local && cd src/frontend && npm run dev",
+    "dev:local:all": "./scripts/setup-local-all.sh", 
     "dev:playground": "./scripts/deploy-playground.sh",
     "deploy:mainnet": "./scripts/deploy-mainnet.sh"
   },
