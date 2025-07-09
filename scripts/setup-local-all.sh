@@ -43,12 +43,21 @@ echo "Retrieved canister ID: $CANISTER_ID"
 echo "Updating config.ts with new local canister ID..."
 sed -i '' "s|export const LOCAL_CANISTER_ID = .*|export const LOCAL_CANISTER_ID = '$CANISTER_ID';|" src/frontend/src/config.ts
 
-# Set DEV_MODE to true in mockData.ts (already set to true, but let's ensure it)
-echo "🔧 Ensuring development mode is enabled..."
-sed -i '' "s|export const DEV_MODE = false;|export const DEV_MODE = true;|" src/frontend/src/mocks/mockData.ts
+# Set DEV_MODE to false in mockData.ts (use real backend for local development)
+echo "🔧 Disabling mock data mode (using real backend)..."
+sed -i '' "s|export const DEV_MODE = true;|export const DEV_MODE = false;|" src/frontend/src/mocks/mockData.ts
 
-# Update config.ts to use local mode
-echo "⚙️ Configuration updated for local development..."
+# Create/update .env file for local
+echo "📝 Creating local environment configuration..."
+cat > src/frontend/.env << EOL
+VITE_DFX_NETWORK=local
+VITE_IC_HOST=http://localhost:4943
+VITE_CANISTER_ID=$CANISTER_ID
+VITE_PLAYGROUND_CANISTER_ID=$CANISTER_ID
+VITE_AUTH_MODE=backend
+VITE_ENV_MODE=local
+VITE_II_URL=http://127.0.0.1:4943/?canisterId=$CANISTER_ID
+EOL
 
 # Setup frontend for deployment
 printf "\n${GREEN}Setting up frontend...${NC}\n"
