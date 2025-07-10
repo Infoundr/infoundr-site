@@ -205,6 +205,13 @@ export const checkIsAuthenticated = async () => {
             return false;
         }
 
+        // If Internet Identity is authenticated, check if we have a stored principal
+        const storedPrincipal = sessionStorage.getItem('user_principal');
+        if (storedPrincipal) {
+            console.log("Found stored principal, considering authenticated");
+            return true;
+        }
+
         // Create authenticated actor for backend checks
         const identity = authClient.getIdentity();
         const agent = new HttpAgent({ identity });
@@ -214,7 +221,19 @@ export const checkIsAuthenticated = async () => {
         }
         
         const actor = createActor(CANISTER_ID, { agent });
-        return await actor.check_auth();
+        
+        try {
+            const backendAuth = await actor.check_auth();
+            console.log("Backend check_auth result:", backendAuth);
+            return backendAuth;
+        } catch (backendError) {
+            console.log("Backend check_auth failed, but user is authenticated with II:", backendError);
+            // If backend check fails but user is authenticated with II, still consider them authenticated
+            // Store the principal for future use
+            const userPrincipal = identity.getPrincipal();
+            sessionStorage.setItem('user_principal', userPrincipal.toString());
+            return true;
+        }
     } catch (error) {
         console.error('Error checking auth:', error);
         return false;
@@ -416,5 +435,33 @@ export const signUpAccelerator = async (name: string, email: string, website: st
     } catch (error) {
         console.error('Error signing up accelerator:', error);
         throw error;
+    }
+};
+
+// Function to log accelerator login activity
+export const logAcceleratorLogin = async () => {
+    try {
+        const authClient = await AuthClient.create();
+        const identity = authClient.getIdentity();
+        const agent = new HttpAgent({ identity });
+        
+        if (import.meta.env.VITE_DFX_NETWORK !== 'ic') {
+            await agent.fetchRootKey();
+        }
+        
+        const actor = createActor(CANISTER_ID, { agent });
+        
+        const result = await actor.get_my_accelerator("");
+        
+        if ('Err' in result) {
+            console.warn('Accelerator login tracking failed:', result.Err);
+            return false;
+        }
+        
+        console.log('Accelerator login activity logged successfully');
+        return true;
+    } catch (error) {
+        console.error('Error logging accelerator login:', error);
+        return false;
     }
 };

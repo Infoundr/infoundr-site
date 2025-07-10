@@ -24,6 +24,7 @@ printf "\n${GREEN}Generating candid file for backend...${NC}\n"
 cd src/backend
 cargo install generate-did
 cargo install candid-extractor
+cargo build --target wasm32-unknown-unknown
 cd ../../
 generate-did backend
 

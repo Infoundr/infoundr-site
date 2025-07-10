@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../../components/common/Button';
-import { loginWithII, loginWithNFID, registerUser, isRegistered, checkIsAuthenticated, signUpAccelerator } from '../../../services/auth';
+import { loginWithII, loginWithNFID, registerUser, isRegistered, checkIsAuthenticated, signUpAccelerator, logAcceleratorLogin } from '../../../services/auth';
 import { ActorSubclass } from "@dfinity/agent";
 import type { _SERVICE } from "../../../../../declarations/backend/backend.did.d.ts";
 import { Principal } from '@dfinity/principal';
@@ -105,6 +105,14 @@ const Login: React.FC = () => {
                 // Store user principal for future use
                 sessionStorage.setItem('user_principal', userPrincipal.toString());
                 
+                // Log accelerator login activity
+                try {
+                    await logAcceleratorLogin();
+                } catch (error) {
+                    console.warn('Failed to log accelerator login activity:', error);
+                    // Don't block navigation if logging fails
+                }
+                
                 setIsLoading(false);
                 navigate('/accelerator/dashboard', { replace: true });
             } catch (err) {
@@ -153,6 +161,22 @@ const Login: React.FC = () => {
             console.log("Starting accelerator registration with:", registrationData);
             await signUpAccelerator(registrationData.name, registrationData.email, registrationData.website);
             console.log("Accelerator registration successful, navigating to accelerator dashboard");
+            
+            // Store user principal in session storage after successful registration
+            const authClient = await AuthClient.create();
+            const identity = authClient.getIdentity();
+            const userPrincipal = identity.getPrincipal();
+            sessionStorage.setItem('user_principal', userPrincipal.toString());
+            console.log("Stored user principal:", userPrincipal.toString());
+            
+            // Log accelerator login activity after registration
+            try {
+                await logAcceleratorLogin();
+            } catch (error) {
+                console.warn('Failed to log accelerator login activity after registration:', error);
+                // Don't block navigation if logging fails
+            }
+            
             setIsLoading(false);
             navigate('/accelerator/dashboard', { replace: true });
             return;
