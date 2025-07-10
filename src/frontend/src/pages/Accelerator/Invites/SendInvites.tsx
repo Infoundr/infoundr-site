@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { MoreVertical } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface Invite {
   id: number;
@@ -59,7 +60,7 @@ const statusColors: Record<string, string> = {
   Expired: "bg-red-100 text-red-800",
 };
 
-const SendInvites: React.FC = () => {
+  const SendInvites: React.FC = () => {
   const [startupName, setStartupName] = useState("");
   const [program, setProgram] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
@@ -67,6 +68,13 @@ const SendInvites: React.FC = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [openMenu, setOpenMenu] = useState<number | null>(null);
+
+  const navigate = useNavigate(); // ✅ React Router Hook
+
+  const handleGenerateInvite = () => {
+    // Optionally validate form here
+    navigate("/signup"); // ✅ Redirect to Startup Signup page
+  };
 
   const filteredInvites = mockInvites.filter((invite) => {
     const matchesSearch = invite.startupName
@@ -153,9 +161,12 @@ const SendInvites: React.FC = () => {
         </div>
 
         <div className="mt-6 flex justify-end">
-          <button className="bg-purple-600 text-white px-6 py-2 rounded-md hover:bg-purple-700 transition">
+          <button onClick={handleGenerateInvite} 
+          className="bg-purple-600 text-white px-6 py-2 rounded-md hover:bg-purple-700 transition"
+          >
             Generate Invite
           </button>
+
         </div>
       </div>
 

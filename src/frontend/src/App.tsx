@@ -29,6 +29,7 @@ import Settings from './pages/Accelerator/Settings/Settings';
 import Analytics from './pages/Accelerator/Analytics/Analytics';
 import StartupsLayout from './pages/Accelerator/Startups/StartupsLayout';
 import StartupDetailsLayout from './pages/Accelerator/Startups/StartupDetailsLayout';
+import StartupSignup from './pages/Accelerator/Invites/StartupSignup';
 import AcceleratorLogin from './pages/Accelerator/Auth/Login';
 import { _SERVICE } from '../../declarations/backend/backend.did';
 import { useMockData as mockDataBoolean } from './mocks/mockData';
@@ -124,6 +125,8 @@ const App: React.FC = () => {
 
           {/* Add AdminPanel route outside of dashboard */}
           <Route path="/admin" element={<AdminPanel />} />
+           {/* ✅ Startup Signup via Invite */}
+          <Route path="/signup" element={<StartupSignup />} />
         </Routes>
 
         <WaitlistModal 
