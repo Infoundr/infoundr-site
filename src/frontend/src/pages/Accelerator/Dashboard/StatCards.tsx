@@ -1,39 +1,63 @@
-import React from 'react';
+import { Actor } from '@dfinity/agent';
+import React, { useState } from 'react';
 
-const stats = [
-  {
-    label: 'Total Startups',
-    value: 127,
-    change: '+12%',
-    subtext: 'from last month',
-    icon: '/icons/company.png',
-    bg: 'bg-purple-100',
-  },
-  {
-    label: 'Invites Sent',
-    value: 89,
-    change: '+8%',
-    subtext: 'from last week',
-    icon: '/icons/mail.png',
-    bg: 'bg-blue-100',
-  },
-  {
-    label: 'Active Startups',
-    value: 64,
-    change: '+5%',
-    subtext: 'from last month',
-    icon: '/icons/statistics.png',
-    bg: 'bg-green-100',
-  },
-  {
-    label: 'Graduated',
-    value: 23,
-    change: '+3',
-    subtext: 'this quarter',
-    icon: '/icons/graduate.png',
-    bg: 'bg-yellow-100',
-  },
-];
+  const stats = [
+    {
+      label: 'Total Startups',
+      value: 127,
+      change: '+12%',
+      subtext: 'from last month',
+      icon: '/icons/company.png',
+      bg: 'bg-purple-100',
+    },
+    {
+      label: 'Invites Sent',
+      value: 89,
+      change: '+8%',
+      subtext: 'from last week',
+      icon: '/icons/mail.png',
+      bg: 'bg-blue-100',
+    },
+    {
+      label: 'Active Startups',
+      value: 64,
+      change: '+5%',
+      subtext: 'from last month',
+      icon: '/icons/statistics.png',
+      bg: 'bg-green-100',
+    },
+    {
+      label: 'Graduated',
+      value: 23,
+      change: '+3',
+      subtext: 'this quarter',
+      icon: '/icons/graduate.png',
+      bg: 'bg-yellow-100',
+    },
+  ];
+
+  const [actor, setActor] = useState<Actor | null>(null);
+
+  // TODO: Add stats for accelerator
+  function getAcceleratorStats() {
+    // get_my_accelerator : (text) -> (Result_7);
+    // type Result_7 = variant { Ok : opt Accelerator; Err : text }; 
+    // type Accelerator = record {
+    //   id : principal;
+    //   graduated_startups : nat32;
+    //   active_startups : nat32;
+    //   logo : opt vec blob;
+    //   name : text;
+    //   email : text;
+    //   website : text;
+    //   team_members : vec TeamMember;
+    //   total_startups : nat32;
+    //   recent_activity : vec Activity;
+    //   email_verified : bool;
+    //   invites_sent : nat32;
+    // };
+    return stats;
+  }
 
 const StatCards: React.FC = () => (
   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-8">
