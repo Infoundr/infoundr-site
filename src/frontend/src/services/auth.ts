@@ -264,7 +264,7 @@ export const logout = async () => {
 };
 
 // Helper function to create authenticated actor
-const createAuthenticatedActor = async () => {
+export const createAuthenticatedActor = async () => {
     const authClient = await AuthClient.create();
     const identity = authClient.getIdentity();
     const agent = new HttpAgent({ identity });
