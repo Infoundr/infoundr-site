@@ -1,5 +1,4 @@
-import { Actor } from '@dfinity/agent';
-import React, { useState } from 'react';
+import React from 'react';
 
   const stats = [
     {
@@ -35,29 +34,6 @@ import React, { useState } from 'react';
       bg: 'bg-yellow-100',
     },
   ];
-
-  const [actor, setActor] = useState<Actor | null>(null);
-
-  // TODO: Add stats for accelerator
-  function getAcceleratorStats() {
-    // get_my_accelerator : (text) -> (Result_7);
-    // type Result_7 = variant { Ok : opt Accelerator; Err : text }; 
-    // type Accelerator = record {
-    //   id : principal;
-    //   graduated_startups : nat32;
-    //   active_startups : nat32;
-    //   logo : opt vec blob;
-    //   name : text;
-    //   email : text;
-    //   website : text;
-    //   team_members : vec TeamMember;
-    //   total_startups : nat32;
-    //   recent_activity : vec Activity;
-    //   email_verified : bool;
-    //   invites_sent : nat32;
-    // };
-    return stats;
-  }
 
 const StatCards: React.FC = () => (
   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-8">
