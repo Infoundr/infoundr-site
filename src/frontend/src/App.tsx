@@ -98,6 +98,7 @@ const App: React.FC = () => {
             <Route path="dashboard" element={<AcceleratorDashboard />} />
             <Route path="analytics" element={<Analytics />} />
             <Route path="invites" element={<SendInvites />} />
+            <Route path="invites/generate-invite" element={<StartupSignup />} />
             <Route path="roles" element={<RolesPermissions />} />
             <Route path="settings" element={<Settings />} />
           </Route>
@@ -125,8 +126,7 @@ const App: React.FC = () => {
 
           {/* Add AdminPanel route outside of dashboard */}
           <Route path="/admin" element={<AdminPanel />} />
-           {/* ✅ Startup Signup via Invite */}
-          <Route path="/signup" element={<StartupSignup />} />
+          
         </Routes>
 
         <WaitlistModal 
