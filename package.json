@@ -9,7 +9,7 @@
     "build": "npm run build --workspaces --if-present",
     "prebuild": "npm run prebuild --workspaces --if-present",
     "pretest": "npm run prebuild --workspaces --if-present",
-    "setup": "./scripts/setup.sh",
+    "setup": "./scripts/setup.sh && npm run setup-local",
     "setup-backend": "./scripts/setup-backend.sh",
     "setup-local": "./scripts/setup-local.sh",
     "start": "cd src/frontend && npm run dev",
