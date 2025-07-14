@@ -17,4 +17,4 @@ const StartupDetailsLayout: React.FC = () => {
     );
 };
 
-export default StartupDetailsLayout; 
+export default StartupDetailsLayout;

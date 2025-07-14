@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import StartupCard, { StartupCardProps } from './StartupCard';
 
 const mockStartups: StartupCardProps[] = [
@@ -67,7 +68,9 @@ const mockStartups: StartupCardProps[] = [
 const StartupCardGrid: React.FC = () => (
   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
     {mockStartups.map((startup, idx) => (
-      <StartupCard key={idx} {...startup} />
+      <Link to={`/accelerator/startups/${encodeURIComponent(startup.name)}`} key={idx}>
+        <StartupCard {...startup} />
+      </Link>
     ))}
   </div>
 );
