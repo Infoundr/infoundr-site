@@ -452,73 +452,73 @@ fn call_update_startup(pic: &PocketIc, canister_id: Principal, startup_id: &str,
     }
 }
 
-fn call_record_startup_activity(pic: &PocketIc, canister_id: Principal, startup_id: &str, activity: &StartupActivity) -> Result<(), String> {
-    let encoded = encode_one((startup_id.to_string(), activity.activity_type.clone(), activity.description.clone(), activity.metadata.clone())).unwrap();
-    let result = pic.update_call(
-        canister_id,
-        Principal::anonymous(),
-        "record_startup_activity",
-        encoded,
-    );
-    match result {
-        Ok(response) => {
-            let decoded: Result<Result<(), String>, _> = decode_one(&response);
-            match decoded {
-                Ok(backend_result) => backend_result,
-                Err(e) => Err(format!("Decode failed: {:?}", e)),
-            }
-        },
-        Err(e) => Err(format!("Activity recording failed: {:?}", e)),
-    }
-}
+// fn call_record_startup_activity(pic: &PocketIc, canister_id: Principal, startup_id: &str, activity: &StartupActivity) -> Result<(), String> {
+//     let encoded = encode_one((startup_id.to_string(), activity.activity_type.clone(), activity.description.clone(), activity.metadata.clone())).unwrap();
+//     let result = pic.update_call(
+//         canister_id,
+//         Principal::anonymous(),
+//         "record_startup_activity",
+//         encoded,
+//     );
+//     match result {
+//         Ok(response) => {
+//             let decoded: Result<Result<(), String>, _> = decode_one(&response);
+//             match decoded {
+//                 Ok(backend_result) => backend_result,
+//                 Err(e) => Err(format!("Decode failed: {:?}", e)),
+//             }
+//         },
+//         Err(e) => Err(format!("Activity recording failed: {:?}", e)),
+//     }
+// }
 
-fn call_filter_startups(pic: &PocketIc, canister_id: Principal, accelerator_id: &str, filter: StartupFilter) -> Result<Vec<Startup>, String> {
-    let encoded = encode_one((accelerator_id.to_string(), Some(filter))).unwrap();
-    let result = pic.query_call(
-        canister_id,
-        Principal::anonymous(),
-        "list_startups",
-        encoded,
-    );
+// fn call_filter_startups(pic: &PocketIc, canister_id: Principal, accelerator_id: &str, filter: StartupFilter) -> Result<Vec<Startup>, String> {
+//     let encoded = encode_one((accelerator_id.to_string(), Some(filter))).unwrap();
+//     let result = pic.query_call(
+//         canister_id,
+//         Principal::anonymous(),
+//         "list_startups",
+//         encoded,
+//     );
     
-    match result {
-        Ok(response) => {
-            let decoded: Result<Result<Vec<Startup>, String>, _> = decode_one(&response);
-            match decoded {
-                Ok(backend_result) => backend_result,
-                Err(e) => Err(format!("Decode failed: {:?}", e)),
-            }
-        },
-        Err(e) => Err(format!("Query failed: {:?}", e)),
-    }
-}
+//     match result {
+//         Ok(response) => {
+//             let decoded: Result<Result<Vec<Startup>, String>, _> = decode_one(&response);
+//             match decoded {
+//                 Ok(backend_result) => backend_result,
+//                 Err(e) => Err(format!("Decode failed: {:?}", e)),
+//             }
+//         },
+//         Err(e) => Err(format!("Query failed: {:?}", e)),
+//     }
+// }
 
-fn call_create_cohort(pic: &PocketIc, canister_id: Principal, accelerator_id: &str, data: StartupCohortInput) -> Result<String, String> {
-    let encoded = encode_one((accelerator_id.to_string(), data)).unwrap();
-    let result = pic.update_call(
-        canister_id,
-        Principal::anonymous(),
-        "create_startup_cohort",
-        encoded,
-    );
+// fn call_create_cohort(pic: &PocketIc, canister_id: Principal, accelerator_id: &str, data: StartupCohortInput) -> Result<String, String> {
+//     let encoded = encode_one((accelerator_id.to_string(), data)).unwrap();
+//     let result = pic.update_call(
+//         canister_id,
+//         Principal::anonymous(),
+//         "create_startup_cohort",
+//         encoded,
+//     );
     
-    match result {
-        Ok(response) => {
-            let decoded: Result<Result<StartupCohort, String>, _> = decode_one(&response);
-            match decoded {
-                Ok(backend_result) => backend_result.map(|cohort| cohort.id),
-                Err(e) => Err(format!("Decode failed: {:?}", e)),
-            }
-        },
-        Err(e) => Err(format!("Cohort creation failed: {:?}", e)),
-    }
-}
+//     match result {
+//         Ok(response) => {
+//             let decoded: Result<Result<StartupCohort, String>, _> = decode_one(&response);
+//             match decoded {
+//                 Ok(backend_result) => backend_result.map(|cohort| cohort.id),
+//                 Err(e) => Err(format!("Decode failed: {:?}", e)),
+//             }
+//         },
+//         Err(e) => Err(format!("Cohort creation failed: {:?}", e)),
+//     }
+// }
 
-fn call_get_cohort(_pic: &PocketIc, _canister_id: Principal, _cohort_id: String) -> Result<Option<StartupCohort>, String> {
-    // For now, return None since there's no get_cohort method in the backend
-    // We'll need to implement this or use list_startup_cohorts
-    Ok(None)
-}
+// fn call_get_cohort(_pic: &PocketIc, _canister_id: Principal, _cohort_id: String) -> Result<Option<StartupCohort>, String> {
+//     // For now, return None since there's no get_cohort method in the backend
+//     // We'll need to implement this or use list_startup_cohorts
+//     Ok(None)
+// }
 
 fn call_get_startup_analytics(pic: &PocketIc, canister_id: Principal, accelerator_id: &str) -> Result<StartupStats, String> {
     let result = pic.query_call(
