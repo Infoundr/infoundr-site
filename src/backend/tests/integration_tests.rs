@@ -240,37 +240,37 @@ fn call_accelerator_signup(pic: &PocketIc, canister_id: Principal, data: Acceler
     }
 }
 
-fn call_get_my_accelerator(pic: &PocketIc, canister_id: Principal) -> Result<Option<Accelerator>, String> {
-    let result = pic.query_call(
-        canister_id,
-        Principal::anonymous(),
-        "get_my_accelerator",
-        encode_one(()).unwrap(),
-    );
+// fn call_get_my_accelerator(pic: &PocketIc, canister_id: Principal) -> Result<Option<Accelerator>, String> {
+//     let result = pic.query_call(
+//         canister_id,
+//         Principal::anonymous(),
+//         "get_my_accelerator",
+//         encode_one(()).unwrap(),
+//     );
     
-    match result {
-        Ok(response) => {
-            let decoded: Result<Option<Accelerator>, _> = decode_one(&response);
-            decoded.map_err(|e| format!("Decode failed: {:?}", e))
-        },
-        Err(e) => Err(format!("Query failed: {:?}", e)),
-    }
-}
+//     match result {
+//         Ok(response) => {
+//             let decoded: Result<Option<Accelerator>, _> = decode_one(&response);
+//             decoded.map_err(|e| format!("Decode failed: {:?}", e))
+//         },
+//         Err(e) => Err(format!("Query failed: {:?}", e)),
+//     }
+// }
 
-fn call_update_my_accelerator(pic: &PocketIc, canister_id: Principal, updates: AcceleratorUpdate) -> Result<(), String> {
-    let encoded = encode_one(updates).unwrap();
-    let result = pic.update_call(
-        canister_id,
-        Principal::anonymous(),
-        "update_my_accelerator",
-        encoded,
-    );
+// fn call_update_my_accelerator(pic: &PocketIc, canister_id: Principal, updates: AcceleratorUpdate) -> Result<(), String> {
+//     let encoded = encode_one(updates).unwrap();
+//     let result = pic.update_call(
+//         canister_id,
+//         Principal::anonymous(),
+//         "update_my_accelerator",
+//         encoded,
+//     );
     
-    match result {
-        Ok(_) => Ok(()),
-        Err(e) => Err(format!("Update failed: {:?}", e)),
-    }
-}
+//     match result {
+//         Ok(_) => Ok(()),
+//         Err(e) => Err(format!("Update failed: {:?}", e)),
+//     }
+// }
 
 fn call_get_all_accelerators(pic: &PocketIc, canister_id: Principal) -> Result<Vec<Accelerator>, String> {
     let result = pic.query_call(
