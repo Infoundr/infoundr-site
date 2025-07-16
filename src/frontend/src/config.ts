@@ -2,8 +2,8 @@
 
 // Canister IDs
 export const MAINNET_CANISTER_ID = "g7ko2-fyaaa-aaaam-qdlea-cai"; 
-export const LOCAL_CANISTER_ID = "72j4w-6qaaa-aaaab-qacxq-cai";
-export const PLAYGROUND_CANISTER_ID = '54ro3-xaaaa-aaaab-qac2q-cai';
+export const LOCAL_CANISTER_ID = 'bkyz2-fmaaa-aaaaa-qaaaq-cai';
+export const PLAYGROUND_CANISTER_ID = 'ocpcu-jaaaa-aaaab-qab6q-cai';
 
 // Environment Configuration
 export const ENV = {

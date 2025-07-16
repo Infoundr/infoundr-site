@@ -44,7 +44,12 @@ The application should now be running at `http://localhost:3000`
 For frontend development without needing the backend canister:
 
 ```bash
-npm run dev:local
+npm run dev:local:frontend
+```
+
+For when you need both frontend and backend when working locally: 
+```bash
+npm run dev:local:all
 ```
 
 This will:

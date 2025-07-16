@@ -1,5 +1,6 @@
+import { AuthClient } from '@dfinity/auth-client';
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const navLinks = [
   { to: '/accelerator/dashboard', icon: 'dashboard.png', text: 'Dashboard' },
@@ -22,7 +23,16 @@ interface Props {
 
 const AcceleratorSidebar: React.FC<Props> = ({ user }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const isActive = (path: string) => location.pathname.startsWith(path);
+
+  const handleLogout = async () => {
+    const authClient = await AuthClient.create();
+    await authClient.logout();
+    sessionStorage.clear();
+    localStorage.clear();
+    navigate('/accelerator/login');
+  };
 
   return (
     <div className="w-64 h-screen bg-white text-gray-800 flex flex-col border-r border-gray-200 justify-between">
@@ -60,9 +70,9 @@ const AcceleratorSidebar: React.FC<Props> = ({ user }) => {
         </nav>
       </div>
 
-      {/* Logged-in user */}
+      {/* Logged-in user and logout */}
       <div className="p-4 border-t border-gray-200">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 mb-4">
           <img
             src={user.avatarUrl}
             alt={user.name}
@@ -73,6 +83,16 @@ const AcceleratorSidebar: React.FC<Props> = ({ user }) => {
             <p className="text-xs text-gray-500">{user.role}</p>
           </div>
         </div>
+        {/* Logout Button */}
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-2 px-3 py-2 mt-2 text-sm text-red-600 hover:bg-red-50 rounded transition"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h4a2 2 0 012 2v1" />
+          </svg>
+          Log out
+        </button>
       </div>
     </div>
   );

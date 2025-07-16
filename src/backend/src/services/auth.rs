@@ -2,7 +2,7 @@ use crate::models::stable_principal::StablePrincipal;
 // use crate::models::stable_string::StableString;
 use crate::models::user::SubscriptionTier;
 use crate::models::user::User;
-use crate::storage::memory::{OPENCHAT_USERS, USERS, SLACK_USERS, DISCORD_USERS};
+use crate::storage::memory::{OPENCHAT_USERS, USERS, SLACK_USERS, DISCORD_USERS, ACCELERATORS, STARTUPS};
 use candid::Principal;
 use ic_cdk::api::time;
 use ic_cdk::caller;
@@ -12,12 +12,10 @@ use ic_cdk::{query, update};
 pub fn register_user(name: String) -> Result<User, String> {
     let caller = caller();
 
-    // Check if user already exists
     if USERS.with(|users| users.borrow().contains_key(&StablePrincipal::new(caller))) {
         return Err("User already exists".to_string());
     }
 
-    // Check if this principal is already linked to an OpenChat, Slack, or Discord user
     let openchat_id = OPENCHAT_USERS.with(|users| {
         users
             .borrow()
@@ -112,7 +110,6 @@ pub fn register_startup(startup_name: String, founder_name: String, email: Strin
 pub fn get_current_user() -> Option<User> {
     let caller = caller();
 
-    // First try to get user directly
     let direct_user = USERS.with(|users| {
         users
             .borrow()
@@ -147,7 +144,6 @@ pub fn get_current_user() -> Option<User> {
         });
     }
 
-    // If not found, check if this is a Slack user
     let slack_user = SLACK_USERS.with(|users| {
         let users = users.borrow();
         for (slack_id, slack_user) in users.iter() {
@@ -158,12 +154,11 @@ pub fn get_current_user() -> Option<User> {
         None
     });
     if let Some((slack_id, _display_name, _team_id)) = slack_user {
-        // You can use display_name/team_id if you want to add them to User struct
         return Some(User {
             principal: StablePrincipal::new(caller),
             name: format!("Slack User {}", slack_id),
             email: None,
-            created_at: time(), // You may want to store first_interaction in SlackUser for accuracy
+            created_at: time(),
             subscription_tier: SubscriptionTier::Free,
             openchat_id: None,
             slack_id: Some(slack_id),
@@ -171,7 +166,6 @@ pub fn get_current_user() -> Option<User> {
         });
     }
 
-    // If not found, check if this is a Discord user
     let discord_user = DISCORD_USERS.with(|users| {
         let users = users.borrow();
         for (discord_id, discord_user) in users.iter() {
@@ -191,6 +185,51 @@ pub fn get_current_user() -> Option<User> {
             openchat_id: None,
             slack_id: None,
             discord_id: Some(discord_id),
+        });
+    }
+
+    // If not found, check if this is an Accelerator
+    let accelerator = ACCELERATORS.with(|accelerators| {
+        let accelerators = accelerators.borrow();
+        for (accelerator_id, accelerator) in accelerators.iter() {
+            if accelerator.id.get() == caller {
+                return Some((accelerator_id.to_string(), accelerator.name.clone(), accelerator.email.clone()));
+            }
+        }
+        None
+    });
+    if let Some((_accelerator_id, name, email)) = accelerator {
+        return Some(User {
+            principal: StablePrincipal::new(caller),
+            name: format!("Accelerator: {}", name),
+            email: Some(email),
+            created_at: time(),
+            subscription_tier: SubscriptionTier::Free,
+            openchat_id: None,
+            slack_id: None,
+            discord_id: None,
+        });
+    }
+
+    let startup = STARTUPS.with(|startups| {
+        let startups = startups.borrow();
+        for (startup_id, startup) in startups.iter() {
+            if startup.founder_principal.get() == caller {
+                return Some((startup_id.as_str().to_string(), startup.name.clone(), startup.contact_email.clone()));
+            }
+        }
+        None
+    });
+    if let Some((_startup_id, name, email)) = startup {
+        return Some(User {
+            principal: StablePrincipal::new(caller),
+            name: format!("Startup: {}", name),
+            email: Some(email),
+            created_at: time(),
+            subscription_tier: SubscriptionTier::Free,
+            openchat_id: None,
+            slack_id: None,
+            discord_id: None,
         });
     }
 
@@ -221,9 +260,20 @@ pub fn is_registered() -> bool {
                 .iter()
                 .any(|(_, user)| user.site_principal.as_ref().map(|p| p.get()) == Some(caller))
         })
+        || ACCELERATORS.with(|users| {
+            users
+                .borrow()
+                .iter()
+                .any(|(_, user)| user.id.get() == caller)
+        })
+        || STARTUPS.with(|startups| {
+            startups
+                .borrow()
+                .iter()
+                .any(|(_, startup)| startup.founder_principal.get() == caller)
+        })
 }
 
-// Helper function to check if user is authenticated
 #[query]
 pub fn check_auth() -> bool {
     let caller = caller();
@@ -231,7 +281,6 @@ pub fn check_auth() -> bool {
         return false;
     }
 
-    // Check both regular registration and OpenChat registration
     is_registered()
 }
 

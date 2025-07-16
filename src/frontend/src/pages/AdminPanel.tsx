@@ -6,7 +6,7 @@ import { AuthClient } from '@dfinity/auth-client';
 import { _SERVICE } from '../../../declarations/backend/backend.did.d';
 import { CANISTER_ID } from '../config';
 import { User, WaitlistEntry } from '../../../declarations/backend/backend.did';
-import { loginWithII, loginWithNFID, checkIsAuthenticated, logout } from '../services/auth';
+import { loginWithII, loginWithNFID, checkIsAuthenticated, logout, createAuthenticatedActor } from '../services/auth';
 import Button from '../components/common/Button';
 
 const AdminPanel: React.FC = () => {
@@ -18,23 +18,6 @@ const AdminPanel: React.FC = () => {
     const navigate = useNavigate();
     const [currentPrincipal, setCurrentPrincipal] = useState<string>("");
     const [actor, setActor] = useState<ActorSubclass<_SERVICE> | null>(null);
-
-    const createAuthenticatedActor = async () => {
-        try {
-            const authClient = await AuthClient.create();
-            const identity = authClient.getIdentity();
-            const agent = new HttpAgent({ identity });
-            
-            if (import.meta.env.VITE_DFX_NETWORK !== 'ic') {
-                await agent.fetchRootKey();
-            }
-            
-            return createActor(CANISTER_ID, { agent });
-        } catch (error) {
-            console.error('Error creating authenticated actor:', error);
-            throw error;
-        }
-    };
 
     useEffect(() => {
         initializeActor();

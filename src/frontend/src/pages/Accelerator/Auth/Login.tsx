@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../../components/common/Button';
-import { loginWithII, loginWithNFID, registerUser, isRegistered, checkIsAuthenticated } from '../../../services/auth';
+import { loginWithII, loginWithNFID, registerUser, isRegistered, checkIsAuthenticated, signUpAccelerator, logAcceleratorLogin } from '../../../services/auth';
 import { ActorSubclass } from "@dfinity/agent";
 import type { _SERVICE } from "../../../../../declarations/backend/backend.did.d.ts";
 import { Principal } from '@dfinity/principal';
@@ -17,9 +17,21 @@ const Login: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [isLogin, setIsLogin] = useState(true);
     const [registrationData, setRegistrationData] = useState({
-        name: ''
+        name: '',
+        email: '',
+        website: ''
     });
     const [showRegistrationForm, setShowRegistrationForm] = useState(false);
+
+    // Helper function to validate website URL
+    const isValidWebsite = (url: string) => {
+        try {
+            const urlObj = new URL(url);
+            return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
+        } catch {
+            return false;
+        }
+    };
 
     const handleAuth = async (method: 'ii' | 'nfid') => {
         try {
@@ -93,6 +105,14 @@ const Login: React.FC = () => {
                 // Store user principal for future use
                 sessionStorage.setItem('user_principal', userPrincipal.toString());
                 
+                // Log accelerator login activity
+                try {
+                    await logAcceleratorLogin();
+                } catch (error) {
+                    console.warn('Failed to log accelerator login activity:', error);
+                    // Don't block navigation if logging fails
+                }
+                
                 setIsLoading(false);
                 navigate('/accelerator/dashboard', { replace: true });
             } catch (err) {
@@ -112,14 +132,56 @@ const Login: React.FC = () => {
             setIsLoading(true);
             setError(null);
             
-            console.log("Starting registration with name:", registrationData.name);
-            await registerUser(registrationData.name);
-            console.log("Registration successful, navigating to accelerator dashboard");
+            // Validate required fields
+            if (!registrationData.name.trim()) {
+                setError('Accelerator name is required');
+                setIsLoading(false);
+                return;
+            }
+            
+            if (!registrationData.email.trim()) {
+                setError('Email address is required');
+                setIsLoading(false);
+                return;
+            }
+            
+            if (!registrationData.website.trim()) {
+                setError('Website URL is required');
+                setIsLoading(false);
+                return;
+            }
+            
+            // Validate website URL format
+            if (!isValidWebsite(registrationData.website)) {
+                setError('Please enter a valid website URL (e.g., https://your-accelerator.com)');
+                setIsLoading(false);
+                return;
+            }
+            
+            console.log("Starting accelerator registration with:", registrationData);
+            await signUpAccelerator(registrationData.name, registrationData.email, registrationData.website);
+            console.log("Accelerator registration successful, navigating to accelerator dashboard");
+            
+            // Store user principal in session storage after successful registration
+            const authClient = await AuthClient.create();
+            const identity = authClient.getIdentity();
+            const userPrincipal = identity.getPrincipal();
+            sessionStorage.setItem('user_principal', userPrincipal.toString());
+            console.log("Stored user principal:", userPrincipal.toString());
+            
+            // Log accelerator login activity after registration
+            try {
+                await logAcceleratorLogin();
+            } catch (error) {
+                console.warn('Failed to log accelerator login activity after registration:', error);
+                // Don't block navigation if logging fails
+            }
+            
             setIsLoading(false);
             navigate('/accelerator/dashboard', { replace: true });
             return;
         } catch (err) {
-            console.log("Registration failed:", err);
+            console.log("Accelerator registration failed:", err);
             setError('Registration failed. Please try again.');
             console.error('Registration error:', err);
         } finally {
@@ -133,13 +195,13 @@ const Login: React.FC = () => {
                 <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-xl">
                     <h2 className="text-3xl font-bold mb-2 text-center">Complete Your Profile</h2>
                     <p className="text-gray-500 text-center mb-8">
-                        Please provide your name to complete your registration
+                        Please provide your accelerator information to complete your registration
                     </p>
 
                     <div className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Name
+                                Accelerator Name *
                             </label>
                             <input
                                 type="text"
@@ -150,13 +212,46 @@ const Login: React.FC = () => {
                                     ...prev,
                                     name: e.target.value
                                 }))}
+                                placeholder="Enter your accelerator name"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Email Address *
+                            </label>
+                            <input
+                                type="email"
+                                required
+                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                value={registrationData.email}
+                                onChange={(e) => setRegistrationData(prev => ({
+                                    ...prev,
+                                    email: e.target.value
+                                }))}
+                                placeholder="Enter your email address"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Website *
+                            </label>
+                            <input
+                                type="url"
+                                required
+                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                value={registrationData.website}
+                                onChange={(e) => setRegistrationData(prev => ({
+                                    ...prev,
+                                    website: e.target.value
+                                }))}
+                                placeholder="https://your-accelerator.com"
                             />
                         </div>
                         <Button
                             variant="primary"
                             className="w-full !bg-[#8B5CF6] hover:!bg-[#7C3AED]"
                             onClick={handleRegistration}
-                            disabled={isLoading}
+                            disabled={isLoading || !registrationData.name || !registrationData.email || !registrationData.website}
                         >
                             Complete Registration
                         </Button>
