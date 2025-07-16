@@ -78,10 +78,10 @@ pub fn get_accelerator_by_id(id: StablePrincipal) -> Result<Option<Accelerator>,
 }
 
 #[update]
-pub fn get_my_accelerator(accelerator_id: String) -> Result<Option<Accelerator>, String> {
+pub fn get_my_accelerator() -> Result<Option<Accelerator>, String> {
     let caller_principal = caller();
     let accelerator = ACCELERATORS.with(|accs| {
-        accs.borrow().iter().find(|(k, _)| k.to_string() == accelerator_id).map(|(_, v)| v.clone())
+        accs.borrow().iter().find(|(k, _)| k.to_string() == caller_principal.to_string()).map(|(_, v)| v.clone())
     });
     match accelerator {
         Some(acc) => {
