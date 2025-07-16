@@ -42,11 +42,23 @@ echo "Retrieved canister ID: $CANISTER_ID"
 
 # Update config.ts with the new local canister ID
 echo "Updating config.ts with new local canister ID..."
-sed -i '' "s|export const LOCAL_CANISTER_ID = .*|export const LOCAL_CANISTER_ID = '$CANISTER_ID';|" src/frontend/src/config.ts
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  # macOS uses BSD sed which requires a backup extension (even if it's empty)
+  sed -i '' "s|export const LOCAL_CANISTER_ID = .*|export const LOCAL_CANISTER_ID = '$CANISTER_ID';|" src/frontend/src/config.ts
+else
+  # Linux (and WSL) uses GNU sed
+  sed -i "s|export const LOCAL_CANISTER_ID = .*|export const LOCAL_CANISTER_ID = '$CANISTER_ID';|" src/frontend/src/config.ts
+fi
 
 # Set DEV_MODE to false in mockData.ts (use real backend for local development)
 echo "🔧 Disabling mock data mode (using real backend)..."
-sed -i '' "s|export const DEV_MODE = true;|export const DEV_MODE = false;|" src/frontend/src/mocks/mockData.ts
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  sed -i '' "s|export const DEV_MODE = true;|export const DEV_MODE = false;|" src/frontend/src/mocks/mockData.ts
+else
+  sed -i "s|export const DEV_MODE = true;|export const DEV_MODE = false;|" src/frontend/src/mocks/mockData.ts
+fi
 
 # Create/update .env file for local
 echo "📝 Creating local environment configuration..."
