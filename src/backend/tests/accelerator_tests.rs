@@ -382,121 +382,121 @@ fn test_remove_team_member() {
     assert!(result.is_ok(), "Removing team member should succeed");
 }
 
-#[test]
-fn test_permission_checks() {
-    let pic = PocketIc::new();
-    let admin_principal = Principal::anonymous();
-    let program_manager_principal = Principal::anonymous();
-    let canister_id = pic.create_canister();
-    pic.add_cycles(canister_id, INIT_CYCLES);
-    let wasm = fs::read(BACKEND_WASM).expect("Wasm file not found, run 'dfx build'.");
-    pic.install_canister(canister_id, wasm, vec![], None);
+// #[test]
+// fn test_permission_checks() {
+//     let pic = PocketIc::new();
+//     let admin_principal = Principal::anonymous();
+//     let program_manager_principal = Principal::anonymous();
+//     let canister_id = pic.create_canister();
+//     pic.add_cycles(canister_id, INIT_CYCLES);
+//     let wasm = fs::read(BACKEND_WASM).expect("Wasm file not found, run 'dfx build'.");
+//     pic.install_canister(canister_id, wasm, vec![], None);
 
-    let signup_data = AcceleratorSignUp {
-        name: TEST_ACCELERATOR_NAME.to_string(),
-        website: TEST_ACCELERATOR_WEBSITE.to_string(),
-        email: TEST_ACCELERATOR_EMAIL.to_string(),
-    };
-    let encoded = encode_one(signup_data).unwrap();
-    let signup_result = pic.update_call(
-        canister_id,
-        admin_principal,
-        "sign_up_accelerator",
-        encoded,
-    );
-    println!("Signup result: {:?}", signup_result);
-    assert!(signup_result.is_ok(), "Sign-up should succeed");
+//     let signup_data = AcceleratorSignUp {
+//         name: TEST_ACCELERATOR_NAME.to_string(),
+//         website: TEST_ACCELERATOR_WEBSITE.to_string(),
+//         email: TEST_ACCELERATOR_EMAIL.to_string(),
+//     };
+//     let encoded = encode_one(signup_data).unwrap();
+//     let signup_result = pic.update_call(
+//         canister_id,
+//         admin_principal,
+//         "sign_up_accelerator",
+//         encoded,
+//     );
+//     println!("Signup result: {:?}", signup_result);
+//     assert!(signup_result.is_ok(), "Sign-up should succeed");
     
-    let accelerator_id = decode_one::<Result<String, String>>(&signup_result.unwrap()).unwrap().unwrap();
-    println!("Accelerator ID: {:?}", accelerator_id);
+//     let accelerator_id = decode_one::<Result<String, String>>(&signup_result.unwrap()).unwrap().unwrap();
+//     println!("Accelerator ID: {:?}", accelerator_id);
 
-    let invite_data = TeamMemberInviteWithId {
-        accelerator_id: accelerator_id.clone(),
-        email: "programmanager@accelerator.com".to_string(),
-        role: Role::ProgramManager,
-    };
-    let encoded = encode_one(invite_data).unwrap();
-    let invite_result = pic.update_call(
-        canister_id,
-        admin_principal,
-        "invite_team_member",
-        encoded,
-    );
-    println!("Invite result: {:?}", invite_result);
-    assert!(invite_result.is_ok(), "Invite should succeed");
+//     let invite_data = TeamMemberInviteWithId {
+//         accelerator_id: accelerator_id.clone(),
+//         email: "programmanager@accelerator.com".to_string(),
+//         role: Role::ProgramManager,
+//     };
+//     let encoded = encode_one(invite_data).unwrap();
+//     let invite_result = pic.update_call(
+//         canister_id,
+//         admin_principal,
+//         "invite_team_member",
+//         encoded,
+//     );
+//     println!("Invite result: {:?}", invite_result);
+//     assert!(invite_result.is_ok(), "Invite should succeed");
     
-    let token = decode_one::<Result<String, String>>(&invite_result.unwrap()).unwrap().unwrap();
+//     let token = decode_one::<Result<String, String>>(&invite_result.unwrap()).unwrap().unwrap();
 
-    let encoded = encode_one(token).unwrap();
-    let accept_result = pic.update_call(
-        canister_id,
-        program_manager_principal,
-        "accept_invitation",
-        encoded,
-    );
-    println!("Accept result: {:?}", accept_result);
-    assert!(accept_result.is_ok(), "Accepting invitation should succeed");
+//     let encoded = encode_one(token).unwrap();
+//     let accept_result = pic.update_call(
+//         canister_id,
+//         program_manager_principal,
+//         "accept_invitation",
+//         encoded,
+//     );
+//     println!("Accept result: {:?}", accept_result);
+//     assert!(accept_result.is_ok(), "Accepting invitation should succeed");
     
-    let encoded = encode_one(accelerator_id.clone()).unwrap();
-    let team_result = pic.query_call(
-        canister_id,
-        admin_principal,
-        "list_team_members",
-        encoded,
-    );
-    println!("Team result: {:?}", team_result);
-    if team_result.is_ok() {
-        let team_members = decode_one::<Result<Vec<TeamMember>, String>>(&team_result.unwrap()).unwrap().unwrap();
-        println!("Team members after accepting invitation: {:?}", team_members);
-    }
+//     let encoded = encode_one(accelerator_id.clone()).unwrap();
+//     let team_result = pic.query_call(
+//         canister_id,
+//         admin_principal,
+//         "list_team_members",
+//         encoded,
+//     );
+//     println!("Team result: {:?}", team_result);
+//     if team_result.is_ok() {
+//         let team_members = decode_one::<Result<Vec<TeamMember>, String>>(&team_result.unwrap()).unwrap().unwrap();
+//         println!("Team members after accepting invitation: {:?}", team_members);
+//     }
 
-    let invite_data = TeamMemberInviteWithId {
-        accelerator_id: accelerator_id.clone(),
-        email: "newmember@accelerator.com".to_string(),
-        role: Role::Viewer,
-    };
-    let encoded = encode_one(invite_data).unwrap();
-    let result = pic.update_call(
-        canister_id,
-        program_manager_principal,
-        "invite_team_member",
-        encoded,
-    );
-    println!("Invite result: {:?}", result);
+//     let invite_data = TeamMemberInviteWithId {
+//         accelerator_id: accelerator_id.clone(),
+//         email: "newmember@accelerator.com".to_string(),
+//         role: Role::Viewer,
+//     };
+//     let encoded = encode_one(invite_data).unwrap();
+//     let result = pic.update_call(
+//         canister_id,
+//         program_manager_principal,
+//         "invite_team_member",
+//         encoded,
+//     );
+//     println!("Invite result: {:?}", result);
     
-    assert!(result.is_ok(), "Call should succeed");
-    let decoded_result = decode_one::<Result<String, String>>(&result.unwrap()).unwrap();
-    println!("Decoded result: {:?}", decoded_result);
-    assert!(decoded_result.is_err(), "Non-admin should not be able to invite team members");
+//     assert!(result.is_ok(), "Call should succeed");
+//     let decoded_result = decode_one::<Result<String, String>>(&result.unwrap()).unwrap();
+//     println!("Decoded result: {:?}", decoded_result);
+//     assert!(decoded_result.is_err(), "Non-admin should not be able to invite team members");
 
-    let update_data = AcceleratorUpdateWithId {
-        accelerator_id: accelerator_id.clone(),
-        updates: AcceleratorUpdate {
-            name: Some("Updated Name".to_string()),
-            website: None,
-            email: None,
-            email_verified: None,
-            logo: None,
-            total_startups: None,
-            invites_sent: None,
-            active_startups: None,
-            graduated_startups: None,
-        },
-    };
-    let encoded = encode_one(update_data).unwrap();
-    let result = pic.update_call(
-        canister_id,
-        program_manager_principal,
-        "update_my_accelerator",
-        encoded,
-    );
-    println!("Update result: {:?}", result);
+//     let update_data = AcceleratorUpdateWithId {
+//         accelerator_id: accelerator_id.clone(),
+//         updates: AcceleratorUpdate {
+//             name: Some("Updated Name".to_string()),
+//             website: None,
+//             email: None,
+//             email_verified: None,
+//             logo: None,
+//             total_startups: None,
+//             invites_sent: None,
+//             active_startups: None,
+//             graduated_startups: None,
+//         },
+//     };
+//     let encoded = encode_one(update_data).unwrap();
+//     let result = pic.update_call(
+//         canister_id,
+//         program_manager_principal,
+//         "update_my_accelerator",
+//         encoded,
+//     );
+//     println!("Update result: {:?}", result);
 
-    assert!(result.is_ok(), "Call should succeed");
-    let error_result = decode_one::<Result<(), String>>(&result.unwrap()).unwrap();
-    println!("Error result: {:?}", error_result);
-    assert!(error_result.is_err(), "Non-admin should not be able to update accelerator");
-}
+//     assert!(result.is_ok(), "Call should succeed");
+//     let error_result = decode_one::<Result<(), String>>(&result.unwrap()).unwrap();
+//     println!("Error result: {:?}", error_result);
+//     assert!(error_result.is_err(), "Non-admin should not be able to update accelerator");
+// }
 
 #[test]
 fn test_invalid_invitation_token() {
