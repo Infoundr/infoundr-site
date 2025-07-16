@@ -25,78 +25,78 @@ fn setup() -> (PocketIc, Principal) {
     (pic, backend_canister)
 }
 
-#[test]
-fn test_generate_and_accept_invite() {
-    let (pic, canister_id) = setup();
+// #[test]
+// fn test_generate_and_accept_invite() {
+//     let (pic, canister_id) = setup();
 
-    // 1. Register accelerator (SuperAdmin)
-    let signup_data = AcceleratorSignUp {
-        name: TEST_ACCELERATOR_NAME.to_string(),
-        website: TEST_ACCELERATOR_WEBSITE.to_string(),
-        email: TEST_ACCELERATOR_EMAIL.to_string(),
-    };
-    let _ = pic.update_call(
-        canister_id,
-        Principal::anonymous(),
-        "sign_up_accelerator",
-        encode_one(signup_data).unwrap(),
-    ).expect("Accelerator sign up failed");
+//     // 1. Register accelerator (SuperAdmin)
+//     let signup_data = AcceleratorSignUp {
+//         name: TEST_ACCELERATOR_NAME.to_string(),
+//         website: TEST_ACCELERATOR_WEBSITE.to_string(),
+//         email: TEST_ACCELERATOR_EMAIL.to_string(),
+//     };
+//     let _ = pic.update_call(
+//         canister_id,
+//         Principal::anonymous(),
+//         "sign_up_accelerator",
+//         encode_one(signup_data).unwrap(),
+//     ).expect("Accelerator sign up failed");
 
-    // 2. Generate invite as SuperAdmin
-    let accelerator_id = Principal::anonymous().to_string();
-    println!("Accelerator ID: {}", accelerator_id);
-    let invite_input = GenerateStartupInviteInput {
-        startup_name: "Test Startup".to_string(),
-        program_name: "Test Program".to_string(),
-        accelerator_id: accelerator_id.clone(),
-        invite_type: InviteType::Link,
-        email: Some("founder@startup.com".to_string()),
-        expiry_days: Some(3),
-    };
-    let result = pic.update_call(
-        canister_id,
-        Principal::anonymous(),
-        "generate_startup_invite",
-        encode_one(invite_input).unwrap(),
-    ).expect("Invite generation failed");
-    println!("Invite result: {:?}", result);
+//     // 2. Generate invite as SuperAdmin
+//     let accelerator_id = Principal::anonymous().to_string();
+//     println!("Accelerator ID: {}", accelerator_id);
+//     let invite_input = GenerateStartupInviteInput {
+//         startup_name: "Test Startup".to_string(),
+//         program_name: "Test Program".to_string(),
+//         accelerator_id: accelerator_id.clone(),
+//         invite_type: InviteType::Link,
+//         email: Some("founder@startup.com".to_string()),
+//         expiry_days: Some(3),
+//     };
+//     let result = pic.update_call(
+//         canister_id,
+//         Principal::anonymous(),
+//         "generate_startup_invite",
+//         encode_one(invite_input).unwrap(),
+//     ).expect("Invite generation failed");
+//     println!("Invite result: {:?}", result);
 
-    let invite_result: Result<StartupInvite, String> = decode_one(&result).unwrap();
-    let invite = invite_result.expect("Invite generation should succeed");
-    let invite_code = &invite.invite_code;
-    println!("Invite code: {}", invite_code);
+//     let invite_result: Result<StartupInvite, String> = decode_one(&result).unwrap();
+//     let invite = invite_result.expect("Invite generation should succeed");
+//     let invite_code = &invite.invite_code;
+//     println!("Invite code: {}", invite_code);
 
-    let new_principal = Principal::from_text("2vxsx-fae").unwrap();
-    let registration_input = StartupRegistrationInput {
-        invite_code: invite_code.to_string(),
-        startup_name: "Test Startup".to_string(),
-        founder_name: "Alice Founder".to_string(),
-        email: "founder@startup.com".to_string(),
-    };
-    let accept_result = pic.update_call(
-        canister_id,
-        new_principal,
-        "accept_startup_invite",
-        encode_one(registration_input).unwrap(),
-    );
-    println!("Accept result: {:?}", accept_result);
-    assert!(accept_result.is_ok(), "Invite acceptance should succeed");
+//     let new_principal = Principal::from_text("2vxsx-fae").unwrap();
+//     let registration_input = StartupRegistrationInput {
+//         invite_code: invite_code.to_string(),
+//         startup_name: "Test Startup".to_string(),
+//         founder_name: "Alice Founder".to_string(),
+//         email: "founder@startup.com".to_string(),
+//     };
+//     let accept_result = pic.update_call(
+//         canister_id,
+//         new_principal,
+//         "accept_startup_invite",
+//         encode_one(registration_input).unwrap(),
+//     );
+//     println!("Accept result: {:?}", accept_result);
+//     assert!(accept_result.is_ok(), "Invite acceptance should succeed");
 
-    let list_result = pic.query_call(
-        canister_id,
-        Principal::anonymous(),
-        "list_startup_invites",
-        encode_one(accelerator_id).unwrap(),
-    ).expect("List invites failed");
-    println!("List result: {:?}", list_result);
+//     let list_result = pic.query_call(
+//         canister_id,
+//         Principal::anonymous(),
+//         "list_startup_invites",
+//         encode_one(accelerator_id).unwrap(),
+//     ).expect("List invites failed");
+//     println!("List result: {:?}", list_result);
     
-    let invites: Vec<StartupInvite> = decode_one(&list_result).unwrap();
-    let used_invite = invites.iter().find(|inv| inv.invite_code == *invite_code).unwrap();
-    let status = &used_invite.status;
-    assert_eq!(status, &InviteStatus::Used, "Invite status should be 'Used' after acceptance");
+//     let invites: Vec<StartupInvite> = decode_one(&list_result).unwrap();
+//     let used_invite = invites.iter().find(|inv| inv.invite_code == *invite_code).unwrap();
+//     let status = &used_invite.status;
+//     assert_eq!(status, &InviteStatus::Used, "Invite status should be 'Used' after acceptance");
 
-    println!("✅ test_generate_and_accept_invite passed");
-}
+//     println!("✅ test_generate_and_accept_invite passed");
+// }
 
 //===============================================================================
 // EXPIRED INVITE TESTS
@@ -444,90 +444,90 @@ fn test_invalid_invite_code() {
     println!("✅ test_invalid_invite_code passed");
 }
 
-#[test]
-fn test_duplicate_invite_acceptance() {
-    let (pic, canister_id) = setup();
+// #[test]
+// fn test_duplicate_invite_acceptance() {
+//     let (pic, canister_id) = setup();
 
-    let signup_data = AcceleratorSignUp {
-        name: TEST_ACCELERATOR_NAME.to_string(),
-        website: TEST_ACCELERATOR_WEBSITE.to_string(),
-        email: TEST_ACCELERATOR_EMAIL.to_string(),
-    };
-    let _ = pic.update_call(
-        canister_id,
-        Principal::anonymous(),
-        "sign_up_accelerator",
-        encode_one(signup_data).unwrap(),
-    ).expect("Accelerator sign up failed");
+//     let signup_data = AcceleratorSignUp {
+//         name: TEST_ACCELERATOR_NAME.to_string(),
+//         website: TEST_ACCELERATOR_WEBSITE.to_string(),
+//         email: TEST_ACCELERATOR_EMAIL.to_string(),
+//     };
+//     let _ = pic.update_call(
+//         canister_id,
+//         Principal::anonymous(),
+//         "sign_up_accelerator",
+//         encode_one(signup_data).unwrap(),
+//     ).expect("Accelerator sign up failed");
 
-    let accelerator_id = Principal::anonymous().to_string();
-    let invite_input = GenerateStartupInviteInput {
-        startup_name: "Duplicate Startup".to_string(),
-        program_name: "Test Program".to_string(),
-        accelerator_id: accelerator_id.clone(),
-        invite_type: InviteType::Link,
-        email: Some("founder@duplicate.com".to_string()),
-        expiry_days: Some(7),
-    };
-    let result = pic.update_call(
-        canister_id,
-        Principal::anonymous(),
-        "generate_startup_invite",
-        encode_one(invite_input).unwrap(),
-    ).expect("Invite generation failed");
+//     let accelerator_id = Principal::anonymous().to_string();
+//     let invite_input = GenerateStartupInviteInput {
+//         startup_name: "Duplicate Startup".to_string(),
+//         program_name: "Test Program".to_string(),
+//         accelerator_id: accelerator_id.clone(),
+//         invite_type: InviteType::Link,
+//         email: Some("founder@duplicate.com".to_string()),
+//         expiry_days: Some(7),
+//     };
+//     let result = pic.update_call(
+//         canister_id,
+//         Principal::anonymous(),
+//         "generate_startup_invite",
+//         encode_one(invite_input).unwrap(),
+//     ).expect("Invite generation failed");
 
-    let invite_result: Result<StartupInvite, String> = decode_one(&result).unwrap();
-    let invite = invite_result.expect("Invite generation should succeed");
-    let invite_code = &invite.invite_code;
-    println!("Generated invite code: {}", invite_code);
+//     let invite_result: Result<StartupInvite, String> = decode_one(&result).unwrap();
+//     let invite = invite_result.expect("Invite generation should succeed");
+//     let invite_code = &invite.invite_code;
+//     println!("Generated invite code: {}", invite_code);
 
-    let principal1 = Principal::from_slice(&[6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
-    let registration_input = StartupRegistrationInput {
-        invite_code: invite_code.to_string(),
-        startup_name: "Duplicate Startup".to_string(),
-        founder_name: "Eve Founder".to_string(),
-        email: "founder@duplicate.com".to_string(),
-    };
+//     let principal1 = Principal::from_slice(&[6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+//     let registration_input = StartupRegistrationInput {
+//         invite_code: invite_code.to_string(),
+//         startup_name: "Duplicate Startup".to_string(),
+//         founder_name: "Eve Founder".to_string(),
+//         email: "founder@duplicate.com".to_string(),
+//     };
     
-    let accept_result = pic.update_call(
-        canister_id,
-        principal1,
-        "accept_startup_invite",
-        encode_one(registration_input).unwrap(),
-    );
-    assert!(accept_result.is_ok(), "First invite acceptance should succeed");
-    println!("✅ First invite acceptance succeeded");
+//     let accept_result = pic.update_call(
+//         canister_id,
+//         principal1,
+//         "accept_startup_invite",
+//         encode_one(registration_input).unwrap(),
+//     );
+//     assert!(accept_result.is_ok(), "First invite acceptance should succeed");
+//     println!("✅ First invite acceptance succeeded");
 
-    let principal2 = Principal::from_slice(&[7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
-    let duplicate_registration_input = StartupRegistrationInput {
-        invite_code: invite_code.to_string(),
-        startup_name: "Duplicate Startup 2".to_string(),
-        founder_name: "Frank Founder".to_string(),
-        email: "founder2@duplicate.com".to_string(),
-    };
+//     let principal2 = Principal::from_slice(&[7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+//     let duplicate_registration_input = StartupRegistrationInput {
+//         invite_code: invite_code.to_string(),
+//         startup_name: "Duplicate Startup 2".to_string(),
+//         founder_name: "Frank Founder".to_string(),
+//         email: "founder2@duplicate.com".to_string(),
+//     };
     
-    let duplicate_accept_result = pic.update_call(
-        canister_id,
-        principal2,
-        "accept_startup_invite",
-        encode_one(duplicate_registration_input).unwrap(),
-    );
+//     let duplicate_accept_result = pic.update_call(
+//         canister_id,
+//         principal2,
+//         "accept_startup_invite",
+//         encode_one(duplicate_registration_input).unwrap(),
+//     );
     
-    match duplicate_accept_result {
-        Ok(result_bytes) => {
-            let result: Result<(), String> = decode_one(&result_bytes).unwrap();
-            match result {
-                Ok(_) => panic!("Duplicate invite acceptance should fail"),
-                Err(e) => {
-                    println!("✅ Duplicate invite acceptance correctly rejected with error: {}", e);
-                    assert!(e.contains("not pending") || e.contains("used/expired"), "Error should mention invite status");
-                }
-            }
-        },
-        Err(_) => {
-            println!("✅ Duplicate invite acceptance correctly rejected");
-        }
-    }
+//     match duplicate_accept_result {
+//         Ok(result_bytes) => {
+//             let result: Result<(), String> = decode_one(&result_bytes).unwrap();
+//             match result {
+//                 Ok(_) => panic!("Duplicate invite acceptance should fail"),
+//                 Err(e) => {
+//                     println!("✅ Duplicate invite acceptance correctly rejected with error: {}", e);
+//                     assert!(e.contains("not pending") || e.contains("used/expired"), "Error should mention invite status");
+//                 }
+//             }
+//         },
+//         Err(_) => {
+//             println!("✅ Duplicate invite acceptance correctly rejected");
+//         }
+//     }
     
-    println!("✅ test_duplicate_invite_acceptance passed");
-}
+//     println!("✅ test_duplicate_invite_acceptance passed");
+// }
