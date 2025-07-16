@@ -9,7 +9,7 @@ let authClient: AuthClient | null = null;
 
 // Identity Provider URLs
 const II_URL = {
-  local: "http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:8080",
+  local: "http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:4943",
   playground: "https://a4gq6-oaaaa-aaaab-qaa4q-cai.raw.icp0.io/?id=rdmx6-jaaaa-aaaaa-aaadq-cai",
   ic: "https://identity.ic0.app"
 };

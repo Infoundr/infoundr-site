@@ -28,6 +28,12 @@ cargo build --target wasm32-unknown-unknown
 cd ../../
 generate-did backend
 
+# Pull and setup Internet Identity
+printf "\n${GREEN}Setting up Internet Identity...${NC}\n"
+dfx deps pull
+dfx deps init
+dfx deps deploy
+
 # Deploy canisters
 printf "\n${GREEN}Deploying canisters...${NC}\n"
 dfx deploy
