@@ -206,11 +206,17 @@ pub fn delete_startup(startup_id: String) -> Result<(), String> {
 }
 
 #[query]
-pub fn list_startups(accelerator_id: String, filter: Option<StartupFilter>) -> Result<Vec<Startup>, String> {
+pub fn list_startups(filter: Option<StartupFilter>) -> Result<Vec<Startup>, String> {
+    let caller_principal = caller();
+
+    let accelerator = ACCELERATORS.with(|accs| {
+        accs.borrow().iter().find(|(k, _)| k.to_string() == caller_principal.to_string()).map(|(_, v)| v.clone())
+    }).ok_or("Accelerator not found")?;
+    
     let startups: Vec<Startup> = STARTUPS.with(|startups| {
         startups.borrow()
             .iter()
-            .filter(|(_, startup)| startup.accelerator_id.to_string() == accelerator_id)
+            .filter(|(_, startup)| startup.accelerator_id.to_string() == accelerator.id.to_string())
             .map(|(_, startup)| startup.clone())
             .collect()
     });
@@ -276,11 +282,17 @@ pub fn list_startups(accelerator_id: String, filter: Option<StartupFilter>) -> R
 }
 
 #[query]
-pub fn get_startup_stats(accelerator_id: String) -> Result<StartupStats, String> {
+pub fn get_startup_stats() -> Result<StartupStats, String> {
+    let caller_principal = caller();
+
+    let accelerator = ACCELERATORS.with(|accs| {
+        accs.borrow().iter().find(|(k, _)| k.to_string() == caller_principal.to_string()).map(|(_, v)| v.clone())
+    }).ok_or("Accelerator not found")?;
+
     let startups: Vec<Startup> = STARTUPS.with(|startups| {
         startups.borrow()
             .iter()
-            .filter(|(_, startup)| startup.accelerator_id.to_string() == accelerator_id)
+            .filter(|(_, startup)| startup.accelerator_id.to_string() == accelerator.id.to_string())
             .map(|(_, startup)| startup.clone())
             .collect()
     });
@@ -333,13 +345,13 @@ pub fn get_startup_stats(accelerator_id: String) -> Result<StartupStats, String>
 // ==================================================================================================
 
 #[update]
-pub fn create_startup_status(accelerator_id: String, input: StartupStatusInput) -> Result<StartupStatus, String> {
+pub fn create_startup_status(input: StartupStatusInput) -> Result<StartupStatus, String> {
     let caller_principal = caller();
     let now = ic_cdk::api::time();
 
     // Verify accelerator exists and caller has permission
     let accelerator = ACCELERATORS.with(|accs| {
-        accs.borrow().iter().find(|(k, _)| k.to_string() == accelerator_id).map(|(_, v)| v.clone())
+        accs.borrow().iter().find(|(k, _)| k.to_string() == caller_principal.to_string()).map(|(_, v)| v.clone())
     }).ok_or("Accelerator not found")?;
 
     let is_admin = accelerator.team_members.iter().any(|m| {
@@ -383,12 +395,12 @@ pub fn create_startup_status(accelerator_id: String, input: StartupStatusInput) 
 }
 
 #[update]
-pub fn update_startup_status(accelerator_id: String, status_id: String, input: StartupStatusInput) -> Result<(), String> {
+pub fn update_startup_status( status_id: String, input: StartupStatusInput) -> Result<(), String> {
     let caller_principal = caller();
 
     // Verify accelerator exists and caller has permission
     let accelerator = ACCELERATORS.with(|accs| {
-        accs.borrow().iter().find(|(k, _)| k.to_string() == accelerator_id).map(|(_, v)| v.clone())
+        accs.borrow().iter().find(|(k, _)| k.to_string() == caller_principal.to_string()).map(|(_, v)| v.clone())
     }).ok_or("Accelerator not found")?;
 
     let is_admin = accelerator.team_members.iter().any(|m| {
@@ -423,12 +435,12 @@ pub fn update_startup_status(accelerator_id: String, status_id: String, input: S
 }
 
 #[update]
-pub fn delete_startup_status(accelerator_id: String, status_id: String) -> Result<(), String> {
+pub fn delete_startup_status( status_id: String) -> Result<(), String> {
     let caller_principal = caller();
 
     // Verify accelerator exists and caller has permission
     let accelerator = ACCELERATORS.with(|accs| {
-        accs.borrow().iter().find(|(k, _)| k.to_string() == accelerator_id).map(|(_, v)| v.clone())
+        accs.borrow().iter().find(|(k, _)| k.to_string() == caller_principal.to_string()).map(|(_, v)| v.clone())
     }).ok_or("Accelerator not found")?;
 
     let is_admin = accelerator.team_members.iter().any(|m| {
@@ -467,11 +479,17 @@ pub fn delete_startup_status(accelerator_id: String, status_id: String) -> Resul
 }
 
 #[query]
-pub fn list_startup_statuses(accelerator_id: String) -> Result<Vec<StartupStatus>, String> {
+pub fn list_startup_statuses() -> Result<Vec<StartupStatus>, String> {
+    let caller_principal = caller();
+
+    let accelerator = ACCELERATORS.with(|accs| {
+        accs.borrow().iter().find(|(k, _)| k.to_string() == caller_principal.to_string()).map(|(_, v)| v.clone())
+    }).ok_or("Accelerator not found")?;
+
     let statuses: Vec<StartupStatus> = STARTUP_STATUSES.with(|statuses| {
         statuses.borrow()
             .iter()
-            .filter(|(_, status)| status.accelerator_id.to_string() == accelerator_id)
+            .filter(|(_, status)| status.accelerator_id.to_string() == accelerator.id.to_string())
             .map(|(_, status)| status.clone())
             .collect()
     });
@@ -484,13 +502,13 @@ pub fn list_startup_statuses(accelerator_id: String) -> Result<Vec<StartupStatus
 // ==================================================================================================
 
 #[update]
-pub fn create_startup_cohort(accelerator_id: String, input: StartupCohortInput) -> Result<StartupCohort, String> {
+pub fn create_startup_cohort( input: StartupCohortInput) -> Result<StartupCohort, String> {
     let caller_principal = caller();
     let now = ic_cdk::api::time();
 
     // Verify accelerator exists and caller has permission
     let accelerator = ACCELERATORS.with(|accs| {
-        accs.borrow().iter().find(|(k, _)| k.to_string() == accelerator_id).map(|(_, v)| v.clone())
+        accs.borrow().iter().find(|(k, _)| k.to_string() == caller_principal.to_string()).map(|(_, v)| v.clone())
     }).ok_or("Accelerator not found")?;
 
     let is_admin = accelerator.team_members.iter().any(|m| {
@@ -523,12 +541,12 @@ pub fn create_startup_cohort(accelerator_id: String, input: StartupCohortInput) 
 }
 
 #[update]
-pub fn update_startup_cohort(accelerator_id: String, cohort_id: String, input: StartupCohortInput) -> Result<(), String> {
+pub fn update_startup_cohort( cohort_id: String, input: StartupCohortInput) -> Result<(), String> {
     let caller_principal = caller();
 
     // Verify accelerator exists and caller has permission
     let accelerator = ACCELERATORS.with(|accs| {
-        accs.borrow().iter().find(|(k, _)| k.to_string() == accelerator_id).map(|(_, v)| v.clone())
+        accs.borrow().iter().find(|(k, _)| k.to_string() == caller_principal.to_string()).map(|(_, v)| v.clone())
     }).ok_or("Accelerator not found")?;
 
     let is_admin = accelerator.team_members.iter().any(|m| {
@@ -561,12 +579,12 @@ pub fn update_startup_cohort(accelerator_id: String, cohort_id: String, input: S
 }
 
 #[update]
-pub fn delete_startup_cohort(accelerator_id: String, cohort_id: String) -> Result<(), String> {
+pub fn delete_startup_cohort( cohort_id: String) -> Result<(), String> {
     let caller_principal = caller();
 
     // Verify accelerator exists and caller has permission
     let accelerator = ACCELERATORS.with(|accs| {
-        accs.borrow().iter().find(|(k, _)| k.to_string() == accelerator_id).map(|(_, v)| v.clone())
+        accs.borrow().iter().find(|(k, _)| k.to_string() == caller_principal.to_string()).map(|(_, v)| v.clone())
     }).ok_or("Accelerator not found")?;
 
     let is_admin = accelerator.team_members.iter().any(|m| {
@@ -605,11 +623,17 @@ pub fn delete_startup_cohort(accelerator_id: String, cohort_id: String) -> Resul
 }
 
 #[query]
-pub fn list_startup_cohorts(accelerator_id: String) -> Result<Vec<StartupCohort>, String> {
+pub fn list_startup_cohorts() -> Result<Vec<StartupCohort>, String> {
+    let caller_principal = caller();
+
+    let accelerator = ACCELERATORS.with(|accs| {
+        accs.borrow().iter().find(|(k, _)| k.to_string() == caller_principal.to_string()).map(|(_, v)| v.clone())
+    }).ok_or("Accelerator not found")?;
+
     let cohorts: Vec<StartupCohort> = STARTUP_COHORTS.with(|cohorts| {
         cohorts.borrow()
             .iter()
-            .filter(|(_, cohort)| cohort.accelerator_id.to_string() == accelerator_id)
+            .filter(|(_, cohort)| cohort.accelerator_id.to_string() == accelerator.id.to_string())
             .map(|(_, cohort)| cohort.clone())
             .collect()
     });

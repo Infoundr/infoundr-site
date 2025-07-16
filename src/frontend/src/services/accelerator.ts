@@ -4,7 +4,7 @@ import type { Accelerator, AcceleratorStats } from '../types/accelerator';
 export const getMyAccelerator = async (): Promise<Accelerator | null> => {
     try {
         const actor = await createAuthenticatedActor();
-        const result = await actor.get_my_accelerator("");
+        const result = await actor.get_my_accelerator();
         
         if ('Err' in result) {
             console.error('Error getting accelerator:', result.Err);
