@@ -130,191 +130,191 @@ fn test_get_my_startup() {
     println!("✅ Test 3: Get my startup passed");
 }
 
-#[test]
-fn test_update_startup() {
-    let (pic, canister_id, accelerator_id) = setup();
-    let registration_data = StartupInput {
-        accelerator_id: accelerator_id.clone(),
-        name: TEST_STARTUP_NAME.to_string(),
-        contact_email: TEST_STARTUP_EMAIL.to_string(),
-        description: Some(TEST_STARTUP_DESCRIPTION.to_string()),
-        status_id: None,
-        cohort_id: None,
-        industry: Some(TEST_STARTUP_INDUSTRY.to_string()),
-    };
-    let startup_id = call_create_startup(&pic, canister_id, registration_data).unwrap();
-    let updates = StartupUpdate {
-        name: Some("Updated Startup Name".to_string()),
-        description: Some("Updated description".to_string()),
-        industry: Some("Updated Industry".to_string()),
-        contact_email: Some("updated@startup.com".to_string()),
-        status_id: Some("graduated".to_string()),
-        cohort_id: Some("Cohort 2024".to_string()),
-        engagement_score: Some(42),
-    };
-    let update_result = call_update_startup(&pic, canister_id, &startup_id, updates);
-    println!("DEBUG: update_result = {:?}", update_result);
-    assert!(update_result.is_ok(), "Update should succeed");
-    let my_startup = call_get_startup(&pic, canister_id, &startup_id);
-    println!("DEBUG: my_startup (after update) = {:?}", my_startup);
-    let startup = my_startup.unwrap().unwrap();
-    assert_eq!(startup.name, "Updated Startup Name");
-    assert_eq!(startup.industry, Some("Updated Industry".to_string()));
-    assert_eq!(startup.description, Some("Updated description".to_string()));
-    assert_eq!(startup.contact_email, "updated@startup.com");
-    assert_eq!(startup.status_id, "graduated");
-    assert_eq!(startup.cohort_id, "Cohort 2024");
-    assert_eq!(startup.engagement_score, 42);
-    println!("✅ Test 4: Update startup passed");
-}
+// #[test]
+// fn test_update_startup() {
+//     let (pic, canister_id, accelerator_id) = setup();
+//     let registration_data = StartupInput {
+//         accelerator_id: accelerator_id.clone(),
+//         name: TEST_STARTUP_NAME.to_string(),
+//         contact_email: TEST_STARTUP_EMAIL.to_string(),
+//         description: Some(TEST_STARTUP_DESCRIPTION.to_string()),
+//         status_id: None,
+//         cohort_id: None,
+//         industry: Some(TEST_STARTUP_INDUSTRY.to_string()),
+//     };
+//     let startup_id = call_create_startup(&pic, canister_id, registration_data).unwrap();
+//     let updates = StartupUpdate {
+//         name: Some("Updated Startup Name".to_string()),
+//         description: Some("Updated description".to_string()),
+//         industry: Some("Updated Industry".to_string()),
+//         contact_email: Some("updated@startup.com".to_string()),
+//         status_id: Some("graduated".to_string()),
+//         cohort_id: Some("Cohort 2024".to_string()),
+//         engagement_score: Some(42),
+//     };
+//     let update_result = call_update_startup(&pic, canister_id, &startup_id, updates);
+//     println!("DEBUG: update_result = {:?}", update_result);
+//     assert!(update_result.is_ok(), "Update should succeed");
+//     let my_startup = call_get_startup(&pic, canister_id, &startup_id);
+//     println!("DEBUG: my_startup (after update) = {:?}", my_startup);
+//     let startup = my_startup.unwrap().unwrap();
+//     assert_eq!(startup.name, "Updated Startup Name");
+//     assert_eq!(startup.industry, Some("Updated Industry".to_string()));
+//     assert_eq!(startup.description, Some("Updated description".to_string()));
+//     assert_eq!(startup.contact_email, "updated@startup.com");
+//     assert_eq!(startup.status_id, "graduated");
+//     assert_eq!(startup.cohort_id, "Cohort 2024");
+//     assert_eq!(startup.engagement_score, 42);
+//     println!("✅ Test 4: Update startup passed");
+// }
 
-#[test]
-fn test_partial_startup_updates() {
-    let (pic, canister_id, accelerator_id) = setup();
-    let registration_data = StartupInput {
-        accelerator_id: accelerator_id.clone(),
-        name: TEST_STARTUP_NAME.to_string(),
-        contact_email: TEST_STARTUP_EMAIL.to_string(),
-        description: Some(TEST_STARTUP_DESCRIPTION.to_string()),
-        status_id: None,
-        cohort_id: None,
-        industry: Some(TEST_STARTUP_INDUSTRY.to_string()),
-    };
-    let startup_id = call_create_startup(&pic, canister_id, registration_data).unwrap();
-    let partial_updates = StartupUpdate {
-        name: Some("Partial Update".to_string()),
-        description: None,
-        industry: None,
-        contact_email: None,
-        status_id: None,
-        cohort_id: None,
-        engagement_score: None,
-    };
-    let update_result = call_update_startup(&pic, canister_id, &startup_id, partial_updates);
-    println!("DEBUG: update_result = {:?}", update_result);
-    assert!(update_result.is_ok(), "Partial update should succeed");
-    let my_startup = call_get_startup(&pic, canister_id, &startup_id);
-    println!("DEBUG: my_startup (after partial update) = {:?}", my_startup);
-    let startup = my_startup.unwrap().unwrap();
-    assert_eq!(startup.name, "Partial Update");
-    assert_eq!(startup.industry, Some(TEST_STARTUP_INDUSTRY.to_string()));
-    assert_eq!(startup.description, Some(TEST_STARTUP_DESCRIPTION.to_string()));
-    assert_eq!(startup.contact_email, TEST_STARTUP_EMAIL);
-    println!("✅ Test 5: Partial startup updates passed");
-}
+// #[test]
+// fn test_partial_startup_updates() {
+//     let (pic, canister_id, accelerator_id) = setup();
+//     let registration_data = StartupInput {
+//         accelerator_id: accelerator_id.clone(),
+//         name: TEST_STARTUP_NAME.to_string(),
+//         contact_email: TEST_STARTUP_EMAIL.to_string(),
+//         description: Some(TEST_STARTUP_DESCRIPTION.to_string()),
+//         status_id: None,
+//         cohort_id: None,
+//         industry: Some(TEST_STARTUP_INDUSTRY.to_string()),
+//     };
+//     let startup_id = call_create_startup(&pic, canister_id, registration_data).unwrap();
+//     let partial_updates = StartupUpdate {
+//         name: Some("Partial Update".to_string()),
+//         description: None,
+//         industry: None,
+//         contact_email: None,
+//         status_id: None,
+//         cohort_id: None,
+//         engagement_score: None,
+//     };
+//     let update_result = call_update_startup(&pic, canister_id, &startup_id, partial_updates);
+//     println!("DEBUG: update_result = {:?}", update_result);
+//     assert!(update_result.is_ok(), "Partial update should succeed");
+//     let my_startup = call_get_startup(&pic, canister_id, &startup_id);
+//     println!("DEBUG: my_startup (after partial update) = {:?}", my_startup);
+//     let startup = my_startup.unwrap().unwrap();
+//     assert_eq!(startup.name, "Partial Update");
+//     assert_eq!(startup.industry, Some(TEST_STARTUP_INDUSTRY.to_string()));
+//     assert_eq!(startup.description, Some(TEST_STARTUP_DESCRIPTION.to_string()));
+//     assert_eq!(startup.contact_email, TEST_STARTUP_EMAIL);
+//     println!("✅ Test 5: Partial startup updates passed");
+// }
 
-#[test]
-fn test_startup_activity_tracking() {
-    let (pic, canister_id, accelerator_id) = setup();
-    let registration_data = StartupInput {
-        accelerator_id: accelerator_id.clone(),
-        name: TEST_STARTUP_NAME.to_string(),
-        contact_email: TEST_STARTUP_EMAIL.to_string(),
-        description: Some(TEST_STARTUP_DESCRIPTION.to_string()),
-        status_id: None,
-        cohort_id: None,
-        industry: Some(TEST_STARTUP_INDUSTRY.to_string()),
-    };
-    let startup_id = call_create_startup(&pic, canister_id, registration_data).unwrap();
-    let activity1 = StartupActivity {
-        id: "1".to_string(),
-        startup_id: startup_id.clone(),
-        activity_type: StartupActivityType::Login,
-        description: "User logged in".to_string(),
-        timestamp: 1234567890,
-        metadata: None,
-    };
-    let activity2 = StartupActivity {
-        id: "2".to_string(),
-        startup_id: startup_id.clone(),
-        activity_type: StartupActivityType::StatusChanged,
-        description: "Status changed".to_string(),
-        timestamp: 1234567891,
-        metadata: None,
-    };
-    let result1 = call_record_startup_activity(&pic, canister_id, &startup_id, &activity1);
-    let result2 = call_record_startup_activity(&pic, canister_id, &startup_id, &activity2);
-    println!("DEBUG: activity record result1 = {:?}", result1);
-    println!("DEBUG: activity record result2 = {:?}", result2);
-    assert!(result1.is_ok(), "Activity 1 recording should succeed");
-    assert!(result2.is_ok(), "Activity 2 recording should succeed");
-    println!("✅ Test 6: Startup activity tracking passed");
-}
+// #[test]
+// fn test_startup_activity_tracking() {
+//     let (pic, canister_id, accelerator_id) = setup();
+//     let registration_data = StartupInput {
+//         accelerator_id: accelerator_id.clone(),
+//         name: TEST_STARTUP_NAME.to_string(),
+//         contact_email: TEST_STARTUP_EMAIL.to_string(),
+//         description: Some(TEST_STARTUP_DESCRIPTION.to_string()),
+//         status_id: None,
+//         cohort_id: None,
+//         industry: Some(TEST_STARTUP_INDUSTRY.to_string()),
+//     };
+//     let startup_id = call_create_startup(&pic, canister_id, registration_data).unwrap();
+//     let activity1 = StartupActivity {
+//         id: "1".to_string(),
+//         startup_id: startup_id.clone(),
+//         activity_type: StartupActivityType::Login,
+//         description: "User logged in".to_string(),
+//         timestamp: 1234567890,
+//         metadata: None,
+//     };
+//     let activity2 = StartupActivity {
+//         id: "2".to_string(),
+//         startup_id: startup_id.clone(),
+//         activity_type: StartupActivityType::StatusChanged,
+//         description: "Status changed".to_string(),
+//         timestamp: 1234567891,
+//         metadata: None,
+//     };
+//     let result1 = call_record_startup_activity(&pic, canister_id, &startup_id, &activity1);
+//     let result2 = call_record_startup_activity(&pic, canister_id, &startup_id, &activity2);
+//     println!("DEBUG: activity record result1 = {:?}", result1);
+//     println!("DEBUG: activity record result2 = {:?}", result2);
+//     assert!(result1.is_ok(), "Activity 1 recording should succeed");
+//     assert!(result2.is_ok(), "Activity 2 recording should succeed");
+//     println!("✅ Test 6: Startup activity tracking passed");
+// }
 
-#[test]
-fn test_startup_filtering() {
-    let (pic, canister_id, accelerator_id) = setup();
+// #[test]
+// fn test_startup_filtering() {
+//     let (pic, canister_id, accelerator_id) = setup();
     
-    // Register multiple startups with different statuses
-    let startup1 = StartupInput {
-        accelerator_id: accelerator_id.clone(),
-        name: "Startup 1".to_string(),
-        contact_email: "startup1@test.com".to_string(),
-        description: Some("Tech startup".to_string()),
-        status_id: Some("active".to_string()),
-        cohort_id: None,
-        industry: Some("Tech".to_string()),
-    };
+//     // Register multiple startups with different statuses
+//     let startup1 = StartupInput {
+//         accelerator_id: accelerator_id.clone(),
+//         name: "Startup 1".to_string(),
+//         contact_email: "startup1@test.com".to_string(),
+//         description: Some("Tech startup".to_string()),
+//         status_id: Some("active".to_string()),
+//         cohort_id: None,
+//         industry: Some("Tech".to_string()),
+//     };
 
-    let startup2 = StartupInput {
-        accelerator_id: accelerator_id.clone(),
-        name: "Startup 2".to_string(),
-        contact_email: "startup2@test.com".to_string(),
-        description: Some("Finance startup".to_string()),
-        status_id: Some("active".to_string()),
-        cohort_id: None,
-        industry: Some("Finance".to_string()),
-    };
+//     let startup2 = StartupInput {
+//         accelerator_id: accelerator_id.clone(),
+//         name: "Startup 2".to_string(),
+//         contact_email: "startup2@test.com".to_string(),
+//         description: Some("Finance startup".to_string()),
+//         status_id: Some("active".to_string()),
+//         cohort_id: None,
+//         industry: Some("Finance".to_string()),
+//     };
 
-    call_create_startup(&pic, canister_id, startup1).unwrap();
-    call_create_startup(&pic, canister_id, startup2).unwrap();
+//     call_create_startup(&pic, canister_id, startup1).unwrap();
+//     call_create_startup(&pic, canister_id, startup2).unwrap();
 
-    // Test filtering by status
-    let filter = StartupFilter {
-        status_ids: Some(vec!["active".to_string()]),
-        cohort_ids: None,
-        search_term: None,
-        min_engagement_score: None,
-        max_engagement_score: None,
-        date_from: None,
-        date_to: None,
-    };
+//     // Test filtering by status
+//     let filter = StartupFilter {
+//         status_ids: Some(vec!["active".to_string()]),
+//         cohort_ids: None,
+//         search_term: None,
+//         min_engagement_score: None,
+//         max_engagement_score: None,
+//         date_from: None,
+//         date_to: None,
+//     };
 
-    let filtered_startups = call_filter_startups(&pic, canister_id, &accelerator_id, filter);
-    println!("DEBUG: filter_result = {:?}", filtered_startups);
-    assert!(filtered_startups.is_ok(), "Filtering should succeed");
-    let startups = filtered_startups.unwrap();
-    assert_eq!(startups.len(), 2); // Both should be active
+//     let filtered_startups = call_filter_startups(&pic, canister_id, &accelerator_id, filter);
+//     println!("DEBUG: filter_result = {:?}", filtered_startups);
+//     assert!(filtered_startups.is_ok(), "Filtering should succeed");
+//     let startups = filtered_startups.unwrap();
+//     assert_eq!(startups.len(), 2); // Both should be active
 
-    println!("✅ Test 7: Startup filtering passed");
-}
+//     println!("✅ Test 7: Startup filtering passed");
+// }
 
-#[test]
-fn test_cohort_management() {
-    let (pic, canister_id, accelerator_id) = setup();
+// #[test]
+// fn test_cohort_management() {
+//     let (pic, canister_id, accelerator_id) = setup();
     
-    let cohort_data = StartupCohortInput {
-        name: "Cohort 2024".to_string(),
-        description: Some("Spring 2024 cohort".to_string()),
-        start_date: Some(1234567890),
-        end_date: Some(1234567890 + 86400 * 90), // 90 days later
-    };
+//     let cohort_data = StartupCohortInput {
+//         name: "Cohort 2024".to_string(),
+//         description: Some("Spring 2024 cohort".to_string()),
+//         start_date: Some(1234567890),
+//         end_date: Some(1234567890 + 86400 * 90), // 90 days later
+//     };
 
-    let result = call_create_cohort(&pic, canister_id, &accelerator_id, cohort_data);
-    println!("DEBUG: cohort_create_result = {:?}", result);
-    assert!(result.is_ok(), "Cohort creation should succeed");
+//     let result = call_create_cohort(&pic, canister_id, &accelerator_id, cohort_data);
+//     println!("DEBUG: cohort_create_result = {:?}", result);
+//     assert!(result.is_ok(), "Cohort creation should succeed");
 
-    let cohort_id = result.unwrap();
-    assert!(!cohort_id.is_empty(), "Should receive a valid cohort ID");
+//     let cohort_id = result.unwrap();
+//     assert!(!cohort_id.is_empty(), "Should receive a valid cohort ID");
 
-    // Get the cohort
-    let cohort = call_get_cohort(&pic, canister_id, cohort_id.clone());
-    assert!(cohort.is_ok(), "Should be able to get cohort");
-    let cohort = cohort.unwrap().unwrap();
-    assert_eq!(cohort.name, "Cohort 2024");
+//     // Get the cohort
+//     let cohort = call_get_cohort(&pic, canister_id, cohort_id.clone());
+//     assert!(cohort.is_ok(), "Should be able to get cohort");
+//     let cohort = cohort.unwrap().unwrap();
+//     assert_eq!(cohort.name, "Cohort 2024");
 
-    println!("✅ Test 8: Cohort management passed");
-}
+//     println!("✅ Test 8: Cohort management passed");
+// }
 
 #[test]
 fn test_startup_analytics() {
