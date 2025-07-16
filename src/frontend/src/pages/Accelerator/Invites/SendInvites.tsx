@@ -73,7 +73,7 @@ const statusColors: Record<string, string> = {
 
   const handleGenerateInvite = () => {
     // Optionally validate form here
-    navigate("/signup"); // ✅ Redirect to Startup Signup page
+    navigate("/accelerator/invites/generate-invite"); // ✅ Redirect to Startup Signup page
   };
 
   const filteredInvites = mockInvites.filter((invite) => {
