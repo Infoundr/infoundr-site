@@ -451,7 +451,7 @@ export const logAcceleratorLogin = async () => {
         
         const actor = createActor(CANISTER_ID, { agent });
         
-        const result = await actor.get_my_accelerator("");
+        const result = await actor.get_my_accelerator();
         
         if ('Err' in result) {
             console.warn('Accelerator login tracking failed:', result.Err);

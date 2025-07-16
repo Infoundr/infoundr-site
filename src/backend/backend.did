@@ -348,7 +348,7 @@ service : {
   get_current_user : () -> (opt User) query;
   get_discord_user : (text) -> (opt DiscordUser) query;
   get_discord_user_by_principal : (principal) -> (opt DiscordUser) query;
-  get_my_accelerator : (text) -> (Result_7);
+  get_my_accelerator : () -> (Result_7);
   get_openchat_user : (text) -> (opt OpenChatUser) query;
   get_openchat_user_by_principal : (principal) -> (opt OpenChatUser) query;
   get_registered_discord_users : () -> (vec DiscordUser) query;
