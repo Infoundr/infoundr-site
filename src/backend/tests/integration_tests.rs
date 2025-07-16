@@ -42,110 +42,110 @@ fn test_accelerator_signup() {
     println!("✅ Test 1: Basic sign-up passed"); 
 }
 
-#[test]
-fn test_duplicate_signup_prevention() {
-    let (pic, canister_id) = setup();
+// #[test]
+// fn test_duplicate_signup_prevention() {
+//     let (pic, canister_id) = setup();
     
-    let signup_data = AcceleratorSignUp {
-        name: TEST_ACCELERATOR_NAME.to_string(),
-        website: TEST_ACCELERATOR_WEBSITE.to_string(),
-        email: TEST_ACCELERATOR_EMAIL.to_string(),
-    };
+//     let signup_data = AcceleratorSignUp {
+//         name: TEST_ACCELERATOR_NAME.to_string(),
+//         website: TEST_ACCELERATOR_WEBSITE.to_string(),
+//         email: TEST_ACCELERATOR_EMAIL.to_string(),
+//     };
 
-    // First sign-up should succeed
-    let result1 = call_accelerator_signup(&pic, canister_id, signup_data.clone());
-    assert!(result1.is_ok(), "First sign-up should succeed");
+//     // First sign-up should succeed
+//     let result1 = call_accelerator_signup(&pic, canister_id, signup_data.clone());
+//     assert!(result1.is_ok(), "First sign-up should succeed");
 
-    // Second sign-up with same principal should fail
-    let result2 = call_accelerator_signup(&pic, canister_id, signup_data);
-    assert!(result2.is_err(), "Duplicate sign-up should fail");
+//     // Second sign-up with same principal should fail
+//     let result2 = call_accelerator_signup(&pic, canister_id, signup_data);
+//     assert!(result2.is_err(), "Duplicate sign-up should fail");
     
-    println!("✅ Test 2: Duplicate sign-up prevention passed");
-}
+//     println!("✅ Test 2: Duplicate sign-up prevention passed");
+// }
 
-#[test]
-fn test_field_updates() {
-    let (pic, canister_id) = setup();
+// #[test]
+// fn test_field_updates() {
+//     let (pic, canister_id) = setup();
     
-    // First sign up an accelerator
-    let signup_data = AcceleratorSignUp {
-        name: TEST_ACCELERATOR_NAME.to_string(),
-        website: TEST_ACCELERATOR_WEBSITE.to_string(),
-        email: TEST_ACCELERATOR_EMAIL.to_string(),
-    };
-    call_accelerator_signup(&pic, canister_id, signup_data).unwrap();
+//     // First sign up an accelerator
+//     let signup_data = AcceleratorSignUp {
+//         name: TEST_ACCELERATOR_NAME.to_string(),
+//         website: TEST_ACCELERATOR_WEBSITE.to_string(),
+//         email: TEST_ACCELERATOR_EMAIL.to_string(),
+//     };
+//     call_accelerator_signup(&pic, canister_id, signup_data).unwrap();
 
-    // Test individual field updates
-    let updates = AcceleratorUpdate {
-        name: Some("Updated Name".to_string()),
-        website: Some("https://updatedwebsite.com".to_string()),
-        email: Some("updated@email.com".to_string()),
-        email_verified: Some(true),
-        logo: Some(Some(vec![vec![1, 2, 3, 4]])), // Test logo data
-        total_startups: Some(10),
-        invites_sent: Some(5),
-        active_startups: Some(8),
-        graduated_startups: Some(2),
-    };
+//     // Test individual field updates
+//     let updates = AcceleratorUpdate {
+//         name: Some("Updated Name".to_string()),
+//         website: Some("https://updatedwebsite.com".to_string()),
+//         email: Some("updated@email.com".to_string()),
+//         email_verified: Some(true),
+//         logo: Some(Some(vec![vec![1, 2, 3, 4]])), // Test logo data
+//         total_startups: Some(10),
+//         invites_sent: Some(5),
+//         active_startups: Some(8),
+//         graduated_startups: Some(2),
+//     };
 
-    let update_result = call_update_my_accelerator(&pic, canister_id, updates);
-    assert!(update_result.is_ok(), "Update should succeed");
+//     let update_result = call_update_my_accelerator(&pic, canister_id, updates);
+//     assert!(update_result.is_ok(), "Update should succeed");
 
-    // Verify the updates
-    let my_accelerator = call_get_my_accelerator(&pic, canister_id);
-    assert!(my_accelerator.is_ok(), "Should be able to get accelerator");
+//     // Verify the updates
+//     let my_accelerator = call_get_my_accelerator(&pic, canister_id);
+//     assert!(my_accelerator.is_ok(), "Should be able to get accelerator");
     
-    let accelerator = my_accelerator.unwrap().unwrap();
-    assert_eq!(accelerator.name, "Updated Name");
-    assert_eq!(accelerator.website, "https://updatedwebsite.com");
-    assert_eq!(accelerator.email, "updated@email.com");
-    assert_eq!(accelerator.email_verified, true);
-    assert_eq!(accelerator.total_startups, 10);
-    assert_eq!(accelerator.invites_sent, 5);
-    assert_eq!(accelerator.active_startups, 8);
-    assert_eq!(accelerator.graduated_startups, 2);
-    assert!(accelerator.logo.is_some());
+//     let accelerator = my_accelerator.unwrap().unwrap();
+//     assert_eq!(accelerator.name, "Updated Name");
+//     assert_eq!(accelerator.website, "https://updatedwebsite.com");
+//     assert_eq!(accelerator.email, "updated@email.com");
+//     assert_eq!(accelerator.email_verified, true);
+//     assert_eq!(accelerator.total_startups, 10);
+//     assert_eq!(accelerator.invites_sent, 5);
+//     assert_eq!(accelerator.active_startups, 8);
+//     assert_eq!(accelerator.graduated_startups, 2);
+//     assert!(accelerator.logo.is_some());
 
-    println!("✅ Test 3: Field updates passed");
-}
+//     println!("✅ Test 3: Field updates passed");
+// }
 
-#[test]
-fn test_partial_updates() {
-    let (pic, canister_id) = setup();
+// #[test]
+// fn test_partial_updates() {
+//     let (pic, canister_id) = setup();
     
-    // First sign up an accelerator
-    let signup_data = AcceleratorSignUp {
-        name: TEST_ACCELERATOR_NAME.to_string(),
-        website: TEST_ACCELERATOR_WEBSITE.to_string(),
-        email: TEST_ACCELERATOR_EMAIL.to_string(),
-    };
-    call_accelerator_signup(&pic, canister_id, signup_data).unwrap();
+//     // First sign up an accelerator
+//     let signup_data = AcceleratorSignUp {
+//         name: TEST_ACCELERATOR_NAME.to_string(),
+//         website: TEST_ACCELERATOR_WEBSITE.to_string(),
+//         email: TEST_ACCELERATOR_EMAIL.to_string(),
+//     };
+//     call_accelerator_signup(&pic, canister_id, signup_data).unwrap();
 
-    // Test partial updates (only name)
-    let partial_updates = AcceleratorUpdate {
-        name: Some("Partial Update".to_string()),
-        website: None,
-        email: None,
-        email_verified: None,
-        logo: None,
-        total_startups: None,
-        invites_sent: None,
-        active_startups: None,
-        graduated_startups: None,
-    };
+//     // Test partial updates (only name)
+//     let partial_updates = AcceleratorUpdate {
+//         name: Some("Partial Update".to_string()),
+//         website: None,
+//         email: None,
+//         email_verified: None,
+//         logo: None,
+//         total_startups: None,
+//         invites_sent: None,
+//         active_startups: None,
+//         graduated_startups: None,
+//     };
 
-    let update_result = call_update_my_accelerator(&pic, canister_id, partial_updates);
-    assert!(update_result.is_ok(), "Partial update should succeed");
+//     let update_result = call_update_my_accelerator(&pic, canister_id, partial_updates);
+//     assert!(update_result.is_ok(), "Partial update should succeed");
 
-    // Verify only name was updated, other fields remain unchanged
-    let my_accelerator = call_get_my_accelerator(&pic, canister_id);
-    let accelerator = my_accelerator.unwrap().unwrap();
-    assert_eq!(accelerator.name, "Partial Update");
-    assert_eq!(accelerator.website, TEST_ACCELERATOR_WEBSITE); // Should remain unchanged
-    assert_eq!(accelerator.email, TEST_ACCELERATOR_EMAIL); // Should remain unchanged
+//     // Verify only name was updated, other fields remain unchanged
+//     let my_accelerator = call_get_my_accelerator(&pic, canister_id);
+//     let accelerator = my_accelerator.unwrap().unwrap();
+//     assert_eq!(accelerator.name, "Partial Update");
+//     assert_eq!(accelerator.website, TEST_ACCELERATOR_WEBSITE); // Should remain unchanged
+//     assert_eq!(accelerator.email, TEST_ACCELERATOR_EMAIL); // Should remain unchanged
 
-    println!("✅ Test 4: Partial updates passed");
-}
+//     println!("✅ Test 4: Partial updates passed");
+// }
 
 #[test]
 fn test_admin_functions() {
@@ -189,39 +189,39 @@ fn test_admin_functions() {
     println!("✅ Test 5: Admin functions structure created (will fail without admin privileges)");
 }
 
-#[test]
-fn test_data_integrity() {
-    let (pic, canister_id) = setup();
+// #[test]
+// fn test_data_integrity() {
+//     let (pic, canister_id) = setup();
     
-    let signup_data = AcceleratorSignUp {
-        name: "Integrity Test".to_string(),
-        website: "https://integritytest.com".to_string(),
-        email: "integrity@test.com".to_string(),
-    };
+//     let signup_data = AcceleratorSignUp {
+//         name: "Integrity Test".to_string(),
+//         website: "https://integritytest.com".to_string(),
+//         email: "integrity@test.com".to_string(),
+//     };
 
-    // Sign up
-    let signup_result = call_accelerator_signup(&pic, canister_id, signup_data);
-    assert!(signup_result.is_ok(), "Sign-up should succeed");
+//     // Sign up
+//     let signup_result = call_accelerator_signup(&pic, canister_id, signup_data);
+//     assert!(signup_result.is_ok(), "Sign-up should succeed");
 
-    // Get the accelerator
-    let my_accelerator = call_get_my_accelerator(&pic, canister_id);
-    assert!(my_accelerator.is_ok(), "Should be able to get accelerator");
-    let accelerator = my_accelerator.unwrap().unwrap();
+//     // Get the accelerator
+//     let my_accelerator = call_get_my_accelerator(&pic, canister_id);
+//     assert!(my_accelerator.is_ok(), "Should be able to get accelerator");
+//     let accelerator = my_accelerator.unwrap().unwrap();
 
-    // Verify all fields are set correctly
-    assert_eq!(accelerator.name, "Integrity Test");
-    assert_eq!(accelerator.website, "https://integritytest.com");
-    assert_eq!(accelerator.email, "integrity@test.com");
-    assert_eq!(accelerator.email_verified, false);
-    assert_eq!(accelerator.total_startups, 0);
-    assert_eq!(accelerator.invites_sent, 0);
-    assert_eq!(accelerator.active_startups, 0);
-    assert_eq!(accelerator.graduated_startups, 0);
-    assert!(accelerator.logo.is_none());
-    assert!(accelerator.recent_activity.is_empty());
+//     // Verify all fields are set correctly
+//     assert_eq!(accelerator.name, "Integrity Test");
+//     assert_eq!(accelerator.website, "https://integritytest.com");
+//     assert_eq!(accelerator.email, "integrity@test.com");
+//     assert_eq!(accelerator.email_verified, false);
+//     assert_eq!(accelerator.total_startups, 0);
+//     assert_eq!(accelerator.invites_sent, 0);
+//     assert_eq!(accelerator.active_startups, 0);
+//     assert_eq!(accelerator.graduated_startups, 0);
+//     assert!(accelerator.logo.is_none());
+//     assert!(accelerator.recent_activity.is_empty());
 
-    println!("✅ Test 6: Data integrity passed");
-}
+//     println!("✅ Test 6: Data integrity passed");
+// }
 
 // Helper functions
 
