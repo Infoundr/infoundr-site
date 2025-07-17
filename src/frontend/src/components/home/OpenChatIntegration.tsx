@@ -83,7 +83,7 @@ const OpenChatIntegration: React.FC = () => {
         {/* Call to Action */}
         <div className="mt-12 text-center">
           <a 
-            href="https://oc.app/user/infoundr" 
+            href="https://oc.app/community/fpl34-aiaaa-aaaac-aiboa-cai/channel/1860803775" 
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center justify-center px-6 sm:px-8 py-3 text-base font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors duration-200"
