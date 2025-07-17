@@ -1,5 +1,5 @@
-import { createAuthenticatedActor } from './auth';
 import type { Accelerator, AcceleratorStats } from '../types/accelerator';
+import { createAuthenticatedActor } from './auth';
 
 export const getMyAccelerator = async (): Promise<Accelerator | null> => {
     try {
