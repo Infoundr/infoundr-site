@@ -46,7 +46,7 @@ const Hero: React.FC<HeroProps> = ({ onGetStartedClick }) => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               {/* <Button variant="primary" className="w-full sm:w-auto px-8" onClick={handleGetStarted}>Get Started Free</Button> */}
-              <Button variant="primary" className="w-full sm:w-auto px-8" onClick={(e) => handleNavClick(e, 'features')}>Get Started Free</Button>
+              <Button variant="primary" className="w-full sm:w-auto px-8" onClick={(e) => handleNavClick(e, 'slack-integration')}>Get Started Free</Button>
               {/* <Button variant="secondary" className="w-full sm:w-auto px-8">Watch Demo</Button> */}
             </div>
           </div>
