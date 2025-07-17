@@ -69,8 +69,8 @@ const App: React.FC = () => {
                 <Hero onGetStartedClick={() => setIsWaitlistModalOpen(true)} />
                 <Features />
                 <SlackIntegration />
-                <OpenChatIntegration />
                 <DiscordIntegration />
+                <OpenChatIntegration />
                 {/* <AIAssistants /> */}
                 <Pricing onGetStartedClick={() => setIsWaitlistModalOpen(true)} />
               </main>
