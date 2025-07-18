@@ -144,14 +144,22 @@ pub fn store_chat_message(identifier: UserIdentifier, message: ChatMessage) {
         UserIdentifier::DiscordId(discord_id) => {
             ensure_discord_user(discord_id.clone());
 
-            // Try to get linked principal, otherwise derive from discord_id
+            // Try to get linked principal, otherwise use a special Discord principal
             DISCORD_USERS.with(|users| {
                 users
                     .borrow()
                     .get(&StableString::from(discord_id.clone()))
                     .and_then(|user| user.site_principal.map(|p| p.get()))
                     .unwrap_or_else(|| {
-                        Principal::from_text(discord_id).unwrap_or_else(|_| Principal::anonymous())
+                        // Create a special principal for Discord messages
+                        // This is a deterministic way to create a principal from a Discord ID
+                        let mut bytes = [0u8; 29];
+                        bytes[0] = 6; // Special type for Discord
+                        // Use the first 28 bytes of the Discord ID
+                        let discord_bytes = discord_id.as_bytes();
+                        let len = std::cmp::min(discord_bytes.len(), 28);
+                        bytes[1..1+len].copy_from_slice(&discord_bytes[..len]);
+                        Principal::from_slice(&bytes)
                     })
             })
         }
@@ -193,7 +201,33 @@ pub fn store_chat_message(identifier: UserIdentifier, message: ChatMessage) {
 
             ic_cdk::println!("Storing message with ID {} for special Slack principal {:?}", message_id, slack_principal);
 
-            history.insert((slack_principal.into(), message_id), message);
+            history.insert((slack_principal.into(), message_id), message.clone());
+        });
+    }
+
+    // If this is a Discord message, also store under the special Discord principal
+    if let UserIdentifier::DiscordId(discord_id) = &identifier {
+        // Create the special Discord principal
+        let mut bytes = [0u8; 29];
+        bytes[0] = 6; // Special type for Discord
+        // Use the first 28 bytes of the Discord ID
+        let discord_bytes = discord_id.as_bytes();
+        let len = std::cmp::min(discord_bytes.len(), 28);
+        bytes[1..1+len].copy_from_slice(&discord_bytes[..len]);
+        let discord_principal = Principal::from_slice(&bytes);
+
+        ic_cdk::println!("Created special Discord principal: {:?}", discord_principal);
+
+        CHAT_HISTORY.with(|history| {
+            let mut history = history.borrow_mut();
+            let message_id = history
+                .iter()
+                .filter(|((user_id, _), _)| user_id.get() == discord_principal)
+                .count() as u64;
+
+            ic_cdk::println!("Storing message with ID {} for special Discord principal {:?}", message_id, discord_principal);
+
+            history.insert((discord_principal.into(), message_id), message.clone());
         });
     }
 }
@@ -296,7 +330,13 @@ pub fn store_asana_task(identifier: UserIdentifier, task: Task) -> Result<(), St
                     .get(&StableString::from(discord_id.clone()))
                     .and_then(|user| user.site_principal.map(|p| p.get()))
                     .unwrap_or_else(|| {
-                        Principal::from_text(discord_id).unwrap_or_else(|_| Principal::anonymous())
+                        // Create a special principal for Discord messages
+                        let mut bytes = [0u8; 29];
+                        bytes[0] = 6; // Special type for Discord
+                        let discord_bytes = discord_id.as_bytes();
+                        let len = std::cmp::min(discord_bytes.len(), 28);
+                        bytes[1..1+len].copy_from_slice(&discord_bytes[..len]);
+                        Principal::from_slice(&bytes)
                     })
             })
         }
@@ -324,6 +364,25 @@ pub fn store_asana_task(identifier: UserIdentifier, task: Task) -> Result<(), St
         TASKS.with(|tasks| {
             let mut tasks = tasks.borrow_mut();
             let task_key = (slack_principal.into(), StableString::from(task.id.clone()));
+            tasks.insert(task_key, task.clone());
+        });
+    }
+
+    // If this is a Discord message, also store under the special Discord principal
+    if let UserIdentifier::DiscordId(discord_id) = &identifier {
+        // Create the special Discord principal
+        let mut bytes = [0u8; 29];
+        bytes[0] = 6; // Special type for Discord
+        let discord_bytes = discord_id.as_bytes();
+        let len = std::cmp::min(discord_bytes.len(), 28);
+        bytes[1..1+len].copy_from_slice(&discord_bytes[..len]);
+        let discord_principal = Principal::from_slice(&bytes);
+
+        ic_cdk::println!("Storing task for special Discord principal: {:?}", discord_principal);
+
+        TASKS.with(|tasks| {
+            let mut tasks = tasks.borrow_mut();
+            let task_key = (discord_principal.into(), StableString::from(task.id.clone()));
             tasks.insert(task_key, task);
         });
     }
@@ -391,7 +450,13 @@ pub fn store_github_issue(identifier: UserIdentifier, issue: Issue) -> Result<()
                     .get(&StableString::from(discord_id.clone()))
                     .and_then(|user| user.site_principal.map(|p| p.get()))
                     .unwrap_or_else(|| {
-                        Principal::from_text(discord_id).unwrap_or_else(|_| Principal::anonymous())
+                        // Create a special principal for Discord messages
+                        let mut bytes = [0u8; 29];
+                        bytes[0] = 6; // Special type for Discord
+                        let discord_bytes = discord_id.as_bytes();
+                        let len = std::cmp::min(discord_bytes.len(), 28);
+                        bytes[1..1+len].copy_from_slice(&discord_bytes[..len]);
+                        Principal::from_slice(&bytes)
                     })
             })
         }
@@ -419,6 +484,25 @@ pub fn store_github_issue(identifier: UserIdentifier, issue: Issue) -> Result<()
         GITHUB_ISSUES.with(|issues| {
             let mut issues = issues.borrow_mut();
             let issue_key = (slack_principal.into(), StableString::from(issue.id.clone()));
+            issues.insert(issue_key, issue.clone());
+        });
+    }
+
+    // If this is a Discord message, also store under the special Discord principal
+    if let UserIdentifier::DiscordId(discord_id) = &identifier {
+        // Create the special Discord principal
+        let mut bytes = [0u8; 29];
+        bytes[0] = 6; // Special type for Discord
+        let discord_bytes = discord_id.as_bytes();
+        let len = std::cmp::min(discord_bytes.len(), 28);
+        bytes[1..1+len].copy_from_slice(&discord_bytes[..len]);
+        let discord_principal = Principal::from_slice(&bytes);
+
+        ic_cdk::println!("Storing issue for special Discord principal: {:?}", discord_principal);
+
+        GITHUB_ISSUES.with(|issues| {
+            let mut issues = issues.borrow_mut();
+            let issue_key = (discord_principal.into(), StableString::from(issue.id.clone()));
             issues.insert(issue_key, issue);
         });
     }
@@ -520,7 +604,15 @@ fn get_principal_from_identifier(identifier: &UserIdentifier) -> Principal {
                 .get(&StableString::from(discord_id.clone()))
                 .and_then(|user| user.site_principal.map(|p| p.get()))
                 .unwrap_or_else(|| {
-                    Principal::from_text(discord_id).unwrap_or_else(|_| Principal::anonymous())
+                    // Create a special principal for Discord messages
+                    // This is a deterministic way to create a principal from a Discord ID
+                    let mut bytes = [0u8; 29];
+                    bytes[0] = 6; // Special type for Discord
+                    // Use the first 28 bytes of the Discord ID
+                    let discord_bytes = discord_id.as_bytes();
+                    let len = std::cmp::min(discord_bytes.len(), 28);
+                    bytes[1..1+len].copy_from_slice(&discord_bytes[..len]);
+                    Principal::from_slice(&bytes)
                 })
         })
     }
@@ -594,9 +686,13 @@ pub fn get_user_activity(identifier: UserIdentifier) -> UserActivity {
                 for (_, user) in users.iter() {
                     if let Some(p) = &user.site_principal {
                         if p.get() == *principal {
-                            if let Ok(derived_principal) = Principal::from_text(&user.discord_id) {
-                                principals.push(derived_principal);
-                            }
+                            // If found, also create special Discord principal
+                            let mut bytes = [0u8; 29];
+                            bytes[0] = 6; // Special type for Discord
+                            let discord_bytes = user.discord_id.as_bytes();
+                            let len = std::cmp::min(discord_bytes.len(), 28);
+                            bytes[1..1+len].copy_from_slice(&discord_bytes[..len]);
+                            principals.push(Principal::from_slice(&bytes));
                             break;
                         }
                     }
@@ -664,10 +760,18 @@ pub fn get_user_activity(identifier: UserIdentifier) -> UserActivity {
                 }
             });
 
-            // Also include derived principal from Discord ID
-            if let Ok(derived_principal) = Principal::from_text(discord_id) {
-                principals.push(derived_principal);
-            }
+            // Also include special Discord principal
+            let mut bytes = [0u8; 29];
+            bytes[0] = 6; // Special type for Discord
+            let discord_bytes = discord_id.as_bytes();
+            let len = std::cmp::min(discord_bytes.len(), 28);
+            bytes[1..1+len].copy_from_slice(&discord_bytes[..len]);
+            principals.push(Principal::from_slice(&bytes));
+
+            // Add debug logging
+            ic_cdk::println!("Discord ID: {}", discord_id);
+            ic_cdk::println!("Principals to check: {:?}", principals);
+
             principals
         }
     };
