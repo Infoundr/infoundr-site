@@ -2,9 +2,15 @@ use crate::models::stable_principal::StablePrincipal;
 use crate::models::user::User;
 use crate::models::waitlist::WaitlistEntry;
 use crate::models::accelerator::Accelerator;
+use crate::models::slack_user::SlackUser;
+use crate::models::discord_user::DiscordUser;
+use crate::models::chat::ChatMessage;
 use crate::storage::memory::{USERS, WAITLIST, ACCELERATORS};
 use candid::Principal;
 use ic_cdk::{caller, query, update};
+use crate::services::slack_service::get_registered_slack_users;
+use crate::services::discord_service::get_registered_discord_users;
+use crate::services::account_service::{get_chat_history, UserIdentifier};
 
 // Admin callers
 #[query]
@@ -189,4 +195,48 @@ pub fn get_accelerator_by_id(accelerator_id: Principal) -> Result<Option<Acceler
     let stable_id = StablePrincipal::new(accelerator_id);
     let accelerator = ACCELERATORS.with(|accs| accs.borrow().get(&stable_id));
     Ok(accelerator)
+}
+
+#[query]
+pub fn admin_get_all_slack_users() -> Result<Vec<SlackUser>, String> {
+    if !is_allowed_principal() {
+        return Err("Unauthorized: Caller is not an admin".to_string());
+    }
+    Ok(get_registered_slack_users())
+}
+
+#[query]
+pub fn admin_get_all_discord_users() -> Result<Vec<DiscordUser>, String> {
+    if !is_allowed_principal() {
+        return Err("Unauthorized: Caller is not an admin".to_string());
+    }
+    Ok(get_registered_discord_users())
+}
+
+#[query]
+pub fn admin_get_all_slack_messages() -> Result<Vec<ChatMessage>, String> {
+    if !is_allowed_principal() {
+        return Err("Unauthorized: Caller is not an admin".to_string());
+    }
+    let users = get_registered_slack_users();
+    let mut all_messages = Vec::new();
+    for user in users {
+        let messages = get_chat_history(UserIdentifier::SlackId(user.slack_id));
+        all_messages.extend(messages);
+    }
+    Ok(all_messages)
+}
+
+#[query]
+pub fn admin_get_all_discord_messages() -> Result<Vec<ChatMessage>, String> {
+    if !is_allowed_principal() {
+        return Err("Unauthorized: Caller is not an admin".to_string());
+    }
+    let users = get_registered_discord_users();
+    let mut all_messages = Vec::new();
+    for user in users {
+        let messages = get_chat_history(UserIdentifier::DiscordId(user.discord_id));
+        all_messages.extend(messages);
+    }
+    Ok(all_messages)
 }
