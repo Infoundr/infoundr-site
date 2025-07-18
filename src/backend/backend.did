@@ -327,12 +327,12 @@ service : {
   calculate_engagement_score : (text) -> (Result_2) query;
   check_auth : () -> (bool) query;
   create_startup : (StartupInput) -> (Result_3);
-  create_startup_cohort : (text, StartupCohortInput) -> (Result_4);
-  create_startup_status : (text, StartupStatusInput) -> (Result_5);
+  create_startup_cohort : (StartupCohortInput) -> (Result_4);
+  create_startup_status : (StartupStatusInput) -> (Result_5);
   delete_accelerator : (principal) -> (Result);
   delete_startup : (text) -> (Result);
-  delete_startup_cohort : (text, text) -> (Result);
-  delete_startup_status : (text, text) -> (Result);
+  delete_startup_cohort : (text) -> (Result);
+  delete_startup_status : (text) -> (Result);
   ensure_discord_user : (text) -> ();
   ensure_openchat_user : (text) -> ();
   ensure_slack_user : (text) -> ();
@@ -359,7 +359,7 @@ service : {
   get_slack_user_by_principal : (principal) -> (opt SlackUser) query;
   get_startup : (text) -> (Result_10) query;
   get_startup_activities : (text, opt nat64) -> (Result_11) query;
-  get_startup_stats : (text) -> (Result_12) query;
+  get_startup_stats : () -> (Result_12) query;
   get_token_info : (text) -> (opt DashboardToken) query;
   get_user_activity : (UserIdentifier) -> (UserActivity) query;
   get_user_connections : (principal) -> (opt ConnectedAccounts) query;
@@ -376,10 +376,10 @@ service : {
   join_waitlist : (text) -> (Result_15);
   link_accounts : (principal, text) -> (Result);
   link_token_to_principal : (text, principal) -> (Result);
-  list_startup_cohorts : (text) -> (Result_16) query;
+  list_startup_cohorts : () -> (Result_16) query;
   list_startup_invites : (text) -> (vec StartupInvite) query;
-  list_startup_statuses : (text) -> (Result_17) query;
-  list_startups : (text, opt StartupFilter) -> (Result_18) query;
+  list_startup_statuses : () -> (Result_17) query;
+  list_startups : (opt StartupFilter) -> (Result_18) query;
   list_team_members : (text) -> (Result_19) query;
   record_startup_activity : (text, StartupActivityType, text, opt text) -> (
       Result,
@@ -405,8 +405,8 @@ service : {
   update_github_selected_repo : (UserIdentifier, text) -> (Result);
   update_my_accelerator : (AcceleratorUpdateWithId) -> (Result);
   update_startup : (text, StartupUpdate) -> (Result);
-  update_startup_cohort : (text, text, StartupCohortInput) -> (Result);
-  update_startup_status : (text, text, StartupStatusInput) -> (Result);
+  update_startup_cohort : (text, StartupCohortInput) -> (Result);
+  update_startup_status : (text, StartupStatusInput) -> (Result);
   update_team_member_role : (UpdateTeamMemberRole) -> (Result);
   validate_dashboard_token : (blob) -> (opt TokenValidationResult) query;
   verify_connections : (principal) -> (Result_21) query;

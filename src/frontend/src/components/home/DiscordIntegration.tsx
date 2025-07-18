@@ -20,7 +20,7 @@ const DiscordIntegration: React.FC = () => {
   ];
 
   return (
-    <section id="discord-integration" className="py-16 sm:py-20 bg-gradient-to-b from-white to-purple-50">
+    <section id="discord-integration" className="py-16 sm:py-20 bg-gradient-to-b from-purple-50 to-purple-50">
       <div className="container mx-auto px-4 sm:px-6">
         <div className="flex flex-col lg:flex-row items-center justify-center gap-8 sm:gap-12 max-w-7xl mx-auto">
           {/* Left Column - Text Content */}
@@ -83,7 +83,7 @@ const DiscordIntegration: React.FC = () => {
         {/* Call to Action */}
         <div className="mt-12 text-center">
           <a 
-            href="#" 
+            href="https://discord.infoundr.com/" 
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center justify-center px-6 sm:px-8 py-3 text-base font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors duration-200"
