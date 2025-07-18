@@ -143,7 +143,7 @@ const NavBar: React.FC<NavBarProps> = ({ onGetStartedClick, isAuthenticated: isU
             <Button 
               variant="primary"
               // onClick={onGetStartedClick}
-              onClick={(e) => handleNavClick(e, 'features')}
+              onClick={(e) => handleNavClick(e, 'slack-integration')}
               className="transition-colors duration-200"
             >
               Get Started
@@ -238,7 +238,7 @@ const NavBar: React.FC<NavBarProps> = ({ onGetStartedClick, isAuthenticated: isU
               <Button 
                 variant="primary" 
                 className="w-full transition-colors duration-200"
-                onClick={onGetStartedClick}
+                onClick={(e) => handleNavClick(e, 'slack-integration')}
               >
                 Get Started
               </Button>
