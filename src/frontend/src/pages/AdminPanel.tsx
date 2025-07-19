@@ -265,7 +265,13 @@ const AdminPanel: React.FC = () => {
         if (!actor) return;
         
         try {
+            console.log('Getting user activity for identifier:', identifier);
+            console.log('Identifier type:', typeof identifier);
+            console.log('Identifier keys:', Object.keys(identifier));
+            
             const result = await actor.get_user_activity_admin(identifier);
+            console.log('User activity result:', result);
+            
             if ('Ok' in result) {
                 setSelectedUserActivity(result.Ok);
                 setSelectedUserIdentifier(identifier);
@@ -719,16 +725,32 @@ const AdminPanel: React.FC = () => {
                             <div className="bg-gray-50 p-4 rounded-lg">
                                 <h4 className="font-semibold mb-2">User Identifier:</h4>
                                 <p className="text-sm text-gray-600">
-                                    {selectedUserIdentifier && (
-                                        Object.keys(selectedUserIdentifier)[0] === 'SlackId' ? 
-                                        `Slack ID: ${selectedUserIdentifier.SlackId}` :
-                                        Object.keys(selectedUserIdentifier)[0] === 'DiscordId' ? 
-                                        `Discord ID: ${selectedUserIdentifier.DiscordId}` :
-                                        Object.keys(selectedUserIdentifier)[0] === 'OpenChatId' ? 
-                                        `OpenChat ID: ${selectedUserIdentifier.OpenChatId}` :
-                                        Object.keys(selectedUserIdentifier)[0] === 'Principal' ? 
-                                        `Principal: ${selectedUserIdentifier.Principal}` :
-                                        'Unknown'
+                                    {selectedUserIdentifier && typeof selectedUserIdentifier === 'object' && (
+                                        (() => {
+                                            try {
+                                                const keys = Object.keys(selectedUserIdentifier);
+                                                if (keys.length > 0) {
+                                                    const key = keys[0];
+                                                    const value = selectedUserIdentifier[key];
+                                                    switch (key) {
+                                                        case 'SlackId':
+                                                            return `Slack ID: ${value}`;
+                                                        case 'DiscordId':
+                                                            return `Discord ID: ${value}`;
+                                                        case 'OpenChatId':
+                                                            return `OpenChat ID: ${value}`;
+                                                        case 'Principal':
+                                                            return `Principal: ${value}`;
+                                                        default:
+                                                            return `Unknown: ${key} - ${JSON.stringify(value)}`;
+                                                    }
+                                                }
+                                                return 'Unknown identifier';
+                                            } catch (error) {
+                                                console.error('Error parsing user identifier:', error);
+                                                return 'Error parsing identifier';
+                                            }
+                                        })()
                                     )}
                                 </p>
                             </div>
@@ -736,49 +758,53 @@ const AdminPanel: React.FC = () => {
                             {/* Connection Status */}
                             <div>
                                 <h4 className="font-semibold mb-2">Connection Status:</h4>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="bg-gray-50 p-3 rounded">
-                                        <span className="font-medium">Asana:</span> 
-                                        <span className={`ml-2 ${selectedUserActivity.connection_status.asana_connected ? 'text-green-600' : 'text-red-600'}`}>
-                                            {selectedUserActivity.connection_status.asana_connected ? 'Connected' : 'Not Connected'}
-                                        </span>
+                                {selectedUserActivity.connection_status ? (
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="bg-gray-50 p-3 rounded">
+                                            <span className="font-medium">Asana:</span> 
+                                            <span className={`ml-2 ${selectedUserActivity.connection_status.asana_connected ? 'text-green-600' : 'text-red-600'}`}>
+                                                {selectedUserActivity.connection_status.asana_connected ? 'Connected' : 'Not Connected'}
+                                            </span>
+                                        </div>
+                                        <div className="bg-gray-50 p-3 rounded">
+                                            <span className="font-medium">GitHub:</span> 
+                                            <span className={`ml-2 ${selectedUserActivity.connection_status.github_connected ? 'text-green-600' : 'text-red-600'}`}>
+                                                {selectedUserActivity.connection_status.github_connected ? 'Connected' : 'Not Connected'}
+                                            </span>
+                                        </div>
+                                        {selectedUserActivity.connection_status.selected_repo && (
+                                            <div className="mt-2 bg-gray-50 p-3 rounded">
+                                                <span className="font-medium">Selected Repository:</span> 
+                                                <span className="ml-2 text-gray-600">{selectedUserActivity.connection_status.selected_repo}</span>
+                                            </div>
+                                        )}
+                                        {selectedUserActivity.connection_status.asana_workspace && (
+                                            <div className="mt-2 bg-gray-50 p-3 rounded">
+                                                <span className="font-medium">Asana Workspace:</span> 
+                                                <span className="ml-2 text-gray-600">{selectedUserActivity.connection_status.asana_workspace}</span>
+                                            </div>
+                                        )}
                                     </div>
-                                    <div className="bg-gray-50 p-3 rounded">
-                                        <span className="font-medium">GitHub:</span> 
-                                        <span className={`ml-2 ${selectedUserActivity.connection_status.github_connected ? 'text-green-600' : 'text-red-600'}`}>
-                                            {selectedUserActivity.connection_status.github_connected ? 'Connected' : 'Not Connected'}
-                                        </span>
-                                    </div>
-                                </div>
-                                {selectedUserActivity.connection_status.selected_repo && (
-                                    <div className="mt-2 bg-gray-50 p-3 rounded">
-                                        <span className="font-medium">Selected Repository:</span> 
-                                        <span className="ml-2 text-gray-600">{selectedUserActivity.connection_status.selected_repo}</span>
-                                    </div>
-                                )}
-                                {selectedUserActivity.connection_status.asana_workspace && (
-                                    <div className="mt-2 bg-gray-50 p-3 rounded">
-                                        <span className="font-medium">Asana Workspace:</span> 
-                                        <span className="ml-2 text-gray-600">{selectedUserActivity.connection_status.asana_workspace}</span>
-                                    </div>
+                                ) : (
+                                    <p className="text-gray-500">No connection status available</p>
                                 )}
                             </div>
 
                             {/* Chat History */}
                             <div>
-                                <h4 className="font-semibold mb-2">Chat History ({selectedUserActivity.chat_history.length} messages):</h4>
+                                <h4 className="font-semibold mb-2">Chat History ({selectedUserActivity.chat_history?.length || 0} messages):</h4>
                                 <div className="max-h-60 overflow-y-auto bg-gray-50 rounded-lg p-4">
-                                    {selectedUserActivity.chat_history.length > 0 ? (
+                                    {selectedUserActivity.chat_history && selectedUserActivity.chat_history.length > 0 ? (
                                         <div className="space-y-3">
                                             {selectedUserActivity.chat_history.map((message: any, index: number) => (
                                                 <div key={index} className="bg-white p-3 rounded border">
                                                     <div className="flex justify-between items-start mb-1">
-                                                        <span className="font-medium text-sm">{message.role}</span>
+                                                        <span className="font-medium text-sm">{message.role || 'Unknown'}</span>
                                                         <span className="text-xs text-gray-500">
-                                                            {new Date(Number(message.timestamp) / 1000000).toLocaleString()}
+                                                            {message.timestamp ? new Date(Number(message.timestamp) / 1000000).toLocaleString() : 'No timestamp'}
                                                         </span>
                                                     </div>
-                                                    <p className="text-sm text-gray-700">{message.content}</p>
+                                                    <p className="text-sm text-gray-700">{message.content || 'No content'}</p>
                                                 </div>
                                             ))}
                                         </div>
@@ -790,25 +816,25 @@ const AdminPanel: React.FC = () => {
 
                             {/* Tasks */}
                             <div>
-                                <h4 className="font-semibold mb-2">Tasks ({selectedUserActivity.tasks.length} tasks):</h4>
+                                <h4 className="font-semibold mb-2">Tasks ({selectedUserActivity.tasks?.length || 0} tasks):</h4>
                                 <div className="max-h-60 overflow-y-auto bg-gray-50 rounded-lg p-4">
-                                    {selectedUserActivity.tasks.length > 0 ? (
+                                    {selectedUserActivity.tasks && selectedUserActivity.tasks.length > 0 ? (
                                         <div className="space-y-3">
                                             {selectedUserActivity.tasks.map((task: any, index: number) => (
                                                 <div key={index} className="bg-white p-3 rounded border">
                                                     <div className="flex justify-between items-start mb-1">
-                                                        <span className="font-medium text-sm">{task.title}</span>
+                                                        <span className="font-medium text-sm">{task.title || 'No title'}</span>
                                                         <span className={`text-xs px-2 py-1 rounded ${
                                                             task.status === 'Completed' ? 'bg-green-100 text-green-800' :
                                                             task.status === 'In Progress' ? 'bg-yellow-100 text-yellow-800' :
                                                             'bg-gray-100 text-gray-800'
                                                         }`}>
-                                                            {task.status}
+                                                            {task.status || 'Unknown'}
                                                         </span>
                                                     </div>
-                                                    <p className="text-sm text-gray-600 mb-2">{task.description}</p>
+                                                    <p className="text-sm text-gray-600 mb-2">{task.description || 'No description'}</p>
                                                     <div className="text-xs text-gray-500">
-                                                        Created: {new Date(Number(task.created_at) / 1000000).toLocaleString()}
+                                                        Created: {task.created_at ? new Date(Number(task.created_at) / 1000000).toLocaleString() : 'Unknown'}
                                                     </div>
                                                 </div>
                                             ))}
@@ -821,23 +847,23 @@ const AdminPanel: React.FC = () => {
 
                             {/* Issues */}
                             <div>
-                                <h4 className="font-semibold mb-2">GitHub Issues ({selectedUserActivity.issues.length} issues):</h4>
+                                <h4 className="font-semibold mb-2">GitHub Issues ({selectedUserActivity.issues?.length || 0} issues):</h4>
                                 <div className="max-h-60 overflow-y-auto bg-gray-50 rounded-lg p-4">
-                                    {selectedUserActivity.issues.length > 0 ? (
+                                    {selectedUserActivity.issues && selectedUserActivity.issues.length > 0 ? (
                                         <div className="space-y-3">
                                             {selectedUserActivity.issues.map((issue: any, index: number) => (
                                                 <div key={index} className="bg-white p-3 rounded border">
                                                     <div className="flex justify-between items-start mb-1">
-                                                        <span className="font-medium text-sm">{issue.title}</span>
+                                                        <span className="font-medium text-sm">{issue.title || 'No title'}</span>
                                                         <span className={`text-xs px-2 py-1 rounded ${
                                                             issue.state === 'open' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                                                         }`}>
-                                                            {issue.state}
+                                                            {issue.state || 'Unknown'}
                                                         </span>
                                                     </div>
-                                                    <p className="text-sm text-gray-600 mb-2">{issue.body}</p>
+                                                    <p className="text-sm text-gray-600 mb-2">{issue.body || 'No description'}</p>
                                                     <div className="text-xs text-gray-500">
-                                                        Created: {new Date(Number(issue.created_at) / 1000000).toLocaleString()}
+                                                        Created: {issue.created_at ? new Date(Number(issue.created_at) / 1000000).toLocaleString() : 'Unknown'}
                                                     </div>
                                                 </div>
                                             ))}
