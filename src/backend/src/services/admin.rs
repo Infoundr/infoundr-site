@@ -2,7 +2,7 @@ use crate::models::stable_principal::StablePrincipal;
 use crate::models::user::User;
 use crate::models::waitlist::WaitlistEntry;
 use crate::models::accelerator::Accelerator;
-use crate::storage::memory::{USERS, WAITLIST, ACCELERATORS, ADMINS};
+use crate::storage::memory::{USERS, WAITLIST, ACCELERATORS, ADMINS, SLACK_USERS, DISCORD_USERS, OPENCHAT_USERS};
 use candid::Principal;
 use ic_cdk::{caller, query, update};
 
@@ -253,4 +253,67 @@ pub fn get_accelerator_by_id(accelerator_id: Principal) -> Result<Option<Acceler
     let stable_id = StablePrincipal::new(accelerator_id);
     let accelerator = ACCELERATORS.with(|accs| accs.borrow().get(&stable_id));
     Ok(accelerator)
+}
+
+// Admin functions for platform user management
+
+#[query]
+pub fn get_registered_slack_users_admin() -> Result<Vec<crate::models::slack_user::SlackUser>, String> {
+    if !is_allowed_principal() {
+        return Err("Unauthorized: Caller is not an admin".to_string());
+    }
+
+    let users = SLACK_USERS.with(|users| {
+        users
+            .borrow()
+            .iter()
+            .map(|(_, user)| user.clone())
+            .collect()
+    });
+
+    Ok(users)
+}
+
+#[query]
+pub fn get_registered_discord_users_admin() -> Result<Vec<crate::models::discord_user::DiscordUser>, String> {
+    if !is_allowed_principal() {
+        return Err("Unauthorized: Caller is not an admin".to_string());
+    }
+
+    let users = DISCORD_USERS.with(|users| {
+        users
+            .borrow()
+            .iter()
+            .map(|(_, user)| user.clone())
+            .collect()
+    });
+
+    Ok(users)
+}
+
+#[query]
+pub fn get_registered_openchat_users_admin() -> Result<Vec<crate::models::openchat_user::OpenChatUser>, String> {
+    if !is_allowed_principal() {
+        return Err("Unauthorized: Caller is not an admin".to_string());
+    }
+
+    let users = OPENCHAT_USERS.with(|users| {
+        users
+            .borrow()
+            .iter()
+            .map(|(_, user)| user.clone())
+            .collect()
+    });
+
+    Ok(users)
+}
+
+#[query]
+pub fn get_user_activity_admin(identifier: crate::services::account_service::UserIdentifier) -> Result<crate::services::account_service::UserActivity, String> {
+    if !is_allowed_principal() {
+        return Err("Unauthorized: Caller is not an admin".to_string());
+    }
+
+    let activity = crate::services::account_service::get_user_activity(identifier);
+    Ok(activity)
 }

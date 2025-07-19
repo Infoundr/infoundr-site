@@ -28,6 +28,14 @@ const AdminPanel: React.FC = () => {
     const [accelerators, setAccelerators] = useState<any[]>([]);
     const [selectedAccelerator, setSelectedAccelerator] = useState<any>(null);
     const [showAcceleratorDetails, setShowAcceleratorDetails] = useState<boolean>(false);
+    
+    // Platform user management state
+    const [slackUsers, setSlackUsers] = useState<any[]>([]);
+    const [discordUsers, setDiscordUsers] = useState<any[]>([]);
+    const [openchatUsers, setOpenchatUsers] = useState<any[]>([]);
+    const [selectedUserActivity, setSelectedUserActivity] = useState<any>(null);
+    const [showUserActivity, setShowUserActivity] = useState<boolean>(false);
+    const [selectedUserIdentifier, setSelectedUserIdentifier] = useState<any>(null);
 
     useEffect(() => {
         initializeActor();
@@ -160,6 +168,34 @@ const AdminPanel: React.FC = () => {
             } catch (error) {
                 console.error('Error fetching accelerators:', error);
             }
+            
+            // Fetch platform users
+            try {
+                const slackResult = await authenticatedActor.get_registered_slack_users_admin();
+                if ('Ok' in slackResult) {
+                    setSlackUsers(slackResult.Ok);
+                }
+            } catch (error) {
+                console.error('Error fetching Slack users:', error);
+            }
+            
+            try {
+                const discordResult = await authenticatedActor.get_registered_discord_users_admin();
+                if ('Ok' in discordResult) {
+                    setDiscordUsers(discordResult.Ok);
+                }
+            } catch (error) {
+                console.error('Error fetching Discord users:', error);
+            }
+            
+            try {
+                const openchatResult = await authenticatedActor.get_registered_openchat_users_admin();
+                if ('Ok' in openchatResult) {
+                    setOpenchatUsers(openchatResult.Ok);
+                }
+            } catch (error) {
+                console.error('Error fetching OpenChat users:', error);
+            }
         } catch (error) {
             console.error('Error fetching data:', error);
         }
@@ -219,6 +255,24 @@ const AdminPanel: React.FC = () => {
         } catch (error) {
             console.error('Error deleting accelerator:', error);
             alert('Error deleting accelerator');
+        }
+    };
+
+    const handleGetUserActivity = async (identifier: any) => {
+        if (!actor) return;
+        
+        try {
+            const result = await actor.get_user_activity_admin(identifier);
+            if ('Ok' in result) {
+                setSelectedUserActivity(result.Ok);
+                setSelectedUserIdentifier(identifier);
+                setShowUserActivity(true);
+            } else {
+                alert(`Error getting user activity: ${result.Err}`);
+            }
+        } catch (error) {
+            console.error('Error getting user activity:', error);
+            alert('Error getting user activity');
         }
     };
 
@@ -516,6 +570,126 @@ const AdminPanel: React.FC = () => {
                             ))}
                         </tbody>
                     </table>
+                </div>
+            </section>
+
+            {/* Platform User Management Section */}
+            <section className="mt-12">
+                <h2 className="text-2xl font-semibold mb-4">Platform User Management</h2>
+                
+                {/* Slack Users */}
+                <div className="mb-8">
+                    <h3 className="text-xl font-semibold mb-4">Slack Users ({slackUsers.length})</h3>
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full bg-white shadow-md rounded-lg">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Slack ID</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Display Name</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team ID</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Linked Principal</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200">
+                                {slackUsers.map((user) => (
+                                    <tr key={user.slack_id}>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.slack_id}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.display_name || 'N/A'}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.team_id || 'N/A'}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.site_principal ? user.site_principal.toString() : 'Not linked'}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <Button
+                                                variant="secondary"
+                                                className="text-blue-600 hover:text-blue-800"
+                                                onClick={() => handleGetUserActivity({ SlackId: user.slack_id })}
+                                            >
+                                                View Activity
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {/* Discord Users */}
+                <div className="mb-8">
+                    <h3 className="text-xl font-semibold mb-4">Discord Users ({discordUsers.length})</h3>
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full bg-white shadow-md rounded-lg">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Discord ID</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Guild ID</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Linked Principal</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200">
+                                {discordUsers.map((user) => (
+                                    <tr key={user.discord_id}>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.discord_id}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.username || 'N/A'}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.guild_id || 'N/A'}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.site_principal ? user.site_principal.toString() : 'Not linked'}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <Button
+                                                variant="secondary"
+                                                className="text-blue-600 hover:text-blue-800"
+                                                onClick={() => handleGetUserActivity({ DiscordId: user.discord_id })}
+                                            >
+                                                View Activity
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {/* OpenChat Users */}
+                <div className="mb-8">
+                    <h3 className="text-xl font-semibold mb-4">OpenChat Users ({openchatUsers.length})</h3>
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full bg-white shadow-md rounded-lg">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">OpenChat ID</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">First Interaction</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Interaction</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Linked Principal</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200">
+                                {openchatUsers.map((user) => (
+                                    <tr key={user.openchat_id}>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.openchat_id}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {new Date(Number(user.first_interaction) / 1000000).toLocaleString()}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {new Date(Number(user.last_interaction) / 1000000).toLocaleString()}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.site_principal ? user.site_principal.toString() : 'Not linked'}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <Button
+                                                variant="secondary"
+                                                className="text-blue-600 hover:text-blue-800"
+                                                onClick={() => handleGetUserActivity({ OpenChatId: user.openchat_id })}
+                                            >
+                                                View Activity
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
         </div>
