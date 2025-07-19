@@ -77,11 +77,11 @@ jobs:
           cd ../..
           # Build the backend canister using dfx
           dfx build backend --network ic
-          # Check if wasm file exists and gzip it
-          if [ -f ".dfx/ic/canisters/backend/backend.wasm" ]; then
-            gzip -f -1 .dfx/ic/canisters/backend/backend.wasm
+          # Check if gzipped wasm file exists (dfx already gzipped it due to dfx.json setting)
+          if [ -f ".dfx/ic/canisters/backend/backend.wasm.gz" ]; then
+            echo "Found gzipped wasm file, copying..."
           else
-            echo "Error: backend.wasm not found in .dfx/ic/canisters/backend/"
+            echo "Error: backend.wasm.gz not found in .dfx/ic/canisters/backend/"
             ls -la .dfx/ic/canisters/backend/
             exit 1
           fi
