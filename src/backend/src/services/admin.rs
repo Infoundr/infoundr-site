@@ -2,7 +2,7 @@ use crate::models::stable_principal::StablePrincipal;
 use crate::models::user::User;
 use crate::models::waitlist::WaitlistEntry;
 use crate::models::accelerator::Accelerator;
-use crate::storage::memory::{USERS, WAITLIST, ACCELERATORS};
+use crate::storage::memory::{USERS, WAITLIST, ACCELERATORS, ADMINS};
 use candid::Principal;
 use ic_cdk::{caller, query, update};
 
@@ -97,6 +97,70 @@ pub fn get_admins() -> Vec<StablePrincipal> {
     .into_iter()
     .map(StablePrincipal::from)
     .collect()
+}
+
+#[update]
+pub fn add_admin(admin_principal: Principal) -> Result<(), String> {
+    if !is_allowed_principal() {
+        return Err("Unauthorized: Caller is not an admin".to_string());
+    }
+
+    let stable_principal = StablePrincipal::new(admin_principal);
+    
+    // Check if admin already exists
+    let exists = ADMINS.with(|admins| admins.borrow().contains_key(&stable_principal));
+    if exists {
+        return Err("Admin already exists".to_string());
+    }
+
+    // Create new admin
+    let admin = crate::models::admin::Admin {
+        principal_id: admin_principal.to_string(),
+        created_at: ic_cdk::api::time(),
+    };
+
+    // Add new admin
+    ADMINS.with(|admins| {
+        admins.borrow_mut().insert(stable_principal, admin);
+    });
+
+    Ok(())
+}
+
+#[update]
+pub fn remove_admin(admin_principal: Principal) -> Result<(), String> {
+    if !is_allowed_principal() {
+        return Err("Unauthorized: Caller is not an admin".to_string());
+    }
+
+    let stable_principal = StablePrincipal::new(admin_principal);
+    
+    // Check if admin exists
+    let exists = ADMINS.with(|admins| admins.borrow().contains_key(&stable_principal));
+    if !exists {
+        return Err("Admin not found".to_string());
+    }
+
+    // Remove admin
+    ADMINS.with(|admins| {
+        admins.borrow_mut().remove(&stable_principal);
+    });
+
+    Ok(())
+}
+
+#[query]
+pub fn get_admin_details() -> Vec<(StablePrincipal, crate::models::admin::Admin)> {
+    if !is_allowed_principal() {
+        return vec![];
+    }
+
+    ADMINS.with(|admins| {
+        admins.borrow()
+            .iter()
+            .map(|(principal, admin)| (principal.clone(), admin.clone()))
+            .collect()
+    })
 }
 
 #[query]

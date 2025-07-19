@@ -34,7 +34,7 @@ use crate::services::account_service::ConnectionStatus;
 use crate::services::account_service::{UserActivity, UserIdentifier};
 use crate::storage::memory::{
     CHAT_HISTORY, CONNECTED_ACCOUNTS, DASHBOARD_TOKENS, OPENCHAT_USERS, SLACK_USERS, DISCORD_USERS, TASKS, USERS, WAITLIST, GITHUB_ISSUES,
-    STARTUPS, STARTUP_STATUSES, STARTUP_COHORTS, STARTUP_ACTIVITIES, ACCELERATORS, STARTUP_INVITES,
+    STARTUPS, STARTUP_STATUSES, STARTUP_COHORTS, STARTUP_ACTIVITIES, ACCELERATORS, STARTUP_INVITES, ADMINS,
 };
 use candid::Principal;
 use ic_cdk::storage::{stable_restore, stable_save};
@@ -43,6 +43,27 @@ use crate::services::accelerator_service::{AcceleratorSignUp, TeamMemberInviteWi
 use crate::models::accelerator::{Accelerator, TeamMember};
 use crate::models::startup_invite::StartupInvite;
 use crate::services::accelerator_service::{GenerateStartupInviteInput, StartupRegistrationInput};
+
+#[derive(candid::CandidType, candid::Deserialize)]
+struct StableState {
+    users: Vec<(StablePrincipal, User)>,
+    waitlist: Vec<(StableString, WaitlistEntry)>,
+    chat_history: Vec<((StablePrincipal, u64), ChatMessage)>,
+    connected_accounts: Vec<(StablePrincipal, ConnectedAccounts)>,
+    tasks: Vec<((StablePrincipal, StableString), Task)>,
+    github_issues: Vec<((StablePrincipal, StableString), Issue)>,
+    openchat_users: Vec<(StableString, OpenChatUser)>,
+    slack_users: Vec<(StableString, SlackUser)>,
+    discord_users: Vec<(StableString, DiscordUser)>,
+    dashboard_tokens: Vec<(StableString, DashboardToken)>,
+    accelerators: Vec<(StablePrincipal, Accelerator)>,
+    startup_invites: Vec<(StableString, StartupInvite)>,
+    startups: Vec<(StableString, Startup)>,
+    startup_statuses: Vec<(StableString, StartupStatus)>,
+    startup_cohorts: Vec<(StableString, StartupCohort)>,
+    startup_activities: Vec<((StableString, u64), StartupActivity)>,
+    admins: Vec<(StablePrincipal, crate::models::admin::Admin)>,
+}
 
 #[ic_cdk::pre_upgrade]
 fn pre_upgrade() {
@@ -62,8 +83,9 @@ fn pre_upgrade() {
     let startup_statuses = STARTUP_STATUSES.with(|s| s.borrow().iter().collect::<Vec<_>>());
     let startup_cohorts = STARTUP_COHORTS.with(|c| c.borrow().iter().collect::<Vec<_>>());
     let startup_activities = STARTUP_ACTIVITIES.with(|a| a.borrow().iter().collect::<Vec<_>>());
+    let admins = ADMINS.with(|a| a.borrow().iter().collect::<Vec<_>>());
 
-    stable_save((
+    let state = StableState {
         users,
         waitlist,
         chat_history,
@@ -80,55 +102,41 @@ fn pre_upgrade() {
         startup_statuses,
         startup_cohorts,
         startup_activities,
-    ))
-    .expect("Failed to save stable state");
+        admins,
+    };
+
+    stable_save((state,)).expect("Failed to save stable state");
 }
 
 #[ic_cdk::post_upgrade]
 fn post_upgrade() {
-    let (
-        users,
-        waitlist,
-        chat_history,
-        connected_accounts,
-        tasks,
-        github_issues,
-        openchat_users,
-        slack_users,
-        discord_users,
-        dashboard_tokens,
-        accelerators,
-        startup_invites,
-        startups,
-        startup_statuses,
-        startup_cohorts,
-        startup_activities,
-    ): (
-        Vec<(StablePrincipal, User)>,
-        Vec<(StableString, WaitlistEntry)>,
-        Vec<((StablePrincipal, u64), ChatMessage)>,
-        Vec<(StablePrincipal, ConnectedAccounts)>,
-        Vec<((StablePrincipal, StableString), Task)>,
-        Vec<((StablePrincipal, StableString), Issue)>,
-        Vec<(StableString, OpenChatUser)>,
-        Vec<(StableString, SlackUser)>,
-        Vec<(StableString, DiscordUser)>,
-        Vec<(StableString, DashboardToken)>,
-        Vec<(StablePrincipal, Accelerator)>,
-        Vec<(StableString, StartupInvite)>,
-        Vec<(StableString, Startup)>,
-        Vec<(StableString, StartupStatus)>,
-        Vec<(StableString, StartupCohort)>,
-        Vec<((StableString, u64), StartupActivity)>,
-    ) = match stable_restore() {
+    let (state,): (StableState,) = match stable_restore() {
         Ok(data) => data,
-        Err(_) => (vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![]),
+        Err(_) => (StableState {
+            users: vec![],
+            waitlist: vec![],
+            chat_history: vec![],
+            connected_accounts: vec![],
+            tasks: vec![],
+            github_issues: vec![],
+            openchat_users: vec![],
+            slack_users: vec![],
+            discord_users: vec![],
+            dashboard_tokens: vec![],
+            accelerators: vec![],
+            startup_invites: vec![],
+            startups: vec![],
+            startup_statuses: vec![],
+            startup_cohorts: vec![],
+            startup_activities: vec![],
+            admins: vec![],
+        },),
     };
 
     // Restore users
     USERS.with(|u| {
         let mut u = u.borrow_mut();
-        for (k, v) in users {
+        for (k, v) in state.users {
             u.insert(k, v);
         }
     });
@@ -136,7 +144,7 @@ fn post_upgrade() {
     // Restore waitlist
     WAITLIST.with(|w| {
         let mut w = w.borrow_mut();
-        for (k, v) in waitlist {
+        for (k, v) in state.waitlist {
             w.insert(k, v);
         }
     });
@@ -144,7 +152,7 @@ fn post_upgrade() {
     // Restore chat history
     CHAT_HISTORY.with(|h| {
         let mut h = h.borrow_mut();
-        for (k, v) in chat_history {
+        for (k, v) in state.chat_history {
             h.insert(k, v);
         }
     });
@@ -152,7 +160,7 @@ fn post_upgrade() {
     // Restore connected accounts
     CONNECTED_ACCOUNTS.with(|ca| {
         let mut ca = ca.borrow_mut();
-        for (k, v) in connected_accounts {
+        for (k, v) in state.connected_accounts {
             ca.insert(k, v);
         }
     });
@@ -160,7 +168,7 @@ fn post_upgrade() {
     // Restore tasks
     TASKS.with(|t| {
         let mut t = t.borrow_mut();
-        for (k, v) in tasks {
+        for (k, v) in state.tasks {
             t.insert(k, v);
         }
     });
@@ -168,7 +176,7 @@ fn post_upgrade() {
     // Restore GitHub issues
     GITHUB_ISSUES.with(|i| {
         let mut i = i.borrow_mut();
-        for (k, v) in github_issues {
+        for (k, v) in state.github_issues {
             i.insert(k, v);
         }
     });
@@ -176,7 +184,7 @@ fn post_upgrade() {
     // Restore OpenChat users
     OPENCHAT_USERS.with(|u| {
         let mut u = u.borrow_mut();
-        for (k, v) in openchat_users {
+        for (k, v) in state.openchat_users {
             u.insert(k, v);
         }
     });
@@ -184,7 +192,7 @@ fn post_upgrade() {
     // Restore Slack users
     SLACK_USERS.with(|u| {
         let mut u = u.borrow_mut();
-        for (k, v) in slack_users {
+        for (k, v) in state.slack_users {
             u.insert(k, v);
         }
     });
@@ -192,7 +200,7 @@ fn post_upgrade() {
     // Restore Discord users
     DISCORD_USERS.with(|u| {
         let mut u = u.borrow_mut();
-        for (k, v) in discord_users {
+        for (k, v) in state.discord_users {
             u.insert(k, v);
         }
     });
@@ -200,7 +208,7 @@ fn post_upgrade() {
     // Restore dashboard tokens
     DASHBOARD_TOKENS.with(|t| {
         let mut t = t.borrow_mut();
-        for (k, v) in dashboard_tokens {
+        for (k, v) in state.dashboard_tokens {
             t.insert(k, v);
         }
     });
@@ -208,7 +216,7 @@ fn post_upgrade() {
     // Restore accelerators
     ACCELERATORS.with(|a| {
         let mut a = a.borrow_mut();
-        for (k, v) in accelerators {
+        for (k, v) in state.accelerators {
             a.insert(k, v);
         }
     });
@@ -216,7 +224,7 @@ fn post_upgrade() {
     // Restore startup invites
     STARTUP_INVITES.with(|i| {
         let mut i = i.borrow_mut();
-        for (k, v) in startup_invites {
+        for (k, v) in state.startup_invites {
             i.insert(k, v);
         }
     });
@@ -224,7 +232,7 @@ fn post_upgrade() {
     // Restore startups
     STARTUPS.with(|s| {
         let mut s = s.borrow_mut();
-        for (k, v) in startups {
+        for (k, v) in state.startups {
             s.insert(k, v);
         }
     });
@@ -232,7 +240,7 @@ fn post_upgrade() {
     // Restore startup statuses
     STARTUP_STATUSES.with(|s| {
         let mut s = s.borrow_mut();
-        for (k, v) in startup_statuses {
+        for (k, v) in state.startup_statuses {
             s.insert(k, v);
         }
     });
@@ -240,7 +248,7 @@ fn post_upgrade() {
     // Restore startup cohorts
     STARTUP_COHORTS.with(|c| {
         let mut c = c.borrow_mut();
-        for (k, v) in startup_cohorts {
+        for (k, v) in state.startup_cohorts {
             c.insert(k, v);
         }
     });
@@ -248,7 +256,15 @@ fn post_upgrade() {
     // Restore startup activities
     STARTUP_ACTIVITIES.with(|a| {
         let mut a = a.borrow_mut();
-        for (k, v) in startup_activities {
+        for (k, v) in state.startup_activities {
+            a.insert(k, v);
+        }
+    });
+
+    // Restore admins
+    ADMINS.with(|a| {
+        let mut a = a.borrow_mut();
+        for (k, v) in state.admins {
             a.insert(k, v);
         }
     });
