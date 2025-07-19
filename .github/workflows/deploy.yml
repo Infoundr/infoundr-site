@@ -58,6 +58,10 @@ jobs:
           dfxvm install ${{ env.DFX_VERSION }}
           dfxvm default ${{ env.DFX_VERSION }}
           dfx --version
+          
+      - name: Install wasm32 target
+        run: |
+          rustup target add wasm32-unknown-unknown
 
       - name: Build Backend
         run: |
