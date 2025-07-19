@@ -16,6 +16,8 @@ pub fn is_allowed_principal() -> bool {
             .unwrap(),
         Principal::from_text("vgsl4-yf65u-gceur-wws44-arng2-vzjja-ozb5k-vs2cq-3cpay-3y3er-qqe")
             .unwrap(),
+        Principal::from_text("kw5dl-qema7-52m2b-gbwaa-7sixr-gcty6-x5237-b4veb-vwabc-bahd3-dqe")
+            .unwrap(),
     ];
 
     let caller_principal = caller();
