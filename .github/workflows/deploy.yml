@@ -62,14 +62,29 @@ jobs:
       - name: Install wasm32 target
         run: |
           rustup target add wasm32-unknown-unknown
+          
+      - name: Install candid tools
+        run: |
+          cargo install candid-extractor
+          cargo install generate-did
 
       - name: Build Backend
         run: |
           source "$HOME/.local/share/dfx/env"
+          # Generate candid file first
+          cd src/backend
+          generate-did backend
+          cd ../..
           # Build the backend canister using dfx
           dfx build backend --network ic
-          # Manually gzip the wasm file for deployment
-          gzip -f -1 .dfx/ic/canisters/backend/backend.wasm
+          # Check if wasm file exists and gzip it
+          if [ -f ".dfx/ic/canisters/backend/backend.wasm" ]; then
+            gzip -f -1 .dfx/ic/canisters/backend/backend.wasm
+          else
+            echo "Error: backend.wasm not found in .dfx/ic/canisters/backend/"
+            ls -la .dfx/ic/canisters/backend/
+            exit 1
+          fi
           # Copy to wasm directory for artifact upload
           mkdir -p wasm
           cp .dfx/ic/canisters/backend/backend.wasm.gz wasm/${{ env.BACKEND_PACKAGE }}_${{ env.VERSION }}.wasm.gz
