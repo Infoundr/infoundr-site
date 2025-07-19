@@ -775,13 +775,21 @@ const AdminPanel: React.FC = () => {
                                         {selectedUserActivity.connection_status.selected_repo && (
                                             <div className="mt-2 bg-gray-50 p-3 rounded">
                                                 <span className="font-medium">Selected Repository:</span> 
-                                                <span className="ml-2 text-gray-600">{selectedUserActivity.connection_status.selected_repo}</span>
+                                                <span className="ml-2 text-gray-600">
+                                                    {Array.isArray(selectedUserActivity.connection_status.selected_repo) 
+                                                        ? selectedUserActivity.connection_status.selected_repo[0] || 'None'
+                                                        : selectedUserActivity.connection_status.selected_repo}
+                                                </span>
                                             </div>
                                         )}
                                         {selectedUserActivity.connection_status.asana_workspace && (
                                             <div className="mt-2 bg-gray-50 p-3 rounded">
                                                 <span className="font-medium">Asana Workspace:</span> 
-                                                <span className="ml-2 text-gray-600">{selectedUserActivity.connection_status.asana_workspace}</span>
+                                                <span className="ml-2 text-gray-600">
+                                                    {Array.isArray(selectedUserActivity.connection_status.asana_workspace)
+                                                        ? selectedUserActivity.connection_status.asana_workspace[0] || 'None'
+                                                        : selectedUserActivity.connection_status.asana_workspace}
+                                                </span>
                                             </div>
                                         )}
                                     </div>
@@ -799,7 +807,17 @@ const AdminPanel: React.FC = () => {
                                             {selectedUserActivity.chat_history.map((message: any, index: number) => (
                                                 <div key={index} className="bg-white p-3 rounded border">
                                                     <div className="flex justify-between items-start mb-1">
-                                                        <span className="font-medium text-sm">{message.role || 'Unknown'}</span>
+                                                        <span className="font-medium text-sm">
+                                                            {(() => {
+                                                                if (message.role && typeof message.role === 'object') {
+                                                                    const roleKeys = Object.keys(message.role);
+                                                                    if (roleKeys.length > 0) {
+                                                                        return roleKeys[0]; // Return the key (User, Assistant, etc.)
+                                                                    }
+                                                                }
+                                                                return message.role || 'Unknown';
+                                                            })()}
+                                                        </span>
                                                         <span className="text-xs text-gray-500">
                                                             {message.timestamp ? new Date(Number(message.timestamp) / 1000000).toLocaleString() : 'No timestamp'}
                                                         </span>
