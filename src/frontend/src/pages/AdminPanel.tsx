@@ -172,6 +172,7 @@ const AdminPanel: React.FC = () => {
             // Fetch platform users
             try {
                 const slackResult = await authenticatedActor.get_registered_slack_users_admin();
+                console.log("get_registered_slack_users_admin result:", slackResult);
                 if ('Ok' in slackResult) {
                     setSlackUsers(slackResult.Ok);
                 }
@@ -181,6 +182,7 @@ const AdminPanel: React.FC = () => {
             
             try {
                 const discordResult = await authenticatedActor.get_registered_discord_users_admin();
+                console.log("get_registered_discord_users_admin result:", discordResult);
                 if ('Ok' in discordResult) {
                     setDiscordUsers(discordResult.Ok);
                 }
@@ -190,6 +192,7 @@ const AdminPanel: React.FC = () => {
             
             try {
                 const openchatResult = await authenticatedActor.get_registered_openchat_users_admin();
+                console.log("get_registered_openchat_users_admin result:", openchatResult);
                 if ('Ok' in openchatResult) {
                     setOpenchatUsers(openchatResult.Ok);
                 }
@@ -692,6 +695,162 @@ const AdminPanel: React.FC = () => {
                     </div>
                 </div>
             </section>
+
+            {/* User Activity Modal */}
+            {showUserActivity && selectedUserActivity && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-xl font-semibold">User Activity</h3>
+                            <Button
+                                variant="secondary"
+                                onClick={() => {
+                                    setShowUserActivity(false);
+                                    setSelectedUserActivity(null);
+                                    setSelectedUserIdentifier(null);
+                                }}
+                            >
+                                Close
+                            </Button>
+                        </div>
+                        
+                        <div className="space-y-6">
+                            {/* User Identifier Info */}
+                            <div className="bg-gray-50 p-4 rounded-lg">
+                                <h4 className="font-semibold mb-2">User Identifier:</h4>
+                                <p className="text-sm text-gray-600">
+                                    {selectedUserIdentifier && (
+                                        Object.keys(selectedUserIdentifier)[0] === 'SlackId' ? 
+                                        `Slack ID: ${selectedUserIdentifier.SlackId}` :
+                                        Object.keys(selectedUserIdentifier)[0] === 'DiscordId' ? 
+                                        `Discord ID: ${selectedUserIdentifier.DiscordId}` :
+                                        Object.keys(selectedUserIdentifier)[0] === 'OpenChatId' ? 
+                                        `OpenChat ID: ${selectedUserIdentifier.OpenChatId}` :
+                                        Object.keys(selectedUserIdentifier)[0] === 'Principal' ? 
+                                        `Principal: ${selectedUserIdentifier.Principal}` :
+                                        'Unknown'
+                                    )}
+                                </p>
+                            </div>
+
+                            {/* Connection Status */}
+                            <div>
+                                <h4 className="font-semibold mb-2">Connection Status:</h4>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="bg-gray-50 p-3 rounded">
+                                        <span className="font-medium">Asana:</span> 
+                                        <span className={`ml-2 ${selectedUserActivity.connection_status.asana_connected ? 'text-green-600' : 'text-red-600'}`}>
+                                            {selectedUserActivity.connection_status.asana_connected ? 'Connected' : 'Not Connected'}
+                                        </span>
+                                    </div>
+                                    <div className="bg-gray-50 p-3 rounded">
+                                        <span className="font-medium">GitHub:</span> 
+                                        <span className={`ml-2 ${selectedUserActivity.connection_status.github_connected ? 'text-green-600' : 'text-red-600'}`}>
+                                            {selectedUserActivity.connection_status.github_connected ? 'Connected' : 'Not Connected'}
+                                        </span>
+                                    </div>
+                                </div>
+                                {selectedUserActivity.connection_status.selected_repo && (
+                                    <div className="mt-2 bg-gray-50 p-3 rounded">
+                                        <span className="font-medium">Selected Repository:</span> 
+                                        <span className="ml-2 text-gray-600">{selectedUserActivity.connection_status.selected_repo}</span>
+                                    </div>
+                                )}
+                                {selectedUserActivity.connection_status.asana_workspace && (
+                                    <div className="mt-2 bg-gray-50 p-3 rounded">
+                                        <span className="font-medium">Asana Workspace:</span> 
+                                        <span className="ml-2 text-gray-600">{selectedUserActivity.connection_status.asana_workspace}</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Chat History */}
+                            <div>
+                                <h4 className="font-semibold mb-2">Chat History ({selectedUserActivity.chat_history.length} messages):</h4>
+                                <div className="max-h-60 overflow-y-auto bg-gray-50 rounded-lg p-4">
+                                    {selectedUserActivity.chat_history.length > 0 ? (
+                                        <div className="space-y-3">
+                                            {selectedUserActivity.chat_history.map((message: any, index: number) => (
+                                                <div key={index} className="bg-white p-3 rounded border">
+                                                    <div className="flex justify-between items-start mb-1">
+                                                        <span className="font-medium text-sm">{message.role}</span>
+                                                        <span className="text-xs text-gray-500">
+                                                            {new Date(Number(message.timestamp) / 1000000).toLocaleString()}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-sm text-gray-700">{message.content}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-gray-500 text-center">No chat history available</p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Tasks */}
+                            <div>
+                                <h4 className="font-semibold mb-2">Tasks ({selectedUserActivity.tasks.length} tasks):</h4>
+                                <div className="max-h-60 overflow-y-auto bg-gray-50 rounded-lg p-4">
+                                    {selectedUserActivity.tasks.length > 0 ? (
+                                        <div className="space-y-3">
+                                            {selectedUserActivity.tasks.map((task: any, index: number) => (
+                                                <div key={index} className="bg-white p-3 rounded border">
+                                                    <div className="flex justify-between items-start mb-1">
+                                                        <span className="font-medium text-sm">{task.title}</span>
+                                                        <span className={`text-xs px-2 py-1 rounded ${
+                                                            task.status === 'Completed' ? 'bg-green-100 text-green-800' :
+                                                            task.status === 'In Progress' ? 'bg-yellow-100 text-yellow-800' :
+                                                            'bg-gray-100 text-gray-800'
+                                                        }`}>
+                                                            {task.status}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-sm text-gray-600 mb-2">{task.description}</p>
+                                                    <div className="text-xs text-gray-500">
+                                                        Created: {new Date(Number(task.created_at) / 1000000).toLocaleString()}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-gray-500 text-center">No tasks available</p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Issues */}
+                            <div>
+                                <h4 className="font-semibold mb-2">GitHub Issues ({selectedUserActivity.issues.length} issues):</h4>
+                                <div className="max-h-60 overflow-y-auto bg-gray-50 rounded-lg p-4">
+                                    {selectedUserActivity.issues.length > 0 ? (
+                                        <div className="space-y-3">
+                                            {selectedUserActivity.issues.map((issue: any, index: number) => (
+                                                <div key={index} className="bg-white p-3 rounded border">
+                                                    <div className="flex justify-between items-start mb-1">
+                                                        <span className="font-medium text-sm">{issue.title}</span>
+                                                        <span className={`text-xs px-2 py-1 rounded ${
+                                                            issue.state === 'open' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                                        }`}>
+                                                            {issue.state}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-sm text-gray-600 mb-2">{issue.body}</p>
+                                                    <div className="text-xs text-gray-500">
+                                                        Created: {new Date(Number(issue.created_at) / 1000000).toLocaleString()}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-gray-500 text-center">No GitHub issues available</p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
