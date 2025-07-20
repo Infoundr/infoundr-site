@@ -11,6 +11,8 @@ import Footer from './components/layout/Footer';
 import WaitlistModal from './components/common/WaitlistModal';
 import { checkIsAuthenticated } from './services/auth';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import AdminPanel from './pages/AdminPanel';
 import Auth from './pages/Dashboard/Auth';
 import DashboardLayout from './pages/Dashboard/layouts/DashboardLayout';
@@ -56,6 +58,7 @@ const App: React.FC = () => {
   return (
     <BrowserRouter>
       <div className="relative">
+        <ToastContainer position="top-right" autoClose={3000} />
         <Routes>
           {/* Landing Page Route */}
           <Route path="/" element={

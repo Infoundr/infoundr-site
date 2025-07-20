@@ -1,6 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from 'react';
 import { MoreVertical } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { generateStartupInvite } from '../../../services/startup-invite';
+import { InviteType, StartupInvite, GenerateStartupInviteInput } from '../../../types/startup-invites';
+import { getMyAccelerator } from '../../../services/accelerator';
+import type { Accelerator } from '../../../types/accelerator';
+import { toast } from 'react-toastify';
 
 interface Invite {
   id: number;
@@ -60,20 +64,103 @@ const statusColors: Record<string, string> = {
   Expired: "bg-red-100 text-red-800",
 };
 
-  const SendInvites: React.FC = () => {
-  const [startupName, setStartupName] = useState("");
-  const [program, setProgram] = useState("");
-  const [expiryDate, setExpiryDate] = useState("");
-  const [inviteType, setInviteType] = useState("link");
+const SendInvites = () => {
+  const [startupName, setStartupName] = useState('');
+  const [inviteType, setInviteType] = useState<InviteType>({ Link: null });
+  const [program, setProgram] = useState('');
+  const [expiryDate, setExpiryDate] = useState('');
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [openMenu, setOpenMenu] = useState<number | null>(null);
+  const [accelerator, setAccelerator] = useState<Accelerator | null>(null);
 
-  const navigate = useNavigate(); // ✅ React Router Hook
+  useEffect(() => {
+    const fetchAccelerator = async () => {
+      console.log('Fetching accelerator data...');
+      const result = await getMyAccelerator();
+      if (result) {
+        console.log('Accelerator data fetched successfully:', result);
+        setAccelerator(result);
+      } else {
+        console.error('No accelerator data returned');
+      }
+    };
+    fetchAccelerator();
+  }, []);
 
-  const handleGenerateInvite = () => {
-    // Optionally validate form here
-    navigate("/accelerator/invites/generate-invite"); // ✅ Redirect to Startup Signup page
+  const handleGenerateInvite = async () => {
+    console.log('Starting invite generation process...');
+    console.log('Current form values:', {
+      startupName,
+      program,
+      inviteType,
+      email,
+      expiryDate,
+      accelerator
+    });
+
+    if (!startupName || !program) {
+      console.error('Validation failed: Missing required fields');
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    if (!accelerator) {
+      console.error('No accelerator data available');
+      toast.error('No accelerator found. Please make sure you are logged in as an accelerator.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Calculate expiry days from the selected date
+      const expiryDays: [] | [bigint] = expiryDate ? 
+        [BigInt(Math.floor((new Date(expiryDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))] : 
+        [];
+      
+      console.log('Calculated expiry days:', expiryDays);
+
+      const input = {
+        accelerator_id: accelerator.id.toString(),
+        program_name: program,
+        invite_type: inviteType,
+        startup_name: startupName,
+        email: email ? [email] : [],
+        expiry_days: expiryDays
+      };
+
+      console.log('Sending invite generation request with data:', input);
+
+      const result = await generateStartupInvite(input);
+      console.log('Received response from generateStartupInvite:', result);
+
+      if (typeof result === 'string') {
+        console.error('Error generating invite:', result);
+        toast.error(result);
+      } else {
+        console.log('Invite generated successfully:', result);
+        toast.success('Invite generated successfully!');
+        // Reset form
+        setStartupName('');
+        setProgram('');
+        setExpiryDate('');
+        setEmail('');
+      }
+    } catch (error) {
+      console.error('Exception during invite generation:', error);
+      if (error instanceof Error) {
+        console.error('Error details:', {
+          message: error.message,
+          stack: error.stack
+        });
+      }
+      toast.error('Failed to generate invite');
+    } finally {
+      setLoading(false);
+      console.log('Invite generation process completed');
+    }
   };
 
   const filteredInvites = mockInvites.filter((invite) => {
@@ -108,15 +195,26 @@ const statusColors: Record<string, string> = {
           </div>
 
           <div className="flex flex-col">
+            <label className="text-sm text-gray-700 mb-1">Email (Optional)</label>
+            <input
+              type="email"
+              placeholder="Enter email address"
+              className="border px-4 py-2 rounded-md"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+
+          <div className="flex flex-col">
             <label className="text-sm text-gray-700 mb-1">Invite Type</label>
             <div className="flex items-center gap-6 mt-1">
               <label className="flex items-center">
                 <input
                   type="radio"
                   name="type"
-                  value="link"
-                  checked={inviteType === "link"}
-                  onChange={() => setInviteType("link")}
+                  value="Link"
+                  checked={'Link' in inviteType}
+                  onChange={() => setInviteType({ Link: null })}
                   className="mr-2"
                 />
                 Generate Invite Link
@@ -125,9 +223,9 @@ const statusColors: Record<string, string> = {
                 <input
                   type="radio"
                   name="type"
-                  value="code"
-                  checked={inviteType === "code"}
-                  onChange={() => setInviteType("code")}
+                  value="Code"
+                  checked={'Code' in inviteType}
+                  onChange={() => setInviteType({ Code: null })}
                   className="mr-2"
                 />
                 Generate Invite Code
@@ -143,9 +241,9 @@ const statusColors: Record<string, string> = {
               onChange={(e) => setProgram(e.target.value)}
             >
               <option value="">Select a program</option>
-              <option>Tech Startup 2023</option>
-              <option>Fintech Accelerator</option>
-              <option>Climate Tech Initiative</option>
+              {accelerator && (
+                <option value={accelerator.name}>{accelerator.name}</option>
+              )}
             </select>
           </div>
 
@@ -161,12 +259,15 @@ const statusColors: Record<string, string> = {
         </div>
 
         <div className="mt-6 flex justify-end">
-          <button onClick={handleGenerateInvite} 
-          className="bg-purple-600 text-white px-6 py-2 rounded-md hover:bg-purple-700 transition"
+          <button 
+            onClick={handleGenerateInvite}
+            disabled={loading} 
+            className={`bg-purple-600 text-white px-6 py-2 rounded-md transition ${
+              loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-purple-700'
+            }`}
           >
-            Generate Invite
+            {loading ? 'Generating...' : 'Generate Invite'}
           </button>
-
         </div>
       </div>
 
