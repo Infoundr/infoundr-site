@@ -1,10 +1,97 @@
 import React, { useState, useEffect } from 'react';
-import { MoreVertical } from "lucide-react";
+import { MoreVertical, Copy, X, Check } from "lucide-react";
 import { generateStartupInvite } from '../../../services/startup-invite';
-import { InviteType, StartupInvite, GenerateStartupInviteInput } from '../../../types/startup-invites';
+import { InviteType, StartupInvite } from '../../../types/startup-invites';
 import { getMyAccelerator } from '../../../services/accelerator';
 import type { Accelerator } from '../../../types/accelerator';
 import { toast } from 'react-toastify';
+
+interface InviteModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  invite: StartupInvite;
+}
+
+const InviteModal: React.FC<InviteModalProps> = ({ isOpen, onClose, invite }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    const textToCopy = 'Link' in invite.invite_type ? 
+      `https://your-domain.com/invite/${invite.invite_code}` : 
+      invite.invite_code;
+    
+    try {
+      await navigator.clipboard.writeText(textToCopy);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold">Invite Generated Successfully</h3>
+          <button 
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="mb-4">
+          <p className="text-sm text-gray-600 mb-2">Startup Name</p>
+          <p className="font-medium">{invite.startup_name}</p>
+        </div>
+
+        <div className="mb-4">
+          <p className="text-sm text-gray-600 mb-2">
+            {'Link' in invite.invite_type ? 'Invite Link' : 'Invite Code'}
+          </p>
+          <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-md">
+            <p className="font-medium text-sm flex-1 break-all">
+              {'Link' in invite.invite_type 
+                ? `https://your-domain.com/invite/${invite.invite_code}`
+                : invite.invite_code
+              }
+            </p>
+            <button
+              onClick={handleCopy}
+              className="text-purple-600 hover:text-purple-700 p-1"
+              title="Copy to clipboard"
+            >
+              {copied ? <Check size={20} /> : <Copy size={20} />}
+            </button>
+          </div>
+        </div>
+
+        <div className="mb-4">
+          <p className="text-sm text-gray-600 mb-2">Program</p>
+          <p className="font-medium">{invite.program_name}</p>
+        </div>
+
+        <div className="mb-4">
+          <p className="text-sm text-gray-600 mb-2">Expiry Date</p>
+          <p className="font-medium">
+            {new Date(Number(invite.expiry) / 1000000).toLocaleDateString()}
+          </p>
+        </div>
+
+        <button
+          onClick={onClose}
+          className="w-full bg-purple-600 text-white py-2 rounded-md hover:bg-purple-700 transition"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  );
+};
 
 interface Invite {
   id: number;
@@ -75,6 +162,8 @@ const SendInvites = () => {
   const [statusFilter, setStatusFilter] = useState("All");
   const [openMenu, setOpenMenu] = useState<number | null>(null);
   const [accelerator, setAccelerator] = useState<Accelerator | null>(null);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [generatedInvite, setGeneratedInvite] = useState<StartupInvite | null>(null);
 
   useEffect(() => {
     const fetchAccelerator = async () => {
@@ -141,7 +230,8 @@ const SendInvites = () => {
         toast.error(result);
       } else {
         console.log('Invite generated successfully:', result);
-        toast.success('Invite generated successfully!');
+        setGeneratedInvite(result);
+        setShowInviteModal(true);
         // Reset form
         setStartupName('');
         setProgram('');
@@ -366,6 +456,14 @@ const SendInvites = () => {
           <span className="text-gray-500">Showing 1–5 of 12 results</span>
         </div>
       </div>
+
+      {generatedInvite && (
+        <InviteModal
+          isOpen={showInviteModal}
+          onClose={() => setShowInviteModal(false)}
+          invite={generatedInvite}
+        />
+      )}
     </div>
   );
 };
