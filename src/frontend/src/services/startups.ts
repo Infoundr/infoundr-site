@@ -1,52 +1,53 @@
 import { createAuthenticatedActor } from './auth';
-import type { Startup } from '@/types/startups';
-import type { StartupFilter } from '@/types/startups';
-import type { StartupCohort } from '@/types/cohorts';
-import type { StartupStatus } from '@/types/statuses';
+import type { Startup } from '../types/startups';
+import type { StartupFilter } from '../types/startups';
+import type { StartupCohort } from '../types/cohorts';
+import type { StartupStatus } from '../types/statuses';
 
-/**
- * List startups for the logged-in accelerator.
- * Accepts a StartupFilter and optional search text.
- */
 export const listStartups = async (
   filter: StartupFilter = {},
   searchText: string = ''
-): Promise<Startup[]> => {
+): Promise<{ items: Startup[]; total: number }> => {
   const actor = await createAuthenticatedActor();
-  const result = await actor.list_startups("", []);
+  const result = await actor.list_startups([]);
 
   if ('Ok' in result) {
-    return result.Ok.map((startup) => ({
+    const startups = result.Ok.map((startup) => ({
       id: startup.id,
-      documents_submitted: startup.documents_submitted,
-      updated_at: Number(startup.updated_at),
-      accelerator_id: startup.accelerator_id.toText(),
-      founder_principal: startup.founder_principal.toText(),
       name: startup.name,
       contact_email: startup.contact_email,
-      date_joined: Number(startup.date_joined),
-      description: startup.description.length > 0 ? startup.description[0] : undefined,
-      created_at: Number(startup.created_at),
-      status_id: startup.status_id,
-      last_activity: Number(startup.last_activity),
+      founder_principal: startup.founder_principal.toText(),
       cohort_id: startup.cohort_id,
+      status_id: startup.status_id,
       engagement_score: startup.engagement_score,
       tasks_completed: startup.tasks_completed,
       total_logins: startup.total_logins,
+      documents_submitted: startup.documents_submitted,
+      updated_at: Number(startup.updated_at),
+      created_at: Number(startup.created_at),
+      date_joined: Number(startup.date_joined),
+      accelerator_id: startup.accelerator_id.toText(),
+      description: startup.description.length > 0 ? startup.description[0] : undefined,
       industry: startup.industry.length > 0 ? startup.industry[0] : undefined,
+      last_activity: Number(startup.last_activity),
     }));
+
+    return {
+      items: startups,
+      total: startups.length, // total is just the length of the returned array
+    };
   } else {
     console.error('Error listing startups:', result.Err);
-    return [];
+    return { items: [], total: 0 };
   }
 };
 
-/**
- * Get all startup cohorts for the accelerator
- */
+
+//Get all startup cohorts for the accelerator
+ 
 export const listStartupCohorts = async (): Promise<StartupCohort[]> => {
   const actor = await createAuthenticatedActor();
-  const result = await actor.list_startup_cohorts("");
+  const result = await actor.list_startup_cohorts();
 
   if ('Ok' in result) {
     return result.Ok.map((cohort) => ({
@@ -63,12 +64,11 @@ export const listStartupCohorts = async (): Promise<StartupCohort[]> => {
   }
 };
 
-/**
- * Get all startup statuses for the accelerator
- */
+  //Get all startup statuses for the accelerator
+ 
 export const listStartupStatuses = async (): Promise<StartupStatus[]> => {
   const actor = await createAuthenticatedActor();
-  const result = await actor.list_startup_statuses("");
+  const result = await actor.list_startup_statuses();
 
   if ('Ok' in result) {
     return result.Ok.map((status) => ({
@@ -81,4 +81,5 @@ export const listStartupStatuses = async (): Promise<StartupStatus[]> => {
     console.error('Error listing startup statuses:', result.Err);
     return [];
   }
-};
+}; 
+
