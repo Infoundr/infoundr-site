@@ -284,17 +284,9 @@ type TeamMember = record {
   role : Role;
   email : text;
 };
-type TeamMemberInviteWithId = record {
-  accelerator_id : text;
-  role : Role;
-  email : text;
-};
+type TeamMemberInviteWithId = record { role : Role; email : text };
 type TokenValidationResult = record { platform_id : text; platform : text };
-type UpdateTeamMemberRole = record {
-  accelerator_id : text;
-  email : text;
-  new_role : Role;
-};
+type UpdateTeamMemberRole = record { email : text; new_role : Role };
 type User = record {
   "principal" : principal;
   name : text;
@@ -391,7 +383,7 @@ service : {
   list_startup_invites : (text) -> (vec StartupInvite) query;
   list_startup_statuses : () -> (Result_21) query;
   list_startups : (opt StartupFilter) -> (Result_22) query;
-  list_team_members : (text) -> (Result_23) query;
+  list_team_members : () -> (Result_23) query;
   record_startup_activity : (text, StartupActivityType, text, opt text) -> (
       Result,
     );

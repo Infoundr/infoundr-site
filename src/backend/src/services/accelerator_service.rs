@@ -219,7 +219,6 @@ pub struct AcceleratorUpdate {
 
 #[derive(Clone, Debug, CandidType, Deserialize)]
 pub struct TeamMemberInviteWithId {
-    pub accelerator_id: String,
     pub email: String,
     pub role: Role,
 }
@@ -227,9 +226,7 @@ pub struct TeamMemberInviteWithId {
 #[update]
 pub fn invite_team_member(input: TeamMemberInviteWithId) -> Result<String, String> {
     let caller_principal = caller();
-    let accelerator = ACCELERATORS.with(|accs| {
-        accs.borrow().iter().find(|(k, _)| k.to_string() == input.accelerator_id).map(|(_, v)| v.clone())
-    });
+    let accelerator = get_my_accelerator()?;
     let mut accelerator = match accelerator {
         Some(acc) => acc,
         None => return Err("Accelerator not found".to_string()),
@@ -264,7 +261,7 @@ pub fn invite_team_member(input: TeamMemberInviteWithId) -> Result<String, Strin
     accelerator.invites_sent += 1;
 
     ACCELERATORS.with(|accs| {
-        let key = accs.borrow().iter().find(|(k, _)| k.to_string() == input.accelerator_id).map(|(k, _)| k.clone());
+        let key = accs.borrow().iter().find(|(k, _)| k.to_string() == accelerator.id.to_string()).map(|(k, _)| k.clone());
         if let Some(key) = key {
             accs.borrow_mut().insert(key, accelerator);
         }
@@ -303,11 +300,9 @@ pub fn accept_invitation(token: String) -> Result<(), String> {
 }
 
 #[query]
-pub fn list_team_members(accelerator_id: String) -> Result<Vec<TeamMember>, String> {
+pub fn list_team_members() -> Result<Vec<TeamMember>, String> {
     let caller_principal = caller();
-    let accelerator = ACCELERATORS.with(|accs| {
-        accs.borrow().iter().find(|(k, _)| k.to_string() == accelerator_id).map(|(_, v)| v.clone())
-    });
+    let accelerator = get_my_accelerator()?;
     let accelerator = match accelerator {
         Some(acc) => acc,
         None => return Err("Accelerator not found".to_string()),
@@ -322,7 +317,6 @@ pub fn list_team_members(accelerator_id: String) -> Result<Vec<TeamMember>, Stri
 
 #[derive(Clone, Debug, CandidType, Deserialize)]
 pub struct UpdateTeamMemberRole {
-    pub accelerator_id: String,
     pub email: String,
     pub new_role: Role,
 }
@@ -330,9 +324,7 @@ pub struct UpdateTeamMemberRole {
 #[update]
 pub fn update_team_member_role(input: UpdateTeamMemberRole) -> Result<(), String> {
     let caller_principal = caller();
-    let accelerator = ACCELERATORS.with(|accs| {
-        accs.borrow().iter().find(|(k, _)| k.to_string() == input.accelerator_id).map(|(_, v)| v.clone())
-    });
+    let accelerator = get_my_accelerator()?;
     let mut accelerator = match accelerator {
         Some(acc) => acc,
         None => return Err("Accelerator not found".to_string()),
@@ -377,7 +369,7 @@ pub fn update_team_member_role(input: UpdateTeamMemberRole) -> Result<(), String
     }
     // Save updated accelerator
     ACCELERATORS.with(|accs| {
-        let key = accs.borrow().iter().find(|(k, _)| k.to_string() == input.accelerator_id).map(|(k, _)| k.clone());
+        let key = accs.borrow().iter().find(|(k, _)| k.to_string() == accelerator.id.to_string()).map(|(k, _)| k.clone());
         if let Some(key) = key {
             accs.borrow_mut().insert(key, accelerator);
         }
@@ -387,17 +379,14 @@ pub fn update_team_member_role(input: UpdateTeamMemberRole) -> Result<(), String
 
 #[derive(Clone, Debug, CandidType, Deserialize)]
 pub struct RemoveTeamMember {
-    pub accelerator_id: String,
     pub email: String,
 }
 
 #[update]
 pub fn remove_team_member(input: RemoveTeamMember) -> Result<(), String> {
     let caller_principal = caller();
-    let accelerator = ACCELERATORS.with(|accs| {
-        accs.borrow().iter().find(|(k, _)| k.to_string() == input.accelerator_id).map(|(_, v)| v.clone())
-    });
-    let mut accelerator = match accelerator {
+    let accelerator = get_my_accelerator()?;
+    let mut accelerator = match accelerator {   
         Some(acc) => acc,
         None => return Err("Accelerator not found".to_string()),
     };
@@ -427,7 +416,7 @@ pub fn remove_team_member(input: RemoveTeamMember) -> Result<(), String> {
     }
     // Save updated accelerator
     ACCELERATORS.with(|accs| {
-        let key = accs.borrow().iter().find(|(k, _)| k.to_string() == input.accelerator_id).map(|(k, _)| k.clone());
+        let key = accs.borrow().iter().find(|(k, _)| k.to_string() == accelerator.id.to_string()).map(|(k, _)| k.clone());
         if let Some(key) = key {
             accs.borrow_mut().insert(key, accelerator);
         }
