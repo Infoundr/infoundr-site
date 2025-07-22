@@ -483,7 +483,7 @@ pub fn generate_startup_invite(input: GenerateStartupInviteInput) -> Result<Star
 
     let invite = StartupInvite {
         invite_id: invite_id.clone(),
-        startup_name: input.startup_name,
+        startup_name: input.startup_name.clone(),
         accelerator_id: accelerator.id.clone(),
         program_name: input.program_name,
         invite_type: input.invite_type,
@@ -497,7 +497,23 @@ pub fn generate_startup_invite(input: GenerateStartupInviteInput) -> Result<Star
         registered_at: None,
     };
 
-    
+    println!("Updating accelerator: add activity and increment invites_sent");
+
+    let mut updated_accelerator = accelerator.clone();
+    updated_accelerator.recent_activity.push(Activity {
+        timestamp: now,
+        description: format!("Invite generated for {}", input.startup_name),
+        activity_type: ActivityType::SentInvite,
+    });
+
+    updated_accelerator.invites_sent += 1;
+    ACCELERATORS.with(|accs| {
+        let key = accs.borrow().iter().find(|(k, _)| k.to_string() == input.accelerator_id).map(|(k, _)| k.clone());
+        if let Some(key) = key {
+            accs.borrow_mut().insert(key, updated_accelerator);
+        }
+    });
+
     STARTUP_INVITES.with(|invites| {
         invites.borrow_mut().insert(StableString::new(&invite_id), invite.clone());
     });
