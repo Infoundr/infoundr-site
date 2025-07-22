@@ -1,15 +1,49 @@
 import React from 'react';
 
-const StartupPagination: React.FC = () => (
-  <div className="flex justify-center items-center gap-2 mt-8">
-    <button className="px-3 py-1 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100">&lt;</button>
-    <button className="px-3 py-1 rounded-lg bg-purple-600 text-white font-semibold">1</button>
-    <button className="px-3 py-1 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100">2</button>
-    <button className="px-3 py-1 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100">3</button>
-    <span className="px-2 text-gray-400">...</span>
-    <button className="px-3 py-1 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100">6</button>
-    <button className="px-3 py-1 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100">&gt;</button>
-  </div>
-);
+interface Props {
+  totalPages: number;
+  currentPage: number;
+  onPageChange: (page: number) => void;
+}
 
-export default StartupPagination; 
+const StartupPagination: React.FC<Props> = ({ totalPages, currentPage, onPageChange }) => {
+  const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+
+  return (
+    <div className="flex justify-center items-center gap-2 mt-8">
+      <button
+        disabled={currentPage === 1}
+        onClick={() => onPageChange(currentPage - 1)}
+        className="px-3 py-1 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-50"
+      >
+        &lt;
+      </button>
+
+      {pages.map((page) => (
+        <button
+          key={page}
+          onClick={() => onPageChange(page)}
+          className={`px-3 py-1 rounded-lg ${
+            currentPage === page
+              ? 'bg-purple-600 text-white font-semibold'
+              : 'border border-gray-200 text-gray-500 hover:bg-gray-100'
+          }`}
+        >
+          {page}
+        </button>
+      ))}
+
+      <button
+        disabled={currentPage === totalPages}
+        onClick={() => onPageChange(currentPage + 1)}
+        className="px-3 py-1 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-50"
+      >
+        &gt;
+      </button>
+    </div>
+  );
+};
+
+export default StartupPagination;
+
+

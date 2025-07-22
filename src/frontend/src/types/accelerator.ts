@@ -13,6 +13,7 @@ export interface Accelerator {
   recent_activity: Activity[];
   email_verified: boolean;
   invites_sent: number;
+
 }
 
 export interface TeamMember {
