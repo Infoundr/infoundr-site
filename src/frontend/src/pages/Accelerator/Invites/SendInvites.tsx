@@ -17,7 +17,7 @@ const InviteModal: React.FC<InviteModalProps> = ({ isOpen, onClose, invite }) =>
 
   const handleCopy = async () => {
     const textToCopy = 'Link' in invite.invite_type ? 
-      `https://your-domain.com/invite/${invite.invite_code}` : 
+      `https://infoundr.com/accelerator/invite/${invite.invite_code}` : 
       invite.invite_code;
     
     try {
@@ -216,8 +216,10 @@ const SendInvites = () => {
         program_name: program,
         invite_type: inviteType,
         startup_name: startupName,
-        email: email ? [email] : [],
-        expiry_days: expiryDays
+        email: (email ? [email] : []) as [] | [string],
+        expiry_days: (expiryDate
+          ? [BigInt(Math.floor((new Date(expiryDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))]
+          : []) as [] | [bigint],
       };
 
       console.log('Sending invite generation request with data:', input);
