@@ -56,7 +56,7 @@ const InviteModal: React.FC<InviteModalProps> = ({ isOpen, onClose, invite }) =>
           <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-md">
             <p className="font-medium text-sm flex-1 break-all">
               {'Link' in invite.invite_type 
-                ? `https://your-domain.com/invite/${invite.invite_code}`
+                ? `https://infoundr.com/accelerator/invite/${invite.invite_code}`
                 : invite.invite_code
               }
             </p>
