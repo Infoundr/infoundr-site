@@ -122,6 +122,7 @@ const SendInvites = () => {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [generatedInvite, setGeneratedInvite] = useState<StartupInvite | null>(null);
   const [invites, setInvites] = useState<StartupInvite[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     const fetchAcceleratorAndInvites = async () => {
@@ -254,6 +255,23 @@ const SendInvites = () => {
       statusFilter === 'All' || statusStr === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  // Pagination logic
+  const invitesPerPage = 5;
+  const totalPages = Math.ceil(filteredInvites.length / invitesPerPage);
+  const paginatedInvites = filteredInvites.slice(
+    (currentPage - 1) * invitesPerPage,
+    currentPage * invitesPerPage
+  );
+  const startResult = filteredInvites.length === 0 ? 0 : (currentPage - 1) * invitesPerPage + 1;
+  const endResult = Math.min(currentPage * invitesPerPage, filteredInvites.length);
+
+  // Reset to first page if filter/search changes and current page is out of range
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(1);
+    }
+  }, [search, statusFilter, filteredInvites.length]);
 
   return (
     <div className="p-6 md:p-10 bg-gray-50 min-h-screen">
@@ -393,46 +411,50 @@ const SendInvites = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredInvites.map((invite, idx) => (
-                <tr key={invite.invite_id} className="border-b">
-                  <td className="py-2 px-4">{invite.startup_name}</td>
-                  <td className="py-2 px-4">{invite.program_name}</td>
-                  <td className="py-2 px-4 text-purple-700 truncate max-w-[200px]">
-                    {getInviteCodeOrLink(invite)}
-                  </td>
-                  <td className="py-2 px-4">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[getStatusString(invite.status)]}`}
-                    >
-                      {getStatusString(invite.status)}
-                    </span>
-                  </td>
-                  <td className="py-2 px-4">{formatExpiry(invite.expiry)}</td>
-                  <td className="py-2 px-4 relative">
-                    <div className="relative inline-block text-left">
-                      <MoreVertical
-                        className="w-5 h-5 text-gray-500 cursor-pointer hover:text-gray-700"
-                        onClick={() =>
-                          setOpenMenu((prev) => (prev === idx ? null : idx))
-                        }
-                      />
-                      {openMenu === idx && (
-                        <div className="absolute right-0 mt-2 w-40 bg-white border rounded-md shadow-lg z-10">
-                          <button className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100">
-                            Copy
-                          </button>
-                          <button className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100">
-                            View Info
-                          </button>
-                          <button className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">
-                            Delete
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {paginatedInvites.map((invite, idx) => {
+                // Calculate global index for openMenu
+                const globalIdx = (currentPage - 1) * invitesPerPage + idx;
+                return (
+                  <tr key={invite.invite_id} className="border-b">
+                    <td className="py-2 px-4">{invite.startup_name}</td>
+                    <td className="py-2 px-4">{invite.program_name}</td>
+                    <td className="py-2 px-4 text-purple-700 truncate max-w-[200px]">
+                      {getInviteCodeOrLink(invite)}
+                    </td>
+                    <td className="py-2 px-4">
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[getStatusString(invite.status)]}`}
+                      >
+                        {getStatusString(invite.status)}
+                      </span>
+                    </td>
+                    <td className="py-2 px-4">{formatExpiry(invite.expiry)}</td>
+                    <td className="py-2 px-4 relative">
+                      <div className="relative inline-block text-left">
+                        <MoreVertical
+                          className="w-5 h-5 text-gray-500 cursor-pointer hover:text-gray-700"
+                          onClick={() =>
+                            setOpenMenu((prev) => (prev === globalIdx ? null : globalIdx))
+                          }
+                        />
+                        {openMenu === globalIdx && (
+                          <div className="absolute right-0 mt-2 w-40 bg-white border rounded-md shadow-lg z-10">
+                            <button className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100">
+                              Copy
+                            </button>
+                            <button className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100">
+                              View Info
+                            </button>
+                            <button className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                              Delete
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -440,13 +462,31 @@ const SendInvites = () => {
         {/* Centered Pagination */}
         <div className="mt-6 flex flex-col items-center text-sm">
           <div className="flex items-center gap-2 mb-2">
-            <button className="px-3 py-1 rounded border text-gray-600 hover:bg-gray-100">←</button>
-            <button className="px-3 py-1 rounded border bg-purple-100 text-purple-700">1</button>
-            <button className="px-3 py-1 rounded border text-gray-600 hover:bg-gray-100">2</button>
-            <button className="px-3 py-1 rounded border text-gray-600 hover:bg-gray-100">3</button>
-            <button className="px-3 py-1 rounded border text-gray-600 hover:bg-gray-100">→</button>
+            <button
+              className={`px-3 py-1 rounded border text-gray-600 hover:bg-gray-100 ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+            >←</button>
+            {Array.from({ length: totalPages }, (_, i) => (
+              <button
+                key={i + 1}
+                className={`px-3 py-1 rounded border ${currentPage === i + 1 ? 'bg-purple-100 text-purple-700' : 'text-gray-600 hover:bg-gray-100'}`}
+                onClick={() => setCurrentPage(i + 1)}
+              >
+                {i + 1}
+              </button>
+            ))}
+            <button
+              className={`px-3 py-1 rounded border text-gray-600 hover:bg-gray-100 ${currentPage === totalPages || totalPages === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+              onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages || totalPages === 0}
+            >→</button>
           </div>
-          <span className="text-gray-500">Showing 1–5 of 12 results</span>
+          <span className="text-gray-500">
+            {filteredInvites.length === 0
+              ? 'No results'
+              : `Showing ${startResult}–${endResult} of ${filteredInvites.length} results`}
+          </span>
         </div>
       </div>
 
