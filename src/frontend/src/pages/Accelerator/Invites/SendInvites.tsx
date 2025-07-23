@@ -124,21 +124,25 @@ const SendInvites = () => {
   const [invites, setInvites] = useState<StartupInvite[]>([]);
 
   useEffect(() => {
-    const fetchAccelerator = async () => {
+    const fetchAcceleratorAndInvites = async () => {
       console.log('Fetching accelerator data...');
       const result = await getMyAccelerator();
       if (result) {
         console.log('Accelerator data fetched successfully:', result);
         setAccelerator(result);
-        // Fetch invites after accelerator is loaded
-        const invitesList = await listStartupInvites(result.id.toString());
-        setInvites(invitesList);
+        await fetchInvitesForAccelerator(result.id.toString());
       } else {
         console.error('No accelerator data returned');
       }
     };
-    fetchAccelerator();
+    fetchAcceleratorAndInvites();
   }, []);
+
+  // Helper to fetch invites for a given accelerator id
+  const fetchInvitesForAccelerator = async (acceleratorId: string) => {
+    const invitesList = await listStartupInvites(acceleratorId);
+    setInvites(invitesList);
+  };
 
   const handleGenerateInvite = async () => {
     console.log('Starting invite generation process...');
@@ -200,6 +204,8 @@ const SendInvites = () => {
         setProgram('');
         setExpiryDate('');
         setEmail('');
+        // Refresh invites table
+        await fetchInvitesForAccelerator(accelerator.id.toString());
       }
     } catch (error) {
       console.error('Exception during invite generation:', error);
