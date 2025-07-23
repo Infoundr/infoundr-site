@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MoreVertical, Copy, X, Check } from "lucide-react";
-import { generateStartupInvite } from '../../../services/startup-invite';
-import { InviteType, StartupInvite } from '../../../types/startup-invites';
+import { generateStartupInvite, listStartupInvites } from '../../../services/startup-invite';
+import { InviteType, InviteStatus, StartupInvite } from '../../../types/startup-invites';
 import { getMyAccelerator } from '../../../services/accelerator';
 import type { Accelerator } from '../../../types/accelerator';
 import { toast } from 'react-toastify';
@@ -35,7 +35,7 @@ const InviteModal: React.FC<InviteModalProps> = ({ isOpen, onClose, invite }) =>
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">Invite Generated Successfully</h3>
+          <h3 className="text-lg font-semibold">Invite Generated Successfully!</h3>
           <button 
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700"
@@ -102,49 +102,6 @@ interface Invite {
   expiryDate: string;
 }
 
-const mockInvites: Invite[] = [
-  {
-    id: 1,
-    startupName: "Quantum AI",
-    program: "Tech Startup 2023",
-    inviteCode: "https://accelerator.com/invite/qai-test",
-    status: "Pending",
-    expiryDate: "2023-06-30",
-  },
-  {
-    id: 2,
-    startupName: "BlockChain Solutions",
-    program: "Fintech Accelerator",
-    inviteCode: "BCS-FIN-2023-XYZ",
-    status: "Used",
-    expiryDate: "2023-05-15",
-  },
-  {
-    id: 3,
-    startupName: "MediTech Innovations",
-    program: "Health Innovation Program",
-    inviteCode: "https://accelerator.com/invite/medi-tech",
-    status: "Expired",
-    expiryDate: "2023-04-10",
-  },
-  {
-    id: 4,
-    startupName: "EcoSmart Energy",
-    program: "Climate Tech Initiative",
-    inviteCode: "ECO-CLIMATE-2023-ABC",
-    status: "Pending",
-    expiryDate: "2023-07-22",
-  },
-  {
-    id: 5,
-    startupName: "DataViz Analytics",
-    program: "Tech startup 2023",
-    inviteCode: "https://accelerator.com/invite/data-tech",
-    status: "Pending",
-    expiryDate: "2023-06-28",
-  }
-];
-
 const statusColors: Record<string, string> = {
   Pending: "bg-yellow-100 text-yellow-800",
   Used: "bg-green-100 text-green-800",
@@ -164,6 +121,7 @@ const SendInvites = () => {
   const [accelerator, setAccelerator] = useState<Accelerator | null>(null);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [generatedInvite, setGeneratedInvite] = useState<StartupInvite | null>(null);
+  const [invites, setInvites] = useState<StartupInvite[]>([]);
 
   useEffect(() => {
     const fetchAccelerator = async () => {
@@ -172,6 +130,9 @@ const SendInvites = () => {
       if (result) {
         console.log('Accelerator data fetched successfully:', result);
         setAccelerator(result);
+        // Fetch invites after accelerator is loaded
+        const invitesList = await listStartupInvites(result.id.toString());
+        setInvites(invitesList);
       } else {
         console.error('No accelerator data returned');
       }
@@ -255,12 +216,36 @@ const SendInvites = () => {
     }
   };
 
-  const filteredInvites = mockInvites.filter((invite) => {
-    const matchesSearch = invite.startupName
+  // Helper to map InviteStatus to string
+  const getStatusString = (status: InviteStatus) => {
+    if ('Pending' in status) return 'Pending';
+    if ('Used' in status) return 'Used';
+    if ('Expired' in status) return 'Expired';
+    if ('Revoked' in status) return 'Revoked';
+    return '';
+  };
+
+  // Helper to get invite code or link
+  const getInviteCodeOrLink = (invite: StartupInvite) => {
+    if ('Link' in invite.invite_type) {
+      return `https://infoundr.com/accelerator/invite/${invite.invite_code}`;
+    }
+    return invite.invite_code;
+  };
+
+  // Helper to format expiry date
+  const formatExpiry = (expiry: bigint) => {
+    return new Date(Number(expiry) / 1000000).toLocaleDateString();
+  };
+
+  // Filtering
+  const filteredInvites = invites.filter((invite) => {
+    const matchesSearch = invite.startup_name
       .toLowerCase()
       .includes(search.toLowerCase());
+    const statusStr = getStatusString(invite.status);
     const matchesStatus =
-      statusFilter === "All" || invite.status === statusFilter;
+      statusFilter === 'All' || statusStr === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
@@ -402,30 +387,30 @@ const SendInvites = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredInvites.map((invite) => (
-                <tr key={invite.id} className="border-b">
-                  <td className="py-2 px-4">{invite.startupName}</td>
-                  <td className="py-2 px-4">{invite.program}</td>
+              {filteredInvites.map((invite, idx) => (
+                <tr key={invite.invite_id} className="border-b">
+                  <td className="py-2 px-4">{invite.startup_name}</td>
+                  <td className="py-2 px-4">{invite.program_name}</td>
                   <td className="py-2 px-4 text-purple-700 truncate max-w-[200px]">
-                    {invite.inviteCode}
+                    {getInviteCodeOrLink(invite)}
                   </td>
                   <td className="py-2 px-4">
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[invite.status]}`}
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[getStatusString(invite.status)]}`}
                     >
-                      {invite.status}
+                      {getStatusString(invite.status)}
                     </span>
                   </td>
-                  <td className="py-2 px-4">{invite.expiryDate}</td>
+                  <td className="py-2 px-4">{formatExpiry(invite.expiry)}</td>
                   <td className="py-2 px-4 relative">
                     <div className="relative inline-block text-left">
                       <MoreVertical
                         className="w-5 h-5 text-gray-500 cursor-pointer hover:text-gray-700"
                         onClick={() =>
-                          setOpenMenu((prev) => (prev === invite.id ? null : invite.id))
+                          setOpenMenu((prev) => (prev === idx ? null : idx))
                         }
                       />
-                      {openMenu === invite.id && (
+                      {openMenu === idx && (
                         <div className="absolute right-0 mt-2 w-40 bg-white border rounded-md shadow-lg z-10">
                           <button className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100">
                             Copy
