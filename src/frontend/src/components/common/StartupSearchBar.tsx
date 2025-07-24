@@ -1,6 +1,12 @@
 import React from 'react';
-
-const StartupSearchBar: React.FC = () => (
+import { StartupCardProps } from './StartupCard'; 
+export interface StartupSearchBarProps {
+  startups: any[];
+  total: number;
+}
+  
+const StartupSearchBar: React.FC<StartupSearchBarProps> = ({ startups, total }) => {
+  return (
   <div className="bg-white rounded-xl shadow p-4 flex flex-col gap-4 mt-6">
     <div className="flex flex-col md:flex-row md:items-center gap-4">
       <input
@@ -23,8 +29,12 @@ const StartupSearchBar: React.FC = () => (
         <option>Performance</option>
       </select>
     </div>
-    <div className="text-right text-xs text-gray-400">Showing 12 of 36 startups</div>
+    <div className="text-right text-xs text-gray-400 mt-2">
+      Showing {startups.length} of {total} startups
+    </div>
+
   </div>
-);
+  );
+};
 
 export default StartupSearchBar; 

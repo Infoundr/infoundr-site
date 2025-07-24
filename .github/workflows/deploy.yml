@@ -58,16 +58,36 @@ jobs:
           dfxvm install ${{ env.DFX_VERSION }}
           dfxvm default ${{ env.DFX_VERSION }}
           dfx --version
+          
+      - name: Install wasm32 target
+        run: |
+          rustup target add wasm32-unknown-unknown
+          
+      - name: Install candid tools
+        run: |
+          cargo install candid-extractor
+          cargo install generate-did
 
       - name: Build Backend
-        uses: ./.github/actions/build
-        with:
-          lint: "false"  # Disable linting temporarily
-          test: "true"
-          gzip: "true"
-          version: ${{ env.VERSION }}
-          package: ${{ env.BACKEND_PACKAGE }}
-          build_args: "--no-default-features"  # Skip some checks
+        run: |
+          source "$HOME/.local/share/dfx/env"
+          # Generate candid file first
+          cd src/backend
+          generate-did backend
+          cd ../..
+          # Build the backend canister using dfx
+          dfx build backend --network ic
+          # Check if gzipped wasm file exists (dfx already gzipped it due to dfx.json setting)
+          if [ -f ".dfx/ic/canisters/backend/backend.wasm.gz" ]; then
+            echo "Found gzipped wasm file, copying..."
+          else
+            echo "Error: backend.wasm.gz not found in .dfx/ic/canisters/backend/"
+            ls -la .dfx/ic/canisters/backend/
+            exit 1
+          fi
+          # Copy to wasm directory for artifact upload
+          mkdir -p wasm
+          cp .dfx/ic/canisters/backend/backend.wasm.gz wasm/${{ env.BACKEND_PACKAGE }}_${{ env.VERSION }}.wasm.gz
 
       - name: Update Mock Data
         run: |

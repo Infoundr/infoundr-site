@@ -1,4 +1,3 @@
-// src/services/team.ts
 import { createAuthenticatedActor } from './auth';
 import type {
   TeamMember,

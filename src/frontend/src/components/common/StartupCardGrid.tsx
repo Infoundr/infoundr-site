@@ -1,78 +1,105 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { listStartups } from '../../services/startups';
 import StartupCard, { StartupCardProps } from './StartupCard';
+import StartupSearchBar from './StartupSearchBar';
+import StartupPagination from './StartupPagination';
 
-const mockStartups: StartupCardProps[] = [
-  {
-    name: 'TechLaunch',
-    description: 'AI-driven quantum computing solutions',
-    status: 'Active',
-    joined: 'May 12, 2023',
-    cohort: 'Spring 2023',
-    engagement: 92,
-    avatarUrl: '/icons/company.png',
-    members: ['/icons/avatar1.png', '/icons/avatar2.png', '/icons/avatar3.png'],
-  },
-  {
-    name: 'EcoTech',
-    description: 'Sustainable technology solutions',
-    status: 'Active',
-    joined: 'April 3, 2023',
-    cohort: 'Spring 2023',
-    engagement: 78,
-    avatarUrl: '/icons/company.png',
-    members: ['/icons/avatar2.png', '/icons/avatar3.png'],
-  },
-  {
-    name: 'FinEdge',
-    description: 'Next-gen financial technology',
-    status: 'Graduated',
-    joined: 'Oct 15, 2022',
-    cohort: 'Fall 2022',
-    engagement: 95,
-    avatarUrl: '/icons/company.png',
-    members: ['/icons/avatar1.png', '/icons/avatar2.png'],
-  },
-  {
-    name: 'MediSync',
-    description: 'Healthcare data solutions',
-    status: 'Invited',
-    joined: 'June 1, 2023',
-    cohort: 'Summer 2023',
-    engagement: null,
-    avatarUrl: '/icons/company.png',
-    members: ['/icons/avatar4.png'],
-  },
-  {
-    name: 'VRLearn',
-    description: 'VR educational platform',
-    status: 'Active',
-    joined: 'Feb 8, 2023',
-    cohort: 'Spring 2023',
-    engagement: 86,
-    avatarUrl: '/icons/company.png',
-    members: ['/icons/avatar2.png', '/icons/avatar3.png'],
-  },
-  {
-    name: 'CloudScale',
-    description: 'Cloud infrastructure automation',
-    status: 'Graduated',
-    joined: 'Sept 5, 2022',
-    cohort: 'Fall 2022',
-    engagement: 89,
-    avatarUrl: '/icons/company.png',
-    members: ['/icons/avatar1.png', '/icons/avatar2.png', '/icons/avatar3.png'],
-  },
-];
+const ITEMS_PER_PAGE = 6;
 
-const StartupCardGrid: React.FC = () => (
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-    {mockStartups.map((startup, idx) => (
-      <Link to={`/accelerator/startups/${encodeURIComponent(startup.name)}`} key={idx}>
-        <StartupCard {...startup} />
-      </Link>
-    ))}
-  </div>
-);
+const StartupCardGrid: React.FC = () => {
+  const [startups, setStartups] = useState<StartupCardProps[]>([]);
+  const [total, setTotal] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(true);
 
-export default StartupCardGrid; 
+  const handlePageChange = (page: number) => setCurrentPage(page);
+
+  useEffect(() => {
+    const fetchStartups = async () => {
+      try {
+        setLoading(true);
+        const { items, total } = await listStartups({}, '');
+
+        const mapped = items.map((startup) => ({
+          name: startup.name,
+          description: startup.description ?? 'No description',
+          status: startup.status_id as 'Active' | 'Graduated' | 'Invited',
+          joined: new Date(startup.date_joined).toLocaleDateString(),
+          cohort: startup.cohort_id ?? 'Unknown Cohort',
+          engagement: startup.engagement_score ?? 0,
+          avatarUrl: '/icons/company.png',
+          members: ['/icons/avatar1.png', '/icons/avatar2.png'],
+        }));
+
+        setStartups(mapped);
+        setTotal(total);
+      } catch (error) {
+        console.error('Failed to fetch startups:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStartups();
+  }, []);
+
+  const paginatedStartups = startups.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const totalPages = Math.ceil(startups.length / ITEMS_PER_PAGE);
+
+  return (
+    <div>
+      <StartupSearchBar startups={startups} total={total} />
+
+      {loading ? (
+        <p className="text-center text-gray-500 mt-6">Loading startups...</p>
+      ) : startups.length === 0 ? (
+        <div className="text-center mt-10 text-gray-700">
+          <p className="mb-4">No startups found.</p>
+          <Link
+            to="/Accelerator/Invites"
+            className="text-purple-600 font-semibold hover:underline"
+          >
+            Click here to add a new one
+          </Link>
+        </div>
+      ) : (
+        <>
+          <div className="flex justify-end my-4">
+            <Link
+              to="/Accelerator/Invites"
+              className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition"
+            >
+              Add New Startup
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
+            {paginatedStartups.map((startup, idx) => (
+              <Link
+                to={`/accelerator/startups/${encodeURIComponent(startup.name)}`}
+                key={idx}
+              >
+                <StartupCard {...startup} />
+              </Link>
+            ))}
+          </div>
+
+          {totalPages > 1 && (
+            <StartupPagination
+              totalPages={totalPages}
+              currentPage={currentPage}
+              onPageChange={handlePageChange}
+            />
+          )}
+        </>
+      )}
+    </div>
+  );
+};
+
+export default StartupCardGrid;

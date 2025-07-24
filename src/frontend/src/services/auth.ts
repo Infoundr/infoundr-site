@@ -266,6 +266,12 @@ export const logout = async () => {
 // Helper function to create authenticated actor
 export const createAuthenticatedActor = async () => {
     const authClient = await AuthClient.create();
+    const isAuthenticated = await authClient.isAuthenticated();
+    
+    if (!isAuthenticated) {
+        throw new Error("User is not authenticated");
+    }
+    
     const identity = authClient.getIdentity();
     const agent = new HttpAgent({ identity });
     

@@ -42,6 +42,7 @@ export const getMyAccelerator = async (): Promise<Accelerator | null> => {
             })),
             email_verified: accelerator.email_verified,
             invites_sent: Number(accelerator.invites_sent)
+        
         };
     } catch (error) {
         console.error('Error fetching accelerator data:', error);
