@@ -107,7 +107,7 @@ type OpenChatUser = record {
   openchat_id : text;
   first_interaction : nat64;
 };
-type RemoveTeamMember = record { accelerator_id : text; email : text };
+type RemoveTeamMember = record { email : text };
 type Result = variant { Ok; Err : text };
 type Result_1 = variant { Ok : ChatMessage; Err : text };
 type Result_10 = variant { Ok : vec OpenChatUser; Err : text };
