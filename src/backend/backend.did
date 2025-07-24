@@ -278,7 +278,6 @@ type TeamMember = record {
   token : opt text;
   role : Role;
   email : text;
-  name : text;
 };
 type TeamMemberInviteWithId = record {
   accelerator_id : text;
