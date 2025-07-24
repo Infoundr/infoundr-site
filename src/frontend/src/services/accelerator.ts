@@ -1,4 +1,4 @@
-import type { Accelerator, AcceleratorStats } from '../types/accelerator';
+/*import type { Accelerator, AcceleratorStats } from '../types/accelerator';
 import { createAuthenticatedActor } from './auth';
 
 export const getMyAccelerator = async (): Promise<Accelerator | null> => {
@@ -68,4 +68,72 @@ export const getAcceleratorStats = async (): Promise<AcceleratorStats | null> =>
         console.error('Error fetching accelerator stats:', error);
         return null;
     }
-}; 
+}; */
+import { createAuthenticatedActor } from './auth';
+import type { Accelerator, AcceleratorStats } from '../types/accelerator';
+import { convertRoleToString } from '../types/team';
+
+export const getMyAccelerator = async (): Promise<Accelerator | null> => {
+  try {
+    const actor = await createAuthenticatedActor();
+    const result = await actor.get_my_accelerator(); // ✅ No argument
+
+    if ('Err' in result) {
+      console.error('Error getting accelerator:', result.Err);
+      return null;
+    }
+
+    const acceleratorOpt = result.Ok;
+
+    if (acceleratorOpt.length === 0) {
+      console.warn('No accelerator found');
+      return null;
+    }
+
+    const acc = acceleratorOpt[0];
+
+    const mappedTeamMembers = acc.team_members.map((member) => ({
+      ...member,
+      principalId: member.principal[0]?.toText?.() ?? '',
+      roleString: convertRoleToString(member.role),
+    }));
+
+    return {
+      id: acc.id,
+      name: acc.name,
+      email: acc.email,
+      website: acc.website,
+      graduated_startups: acc.graduated_startups,
+      active_startups: acc.active_startups,
+      total_startups: acc.total_startups,
+      email_verified: acc.email_verified,
+      invites_sent: acc.invites_sent,
+      logo: acc.logo,
+      recent_activity: acc.recent_activity,
+      team_members: mappedTeamMembers,
+    };
+  } catch (error) {
+    console.error('Failed to fetch accelerator:', error);
+    return null;
+  }
+};
+
+export const getAcceleratorStats = async (): Promise<AcceleratorStats | null> => {
+    try {
+        const accelerator = await getMyAccelerator();
+        
+        if (!accelerator) {
+            return null;
+        }
+        
+        return {
+            total_startups: accelerator.total_startups,
+            invites_sent: accelerator.invites_sent,
+            active_startups: accelerator.active_startups,
+            graduated_startups: accelerator.graduated_startups
+        };
+    } catch (error) {
+        console.error('Error fetching accelerator stats:', error);
+        return null;
+    }
+};
