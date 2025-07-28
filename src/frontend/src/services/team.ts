@@ -1,19 +1,18 @@
-import { createAuthenticatedActor } from './auth';
 import type {
+  RemoveTeamMember,
+  Role, RoleUnion,
   TeamMember,
   TeamMemberInviteWithId,
   UpdateTeamMemberRole,
-  RemoveTeamMember,
 } from '../types/team';
-import type { Role, RoleUnion } from '../types/team';
+import { createAuthenticatedActor } from './auth';
 
 
 export const listTeamMembers = async (
-  acceleratorId: string
 ): Promise<TeamMember[] | null> => {
   try {
     const actor = await createAuthenticatedActor();
-    const result = await actor.list_team_members(acceleratorId);
+    const result = await actor.list_team_members();
 
     if ('Err' in result) {
       console.error('Error listing team members:', result.Err);

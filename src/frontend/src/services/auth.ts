@@ -421,7 +421,7 @@ export const linkAccounts = async (openchatId: string): Promise<boolean> => {
 };
 
 // Function to sign up an accelerator
-export const signUpAccelerator = async (name: string, email: string, website: string) => {
+export const signUpAccelerator = async (membername:string, name: string, email: string, website: string) => {
     try {
         const authClient = await AuthClient.create();
         const identity = authClient.getIdentity();
@@ -432,7 +432,7 @@ export const signUpAccelerator = async (name: string, email: string, website: st
         }
         
         const actor = createActor(CANISTER_ID, { agent });
-        const result = await actor.sign_up_accelerator({ name, email, website });
+        const result = await actor.sign_up_accelerator({ name, email, website, membername });
         
         if ('Err' in result) {
             throw new Error(result.Err);

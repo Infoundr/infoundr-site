@@ -343,7 +343,6 @@ import type { TeamMemberInviteWithId, UpdateTeamMemberRole, RemoveTeamMember } f
 
 
 const RolesPermissions: React.FC = () => {
-  const [acceleratorId, setAcceleratorId] = useState<string>('');
   const [acceleratorName, setAcceleratorName] = useState<string>('');
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [searchText, setSearchText] = useState('');
@@ -357,6 +356,12 @@ const RolesPermissions: React.FC = () => {
   const [inviteToken, setInviteToken] = useState<string | null>(null);
   const [inviteError, setInviteError] = useState<string | null>(null);
 
+  const [copied, setCopied] = useState(false);
+
+ const [inviteName, setInviteName] = useState('');
+
+ console.log("Accelerator Name being sent:", acceleratorName);
+
   const roleOptions: RoleUnion[] = ['Viewer', 'ProgramManager', 'Admin', 'SuperAdmin'];
 
   const roleToVariant = (r: RoleUnion): Role => ({ [r]: null } as Role);
@@ -368,12 +373,11 @@ const RolesPermissions: React.FC = () => {
     const init = async () => {
       const acc = await getMyAccelerator();
       if (!acc) return;
-      setAcceleratorId(acc.id.toText());
       setAcceleratorName(acc.name);
       const me = acc.team_members.find(m => m.principalId === acc.id.toText());
       setCurrentUserRole(me?.roleString || 'Viewer');
 
-      const members = await listTeamMembers(acc.id.toText());
+      const members = await listTeamMembers();
       if (members) setTeamMembers(members);
     };
     init();
@@ -387,17 +391,14 @@ const RolesPermissions: React.FC = () => {
   const openInvite = () => {
     setInviteEmail('');
     setInviteRole('Viewer');
+    setInviteName('');
     setInviteToken(null);
     setInviteError(null);
     setInviteModalOpen(true);
   };
 
- const [copied, setCopied] = useState(false);
-
- console.log("Accelerator Name being sent:", acceleratorName);
  
   const handleInvite = async () => {
-    if (!acceleratorId) return;
     setInviteLoading(true);
     setInviteToken(null);
     setInviteError(null);
@@ -405,15 +406,14 @@ const RolesPermissions: React.FC = () => {
     const payload: TeamMemberInviteWithId = {
       email: inviteEmail,
       role: roleToVariant(inviteRole),
-      accelerator_id: acceleratorId,
-      name: acceleratorName,
+      name: inviteName,
     };
     const result = await inviteTeamMember(payload);
     setInviteLoading(false);
 
     if (result) {
       setInviteToken(result);
-      const updated = await listTeamMembers(acceleratorId);
+      const updated = await listTeamMembers();
       if (updated) setTeamMembers(updated);
     } else {
       setInviteError('Failed to send invite');
@@ -421,25 +421,22 @@ const RolesPermissions: React.FC = () => {
   };
 
   const handleRoleUpdate = async (email: string, newRole: RoleUnion) => {
-    if (!acceleratorId) return;
     const payload: UpdateTeamMemberRole = {
-      accelerator_id: acceleratorId,
       email,
       new_role: roleToVariant(newRole),
     };
     const ok = await updateTeamMemberRole(payload);
     if (ok) {
-      const updated = await listTeamMembers(acceleratorId);
+      const updated = await listTeamMembers();
       if (updated) setTeamMembers(updated);
     } else alert('Failed to update role');
   };
 
   const handleRemove = async (email: string) => {
-    if (!acceleratorId) return;
-    const payload: RemoveTeamMember = { accelerator_id: acceleratorId, email };
+    const payload: RemoveTeamMember = { email };
     const ok = await removeTeamMember(payload);
     if (ok) {
-      const updated = await listTeamMembers(acceleratorId);
+      const updated = await listTeamMembers();
       if (updated) setTeamMembers(updated);
     } else alert('Failed to remove member');
   };
@@ -548,6 +545,14 @@ const RolesPermissions: React.FC = () => {
                   onChange={e => setInviteEmail(e.target.value)}
                   className="border p-2 rounded w-full"
                 />
+                <input
+                type="text"
+                placeholder="Full Name"
+                value={inviteName}
+                onChange={e => setInviteName(e.target.value)}
+                className="border p-2 rounded w-full"
+                />
+
                 <select
                   value={inviteRole}
                   onChange={e => setInviteRole(e.target.value as RoleUnion)}

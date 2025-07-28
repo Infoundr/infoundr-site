@@ -24,20 +24,17 @@ export type RoleUnion = 'ProgramManager' | 'Viewer' | 'SuperAdmin' | 'Admin';
 export interface TeamMemberInviteWithId {
   email: string;
   role: Role; 
-  accelerator_id: string;
   name: string
 }
 
 // Used when updating a team member's role
 export interface UpdateTeamMemberRole {
-  accelerator_id: string;
   email:string
   new_role: Role;
 }
 
 // Used when removing a team member
 export interface RemoveTeamMember {
-  accelerator_id: string;
   email:string
 }
 export const convertRoleToString = (role: Role): RoleUnion => {
