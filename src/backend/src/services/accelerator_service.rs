@@ -18,6 +18,7 @@ use ic_cdk::api::time;
 
 #[derive(Clone, Debug, CandidType, Deserialize)]
 pub struct AcceleratorSignUp {
+    pub membername: String,
     pub name: String,
     pub website: String,
     pub email: String,
@@ -33,6 +34,7 @@ pub fn sign_up_accelerator(input: AcceleratorSignUp) -> Result<String, String> {
         return Err("Accelerator with this principal already exists".to_string());
     }
     let team_members = vec![TeamMember {
+        name: input.membername,
         email: input.email.clone(),
         role: Role::SuperAdmin,
         status: MemberStatus::Active,
@@ -221,6 +223,7 @@ pub struct AcceleratorUpdate {
 pub struct TeamMemberInviteWithId {
     pub email: String,
     pub role: Role,
+    pub name: String
 }
 
 #[update]
@@ -252,6 +255,7 @@ pub fn invite_team_member(input: TeamMemberInviteWithId) -> Result<String, Strin
     let token = BASE64.encode(&token_bytes);
 
     accelerator.team_members.push(TeamMember {
+        name: input.name,
         email: input.email,
         role: input.role,
         status: MemberStatus::Pending,
