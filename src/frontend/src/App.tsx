@@ -37,6 +37,10 @@ import { _SERVICE } from '../../declarations/backend/backend.did';
 import { useMockData as mockDataBoolean } from './mocks/mockData';
 import { Actor } from '@dfinity/agent';
 import StartupInviteAccept from './pages/Accelerator/Invites/StartupSignup';
+import Documentation from './pages/documentation/Documentation';
+import SlackDoc from './pages/documentation/SlackDoc';
+import DiscordDoc from './pages/documentation/DiscordDoc';
+import OpenChatDoc from './pages/documentation/OpenChatDoc';
 
 const App: React.FC = () => {
   const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
@@ -132,6 +136,12 @@ const App: React.FC = () => {
           {/* Add AdminPanel route outside of dashboard */}
           <Route path="/admin" element={<AdminPanel />} />
           
+          {/* Documentation Routes */}
+          <Route path="/documentation" element={<Documentation />} />
+          <Route path="/documentation/slack" element={<SlackDoc />} />
+          <Route path="/documentation/discord" element={<DiscordDoc />} />
+          <Route path="/documentation/openchat" element={<OpenChatDoc />} />
+
         </Routes>
 
         <WaitlistModal 
