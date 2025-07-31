@@ -43,6 +43,23 @@ type ActivityType = variant {
   MissedMilestone;
 };
 type Admin = record { created_at : nat64; principal_id : text };
+type ApiMessage = record {
+  id : text;
+  metadata : opt ApiMetadata;
+  bot_name : text;
+  user_id : text;
+  message : text;
+  response : text;
+  timestamp : nat64;
+};
+type ApiMetadata = record {
+  has_token : opt bool;
+  direct_auth : opt bool;
+  oauth_state : opt text;
+  needs_token : opt bool;
+  oauth_url : opt text;
+  session_active : opt bool;
+};
 type AsanaAccount = record {
   token : text;
   workspace_id : text;
@@ -107,7 +124,7 @@ type OpenChatUser = record {
   openchat_id : text;
   first_interaction : nat64;
 };
-type RemoveTeamMember = record { accelerator_id : text; email : text };
+type RemoveTeamMember = record { email : text };
 type Result = variant { Ok; Err : text };
 type Result_1 = variant { Ok : ChatMessage; Err : text };
 type Result_10 = variant { Ok : vec OpenChatUser; Err : text };
@@ -341,6 +358,8 @@ service : {
   get_admin_details : () -> (vec record { principal; Admin }) query;
   get_admins : () -> (vec principal) query;
   get_all_accelerators : () -> (Result_8) query;
+  get_api_message_history : (UserIdentifier) -> (vec ApiMessage) query;
+  get_api_messages_by_bot : (UserIdentifier, text) -> (vec ApiMessage) query;
   get_chat_history : (UserIdentifier) -> (vec ChatMessage) query;
   get_connection_status : (UserIdentifier) -> (ConnectionStatus) query;
   get_current_repo : (principal) -> (opt text) query;
@@ -350,6 +369,7 @@ service : {
   get_my_accelerator : () -> (Result_7);
   get_openchat_user : (text) -> (opt OpenChatUser) query;
   get_openchat_user_by_principal : (principal) -> (opt OpenChatUser) query;
+  get_recent_api_messages : (UserIdentifier, nat32) -> (vec ApiMessage) query;
   get_registered_discord_users : () -> (vec DiscordUser) query;
   get_registered_discord_users_admin : () -> (Result_9) query;
   get_registered_openchat_users : () -> (vec OpenChatUser) query;
@@ -393,6 +413,7 @@ service : {
   remove_team_member : (RemoveTeamMember) -> (Result);
   revoke_startup_invite : (text) -> (Result);
   sign_up_accelerator : (AcceleratorSignUp) -> (Result_18);
+  store_api_message : (UserIdentifier, text, text, text, opt ApiMetadata) -> ();
   store_asana_connection : (
       UserIdentifier,
       text,

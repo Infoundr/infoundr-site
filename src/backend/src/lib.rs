@@ -26,14 +26,14 @@ use crate::models::discord_user::DiscordUser;
 use crate::models::slack_user::SlackUser;
 use crate::models::task::Task;
 use crate::models::{
-    chat::ChatMessage, stable_principal::StablePrincipal, stable_string::StableString, user::User,
+    api_message::{ApiMessage, ApiMetadata}, chat::ChatMessage, stable_principal::StablePrincipal, stable_string::StableString, user::User,
     waitlist::WaitlistEntry,
 };
 use crate::models::startup::{Startup, StartupStatus, StartupCohort, StartupActivity, StartupInput, StartupUpdate, StartupStatusInput, StartupCohortInput, StartupFilter, StartupStats, StartupActivityType};
 use crate::services::account_service::ConnectionStatus;
 use crate::services::account_service::{UserActivity, UserIdentifier};
 use crate::storage::memory::{
-    CHAT_HISTORY, CONNECTED_ACCOUNTS, DASHBOARD_TOKENS, OPENCHAT_USERS, SLACK_USERS, DISCORD_USERS, TASKS, USERS, WAITLIST, GITHUB_ISSUES,
+    API_MESSAGES, CHAT_HISTORY, CONNECTED_ACCOUNTS, DASHBOARD_TOKENS, OPENCHAT_USERS, SLACK_USERS, DISCORD_USERS, TASKS, USERS, WAITLIST, GITHUB_ISSUES,
     STARTUPS, STARTUP_STATUSES, STARTUP_COHORTS, STARTUP_ACTIVITIES, ACCELERATORS, STARTUP_INVITES, ADMINS,
 };
 use candid::Principal;
@@ -49,6 +49,7 @@ struct StableState {
     users: Vec<(StablePrincipal, User)>,
     waitlist: Vec<(StableString, WaitlistEntry)>,
     chat_history: Vec<((StablePrincipal, u64), ChatMessage)>,
+    api_messages: Vec<((StableString, u64), ApiMessage)>,
     connected_accounts: Vec<(StablePrincipal, ConnectedAccounts)>,
     tasks: Vec<((StablePrincipal, StableString), Task)>,
     github_issues: Vec<((StablePrincipal, StableString), Issue)>,
@@ -70,6 +71,7 @@ fn pre_upgrade() {
     let users = USERS.with(|users| users.borrow().iter().collect::<Vec<_>>());
     let waitlist = WAITLIST.with(|w| w.borrow().iter().collect::<Vec<_>>());
     let chat_history = CHAT_HISTORY.with(|h| h.borrow().iter().collect::<Vec<_>>());
+    let api_messages = API_MESSAGES.with(|m| m.borrow().iter().collect::<Vec<_>>());
     let connected_accounts = CONNECTED_ACCOUNTS.with(|ca| ca.borrow().iter().collect::<Vec<_>>());
     let tasks = TASKS.with(|t| t.borrow().iter().collect::<Vec<_>>());
     let github_issues = GITHUB_ISSUES.with(|i| i.borrow().iter().collect::<Vec<_>>());
@@ -89,6 +91,7 @@ fn pre_upgrade() {
         users,
         waitlist,
         chat_history,
+        api_messages,
         connected_accounts,
         tasks,
         github_issues,
@@ -116,6 +119,7 @@ fn post_upgrade() {
             users: vec![],
             waitlist: vec![],
             chat_history: vec![],
+            api_messages: vec![],
             connected_accounts: vec![],
             tasks: vec![],
             github_issues: vec![],
@@ -154,6 +158,14 @@ fn post_upgrade() {
         let mut h = h.borrow_mut();
         for (k, v) in state.chat_history {
             h.insert(k, v);
+        }
+    });
+
+    // Restore API messages
+    API_MESSAGES.with(|m| {
+        let mut m = m.borrow_mut();
+        for (k, v) in state.api_messages {
+            m.insert(k, v);
         }
     });
 
