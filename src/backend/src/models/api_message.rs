@@ -1,6 +1,6 @@
 use candid::{CandidType, Decode, Encode};
 use ic_stable_structures::{BoundedStorable, Storable};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use std::borrow::Cow;
 
 #[derive(CandidType, Deserialize, Clone, Debug)]
