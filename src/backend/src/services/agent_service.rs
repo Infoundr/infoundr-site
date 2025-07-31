@@ -5,7 +5,6 @@ use crate::models::stable_string::StableString;
 use crate::storage::memory::{
     AGENT_SESSIONS, AGENT_INTERACTIONS, AGENT_CREDENTIALS, AGENT_ACTIVITIES,
 };
-use candid::Principal;
 use ic_cdk::{query, update};
 use ic_cdk::api::time;
 
@@ -38,7 +37,7 @@ pub fn create_agent_session(
     // Log activity
     log_agent_activity(
         user_id,
-        agent_type,
+        agent_type.clone(),
         AgentActivityType::SessionCreated,
         format!("Session created for {}", agent_type_to_string(&agent_type)),
         None,
@@ -82,14 +81,16 @@ pub fn end_agent_session(session_id: String) -> Result<(), String> {
         if let Some(mut session) = sessions.get(&StableString::from(session_id.clone())) {
             session.is_active = false;
             session.last_activity = time();
+            let agent_type = session.agent_type.clone();
+            let user_id = session.user_id.clone();
             sessions.insert(StableString::from(session_id), session);
             
             // Log activity
             log_agent_activity(
-                session.user_id.clone(),
-                session.agent_type.clone(),
+                user_id,
+                agent_type.clone(),
                 AgentActivityType::SessionEnded,
-                format!("Session ended for {}", agent_type_to_string(&session.agent_type)),
+                format!("Session ended for {}", agent_type_to_string(&agent_type)),
                 None,
             );
             
@@ -152,7 +153,7 @@ pub fn store_agent_credentials(
     // Log activity
     log_agent_activity(
         user_id,
-        agent_type,
+        agent_type.clone(),
         AgentActivityType::TokenStored,
         format!("Credentials stored for {}", agent_type_to_string(&agent_type)),
         None,
@@ -230,7 +231,7 @@ pub fn store_agent_interaction(
     agent_type: AgentType,
     message: String,
     response: String,
-    success: bool,
+    success: bool, 
     metadata: Option<String>,
 ) -> Result<String, String> {
     let interaction_id = format!("{}_{}_{}", user_id, agent_type_to_string(&agent_type), time());
@@ -256,7 +257,7 @@ pub fn store_agent_interaction(
     // Log activity
     log_agent_activity(
         user_id,
-        agent_type,
+        agent_type.clone(),
         AgentActivityType::InteractionCompleted,
         format!("Interaction completed for {}", agent_type_to_string(&agent_type)),
         None,
@@ -351,7 +352,7 @@ pub fn get_user_agent_activities(user_id: String, limit: Option<u32>) -> Vec<Age
         let mut user_activities: Vec<AgentActivity> = activities
             .borrow()
             .iter()
-            .filter(|((activity_user_id, _), _)| activity_user_id.get() == user_id)
+            .filter(|((activity_user_id, _), _)| activity_user_id.as_str() == user_id)
             .map(|(_, activity)| activity.clone())
             .collect();
         
@@ -419,7 +420,7 @@ pub fn cleanup_expired_sessions() -> u32 {
                 // Mark sessions as inactive if they haven't been active for 24 hours
                 session.is_active && (current_time - session.last_activity) > 86400_000_000_000 // 24 hours in nanoseconds
             })
-            .map(|(session_id, _)| session_id.get())
+            .map(|(session_id, _)| session_id.as_str().to_string())
             .collect();
 
         for session_id in expired_sessions {
@@ -450,7 +451,7 @@ pub fn cleanup_expired_credentials() -> u32 {
                     false
                 }
             })
-            .map(|(cred_id, _)| cred_id.get())
+            .map(|(cred_id, _)| cred_id.as_str().to_string())
             .collect();
 
         for cred_id in expired_creds {

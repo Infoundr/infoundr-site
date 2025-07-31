@@ -1,7 +1,6 @@
-use candid::{CandidType, Decode, Deserialize, Encode, Principal};
+use candid::{CandidType, Decode, Deserialize, Encode};
 use ic_stable_structures::{BoundedStorable, Storable};
 use std::borrow::Cow;
-use crate::models::stable_string::StableString;
 
 #[derive(CandidType, Deserialize, Clone, Debug)]
 pub struct AgentSession {
@@ -15,7 +14,7 @@ pub struct AgentSession {
     pub is_active: bool,
 }
 
-#[derive(CandidType, Deserialize, Clone, Debug)]
+#[derive(CandidType, Deserialize, Clone, Debug, PartialEq)]
 pub enum AgentType {
     GitHub,
     Asana,
