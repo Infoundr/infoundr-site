@@ -450,11 +450,13 @@ service : {
   get_user_activity : (UserIdentifier) -> (UserActivity) query;
   get_user_activity_admin : (UserIdentifier) -> (Result_17) query;
   get_user_agent_activities : (text, opt nat32) -> (vec AgentActivity) query;
-  get_user_agent_credentials : (text) -> (vec AgentCredentials) query;
+  get_user_agent_credentials : (text, opt nat32) -> (
+      vec AgentCredentials,
+    ) query;
   get_user_agent_interactions : (text, opt nat32) -> (
       vec AgentInteraction,
     ) query;
-  get_user_agent_sessions : (text) -> (vec AgentSession) query;
+  get_user_agent_sessions : (text, opt nat32) -> (vec AgentSession) query;
   get_user_connections : (principal) -> (opt ConnectedAccounts) query;
   get_user_issues : (UserIdentifier) -> (vec Issue) query;
   get_user_tasks : (UserIdentifier) -> (vec Task) query;

@@ -2,7 +2,7 @@ use candid::{CandidType, Decode, Deserialize, Encode};
 use ic_stable_structures::{BoundedStorable, Storable};
 use std::borrow::Cow;
 
-#[derive(CandidType, Deserialize, Clone, Debug)]
+#[derive(CandidType, Deserialize, Clone, Debug, serde::Serialize)]
 pub struct AgentSession {
     pub user_id: String,
     pub agent_type: AgentType,
@@ -14,7 +14,7 @@ pub struct AgentSession {
     pub is_active: bool,
 }
 
-#[derive(CandidType, Deserialize, Clone, Debug, PartialEq)]
+#[derive(CandidType, Deserialize, Clone, Debug, PartialEq, serde::Serialize)]
 pub enum AgentType {
     GitHub,
     Asana,
@@ -23,7 +23,7 @@ pub enum AgentType {
     InFoundr, // Unified agent
 }
 
-#[derive(CandidType, Deserialize, Clone, Debug)]
+#[derive(CandidType, Deserialize, Clone, Debug, serde::Serialize)]
 pub struct AgentInteraction {
     pub id: String,
     pub user_id: String,
@@ -35,7 +35,7 @@ pub struct AgentInteraction {
     pub metadata: Option<String>, // JSON string for additional data
 }
 
-#[derive(CandidType, Deserialize, Clone, Debug)]
+#[derive(CandidType, Deserialize, Clone, Debug, serde::Serialize)]
 pub struct AgentCredentials {
     pub user_id: String,
     pub agent_type: AgentType,
@@ -48,7 +48,7 @@ pub struct AgentCredentials {
     pub expires_at: Option<u64>,
 }
 
-#[derive(CandidType, Deserialize, Clone, Debug)]
+#[derive(CandidType, Deserialize, Clone, Debug, serde::Serialize)]
 pub struct AgentActivity {
     pub user_id: String,
     pub agent_type: AgentType,
@@ -58,7 +58,7 @@ pub struct AgentActivity {
     pub metadata: Option<String>, // JSON string for additional data
 }
 
-#[derive(CandidType, Deserialize, Clone, Debug)]
+#[derive(CandidType, Deserialize, Clone, Debug, serde::Serialize)]
 pub enum AgentActivityType {
     SessionCreated,
     SessionEnded,

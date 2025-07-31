@@ -109,14 +109,22 @@ pub fn get_agent_session(session_id: String) -> Option<AgentSession> {
 }
 
 #[query]
-pub fn get_user_agent_sessions(user_id: String) -> Vec<AgentSession> {
+pub fn get_user_agent_sessions(user_id: String, limit: Option<u32>) -> Vec<AgentSession> {
+    let limit = limit.unwrap_or(20).min(50); // Conservative limit to prevent large responses
     AGENT_SESSIONS.with(|sessions| {
-        sessions
+        let mut user_sessions: Vec<AgentSession> = sessions
             .borrow()
             .iter()
             .filter(|(_, session)| session.user_id == user_id)
             .map(|(_, session)| session.clone())
-            .collect()
+            .collect();
+        
+        // Sort by last_activity descending (most recent first)
+        user_sessions.sort_by(|a, b| b.last_activity.cmp(&a.last_activity));
+        
+        // Take only the limit
+        user_sessions.truncate(limit as usize);
+        user_sessions
     })
 }
 
@@ -213,14 +221,22 @@ pub fn get_agent_credentials(user_id: String, agent_type: AgentType) -> Option<A
 }
 
 #[query]
-pub fn get_user_agent_credentials(user_id: String) -> Vec<AgentCredentials> {
+pub fn get_user_agent_credentials(user_id: String, limit: Option<u32>) -> Vec<AgentCredentials> {
+    let limit = limit.unwrap_or(10).min(20); // Conservative limit to prevent large responses
     AGENT_CREDENTIALS.with(|creds| {
-        creds
+        let mut user_credentials: Vec<AgentCredentials> = creds
             .borrow()
             .iter()
             .filter(|(_, credential)| credential.user_id == user_id)
             .map(|(_, credential)| credential.clone())
-            .collect()
+            .collect();
+        
+        // Sort by created_at descending (most recent first)
+        user_credentials.sort_by(|a, b| b.created_at.cmp(&a.created_at));
+        
+        // Take only the limit
+        user_credentials.truncate(limit as usize);
+        user_credentials
     })
 }
 
@@ -279,7 +295,7 @@ pub fn get_agent_interaction(interaction_id: String) -> Option<AgentInteraction>
 
 #[query]
 pub fn get_user_agent_interactions(user_id: String, limit: Option<u32>) -> Vec<AgentInteraction> {
-    let limit = limit.unwrap_or(50);
+    let limit = limit.unwrap_or(20).min(50);
     AGENT_INTERACTIONS.with(|interactions| {
         let mut user_interactions: Vec<AgentInteraction> = interactions
             .borrow()
@@ -299,7 +315,7 @@ pub fn get_user_agent_interactions(user_id: String, limit: Option<u32>) -> Vec<A
 
 #[query]
 pub fn get_agent_type_interactions(user_id: String, agent_type: AgentType, limit: Option<u32>) -> Vec<AgentInteraction> {
-    let limit = limit.unwrap_or(50);
+    let limit = limit.unwrap_or(20).min(50);
     AGENT_INTERACTIONS.with(|interactions| {
         let mut type_interactions: Vec<AgentInteraction> = interactions
             .borrow()
@@ -347,7 +363,7 @@ pub fn log_agent_activity(
 
 #[query]
 pub fn get_user_agent_activities(user_id: String, limit: Option<u32>) -> Vec<AgentActivity> {
-    let limit = limit.unwrap_or(100);
+    let limit = limit.unwrap_or(30).min(100);
     AGENT_ACTIVITIES.with(|activities| {
         let mut user_activities: Vec<AgentActivity> = activities
             .borrow()
@@ -379,8 +395,8 @@ fn agent_type_to_string(agent_type: &AgentType) -> String {
 // Agent Status and Statistics
 #[query]
 pub fn get_agent_status(user_id: String) -> AgentStatus {
-    let sessions = get_user_agent_sessions(user_id.clone());
-    let credentials = get_user_agent_credentials(user_id.clone());
+    let sessions = get_user_agent_sessions(user_id.clone(), Some(100)); // Get more for accurate counts
+    let credentials = get_user_agent_credentials(user_id.clone(), Some(50)); // Get more for accurate counts
     let recent_interactions = get_user_agent_interactions(user_id.clone(), Some(10));
     let recent_activities = get_user_agent_activities(user_id.clone(), Some(20));
 
