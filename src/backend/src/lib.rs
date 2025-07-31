@@ -17,6 +17,7 @@ fn custom_getrandom(dest: &mut [u8]) -> Result<(), getrandom::Error> {
 
 register_custom_getrandom!(custom_getrandom);
 
+use crate::models::agent::{AgentSession, AgentInteraction, AgentCredentials, AgentActivity, AgentType, AgentActivityType};
 use crate::models::chat::BotType;
 use crate::models::connected_accounts::ConnectedAccounts;
 use crate::models::dashboard_token::DashboardToken;
@@ -32,7 +33,9 @@ use crate::models::{
 use crate::models::startup::{Startup, StartupStatus, StartupCohort, StartupActivity, StartupInput, StartupUpdate, StartupStatusInput, StartupCohortInput, StartupFilter, StartupStats, StartupActivityType};
 use crate::services::account_service::ConnectionStatus;
 use crate::services::account_service::{UserActivity, UserIdentifier};
+use crate::services::agent_service::AgentStatus;
 use crate::storage::memory::{
+    AGENT_SESSIONS, AGENT_INTERACTIONS, AGENT_CREDENTIALS, AGENT_ACTIVITIES,
     CHAT_HISTORY, CONNECTED_ACCOUNTS, DASHBOARD_TOKENS, OPENCHAT_USERS, SLACK_USERS, DISCORD_USERS, TASKS, USERS, WAITLIST, GITHUB_ISSUES,
     STARTUPS, STARTUP_STATUSES, STARTUP_COHORTS, STARTUP_ACTIVITIES, ACCELERATORS, STARTUP_INVITES, ADMINS,
 };
@@ -63,6 +66,10 @@ struct StableState {
     startup_cohorts: Vec<(StableString, StartupCohort)>,
     startup_activities: Vec<((StableString, u64), StartupActivity)>,
     admins: Vec<(StablePrincipal, crate::models::admin::Admin)>,
+    agent_sessions: Vec<(StableString, AgentSession)>,
+    agent_interactions: Vec<((StableString, u64), AgentInteraction)>,
+    agent_credentials: Vec<(StableString, AgentCredentials)>,
+    agent_activities: Vec<((StableString, u64), AgentActivity)>,
 }
 
 #[ic_cdk::pre_upgrade]
@@ -84,6 +91,10 @@ fn pre_upgrade() {
     let startup_cohorts = STARTUP_COHORTS.with(|c| c.borrow().iter().collect::<Vec<_>>());
     let startup_activities = STARTUP_ACTIVITIES.with(|a| a.borrow().iter().collect::<Vec<_>>());
     let admins = ADMINS.with(|a| a.borrow().iter().collect::<Vec<_>>());
+    let agent_sessions = AGENT_SESSIONS.with(|s| s.borrow().iter().collect::<Vec<_>>());
+    let agent_interactions = AGENT_INTERACTIONS.with(|i| i.borrow().iter().collect::<Vec<_>>());
+    let agent_credentials = AGENT_CREDENTIALS.with(|c| c.borrow().iter().collect::<Vec<_>>());
+    let agent_activities = AGENT_ACTIVITIES.with(|a| a.borrow().iter().collect::<Vec<_>>());
 
     let state = StableState {
         users,
@@ -103,6 +114,10 @@ fn pre_upgrade() {
         startup_cohorts,
         startup_activities,
         admins,
+        agent_sessions,
+        agent_interactions,
+        agent_credentials,
+        agent_activities,
     };
 
     stable_save((state,)).expect("Failed to save stable state");
@@ -130,6 +145,10 @@ fn post_upgrade() {
             startup_cohorts: vec![],
             startup_activities: vec![],
             admins: vec![],
+            agent_sessions: vec![],
+            agent_interactions: vec![],
+            agent_credentials: vec![],
+            agent_activities: vec![],
         },),
     };
 
@@ -265,6 +284,38 @@ fn post_upgrade() {
     ADMINS.with(|a| {
         let mut a = a.borrow_mut();
         for (k, v) in state.admins {
+            a.insert(k, v);
+        }
+    });
+
+    // Restore agent sessions
+    AGENT_SESSIONS.with(|s| {
+        let mut s = s.borrow_mut();
+        for (k, v) in state.agent_sessions {
+            s.insert(k, v);
+        }
+    });
+
+    // Restore agent interactions
+    AGENT_INTERACTIONS.with(|i| {
+        let mut i = i.borrow_mut();
+        for (k, v) in state.agent_interactions {
+            i.insert(k, v);
+        }
+    });
+
+    // Restore agent credentials
+    AGENT_CREDENTIALS.with(|c| {
+        let mut c = c.borrow_mut();
+        for (k, v) in state.agent_credentials {
+            c.insert(k, v);
+        }
+    });
+
+    // Restore agent activities
+    AGENT_ACTIVITIES.with(|a| {
+        let mut a = a.borrow_mut();
+        for (k, v) in state.agent_activities {
             a.insert(k, v);
         }
     });
