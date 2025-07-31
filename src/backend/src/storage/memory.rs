@@ -1,4 +1,5 @@
 use crate::models::admin::Admin;
+use crate::models::agent::{AgentSession, AgentInteraction, AgentCredentials, AgentActivity};
 use crate::models::connected_accounts::ConnectedAccounts;
 use crate::models::dashboard_token::DashboardToken;
 use crate::models::github::Issue;
@@ -123,6 +124,31 @@ thread_local! {
     pub static STARTUP_ACTIVITIES: RefCell<StableBTreeMap<(StableString, u64), StartupActivity, Memory>> = RefCell::new(
         StableBTreeMap::init(
             MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(15)))
+        )
+    );
+
+    // Agent Management Storage
+    pub static AGENT_SESSIONS: RefCell<StableBTreeMap<StableString, AgentSession, Memory>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(17)))
+        )
+    );
+
+    pub static AGENT_INTERACTIONS: RefCell<StableBTreeMap<(StableString, u64), AgentInteraction, Memory>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(18)))
+        )
+    );
+
+    pub static AGENT_CREDENTIALS: RefCell<StableBTreeMap<StableString, AgentCredentials, Memory>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(19)))
+        )
+    );
+
+    pub static AGENT_ACTIVITIES: RefCell<StableBTreeMap<(StableString, u64), AgentActivity, Memory>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(20)))
         )
     );
 }
