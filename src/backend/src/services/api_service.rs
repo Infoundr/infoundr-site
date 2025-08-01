@@ -5,7 +5,7 @@ use crate::services::slack_service::ensure_slack_user;
 use crate::services::discord_service::ensure_discord_user;
 use crate::storage::memory::{API_MESSAGES, OPENCHAT_USERS, SLACK_USERS, DISCORD_USERS};
 use candid::Principal;
-use ic_cdk::{query, update};
+use ic_cdk::update;
 
 // API Message Storage Management
 #[update]
@@ -111,7 +111,7 @@ pub fn store_api_message(
 }
 
 // Get API message history for a user
-#[query]
+// #[query]
 pub fn get_api_message_history(identifier: UserIdentifier) -> Vec<ApiMessage> {
     let principals_to_check = match &identifier {
         UserIdentifier::Principal(principal) => {
@@ -298,7 +298,7 @@ pub fn get_api_message_history(identifier: UserIdentifier) -> Vec<ApiMessage> {
 }
 
 // Get API messages by bot name
-#[query]
+// #[query]
 pub fn get_api_messages_by_bot(identifier: UserIdentifier, bot_name: String) -> Vec<ApiMessage> {
     let all_messages = get_api_message_history(identifier);
     all_messages
@@ -308,7 +308,7 @@ pub fn get_api_messages_by_bot(identifier: UserIdentifier, bot_name: String) -> 
 }
 
 // Get recent API messages (last N messages)
-#[query]
+// #[query]    
 pub fn get_recent_api_messages(identifier: UserIdentifier, limit: u32) -> Vec<ApiMessage> {
     let mut all_messages = get_api_message_history(identifier);
     all_messages.truncate(limit as usize);
