@@ -85,6 +85,9 @@ const App: React.FC = () => {
           {/* Auth Route */}
           <Route path="/dashboard" element={<Auth />} />
 
+          {/* Public invite accept route (not protected) - must be before other /accelerator routes */}
+          <Route path="/accelerator/invite/:inviteCode/*" element={<StartupInviteAccept />} />
+
           {/* Protected Dashboard Routes */}
           <Route path="/dashboard/*" element={
             <ProtectedRoute>
@@ -103,7 +106,6 @@ const App: React.FC = () => {
             <Route path="analytics" element={<Analytics />} />
             <Route path="invites" element={<SendInvites />} />
             <Route path="invites/generate-invite" element={<StartupSignup />} />
-            <Route path="invite/:invite-code" element={<StartupInviteAccept />} />
             <Route path="roles" element={<RolesPermissions />} />
             <Route path="settings" element={<Settings />} />
           </Route>
