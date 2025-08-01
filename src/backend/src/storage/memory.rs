@@ -1,4 +1,5 @@
 use crate::models::admin::Admin;
+use crate::models::api_message::ApiMessage;
 use crate::models::connected_accounts::ConnectedAccounts;
 use crate::models::dashboard_token::DashboardToken;
 use crate::models::github::Issue;
@@ -86,6 +87,12 @@ thread_local! {
     pub static DISCORD_USERS: RefCell<StableBTreeMap<StableString, DiscordUser, Memory>> = RefCell::new(
         StableBTreeMap::init(
             MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(10)))
+        )
+    );
+
+    pub static API_MESSAGES: RefCell<StableBTreeMap<(StableString, u64), ApiMessage, Memory>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(17)))
         )
     );
 

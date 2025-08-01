@@ -1,4 +1,5 @@
 pub mod admin;
+pub mod api_message;
 pub mod chat;
 pub mod connected_accounts;
 pub mod dashboard_token;

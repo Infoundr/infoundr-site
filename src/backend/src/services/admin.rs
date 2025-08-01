@@ -2,6 +2,11 @@ use crate::models::stable_principal::StablePrincipal;
 use crate::models::user::User;
 use crate::models::waitlist::WaitlistEntry;
 use crate::models::accelerator::Accelerator;
+use crate::models::api_message::ApiMessage;
+use crate::services::slack_service::get_registered_slack_users;
+use crate::services::discord_service::get_registered_discord_users;
+use crate::services::account_service::{UserIdentifier as AccountUserIdentifier};
+use crate::services::api_service::{get_api_message_history, get_api_messages_by_bot, get_recent_api_messages, UserIdentifier as ApiUserIdentifier};
 use crate::storage::memory::{USERS, WAITLIST, ACCELERATORS, ADMINS, SLACK_USERS, DISCORD_USERS, OPENCHAT_USERS};
 use candid::Principal;
 use ic_cdk::{caller, query, update};
@@ -318,4 +323,145 @@ pub fn get_user_activity_admin(identifier: crate::services::account_service::Use
 
     let activity = crate::services::account_service::get_user_activity(identifier);
     Ok(activity)
+}
+
+#[query]
+pub fn admin_get_all_api_messages() -> Result<Vec<ApiMessage>, String> {
+    if !is_allowed_principal() {
+        return Err("Unauthorized: Caller is not an admin".to_string());
+    }
+    
+    let mut all_api_messages = Vec::new();
+    
+    // Get all Slack users and their API messages
+    let slack_users = get_registered_slack_users();
+    for user in slack_users {
+        let messages = get_api_message_history(ApiUserIdentifier::SlackId(user.slack_id));
+        all_api_messages.extend(messages);
+    }
+    
+    // Get all Discord users and their API messages
+    let discord_users = get_registered_discord_users();
+    for user in discord_users {
+        let messages = get_api_message_history(ApiUserIdentifier::DiscordId(user.discord_id));
+        all_api_messages.extend(messages);
+    }
+    
+    // Sort by timestamp (newest first)
+    all_api_messages.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+    
+    Ok(all_api_messages)
+}
+
+#[query]
+pub fn admin_get_api_messages_by_bot(bot_name: String) -> Result<Vec<ApiMessage>, String> {
+    if !is_allowed_principal() {
+        return Err("Unauthorized: Caller is not an admin".to_string());
+    }
+    
+    let mut all_api_messages = Vec::new();
+    
+    // Get all Slack users and their API messages for the specified bot
+    let slack_users = get_registered_slack_users();
+    for user in slack_users {
+        let messages = get_api_messages_by_bot(ApiUserIdentifier::SlackId(user.slack_id), bot_name.clone());
+        all_api_messages.extend(messages);
+    }
+    
+    // Get all Discord users and their API messages for the specified bot
+    let discord_users = get_registered_discord_users();
+    for user in discord_users {
+        let messages = get_api_messages_by_bot(ApiUserIdentifier::DiscordId(user.discord_id), bot_name.clone());
+        all_api_messages.extend(messages);
+    }
+    
+    // Sort by timestamp (newest first)
+    all_api_messages.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+    
+    Ok(all_api_messages)
+}
+
+#[query]
+pub fn admin_get_recent_api_messages(limit: u32) -> Result<Vec<ApiMessage>, String> {
+    if !is_allowed_principal() {
+        return Err("Unauthorized: Caller is not an admin".to_string());
+    }
+    
+    let mut all_api_messages = Vec::new();
+    
+    // Get all Slack users and their recent API messages
+    let slack_users = get_registered_slack_users();
+    for user in slack_users {
+        let messages = get_recent_api_messages(ApiUserIdentifier::SlackId(user.slack_id), limit);
+        all_api_messages.extend(messages);
+    }
+    
+    // Get all Discord users and their recent API messages
+    let discord_users = get_registered_discord_users();
+    for user in discord_users {
+        let messages = get_recent_api_messages(ApiUserIdentifier::DiscordId(user.discord_id), limit);
+        all_api_messages.extend(messages);
+    }
+    
+    // Sort by timestamp (newest first)
+    all_api_messages.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+    
+    // Apply global limit
+    all_api_messages.truncate(limit as usize);
+    
+    Ok(all_api_messages)
+}
+
+#[query]
+pub fn admin_get_api_messages_for_user(identifier: AccountUserIdentifier) -> Result<Vec<ApiMessage>, String> {
+    if !is_allowed_principal() {
+        return Err("Unauthorized: Caller is not an admin".to_string());
+    }
+    
+    // Convert AccountUserIdentifier to ApiUserIdentifier
+    let api_identifier = match identifier {
+        AccountUserIdentifier::Principal(principal) => ApiUserIdentifier::Principal(principal),
+        AccountUserIdentifier::OpenChatId(openchat_id) => ApiUserIdentifier::OpenChatId(openchat_id),
+        AccountUserIdentifier::SlackId(slack_id) => ApiUserIdentifier::SlackId(slack_id),
+        AccountUserIdentifier::DiscordId(discord_id) => ApiUserIdentifier::DiscordId(discord_id),
+    };
+    
+    let messages = get_api_message_history(api_identifier);
+    Ok(messages)
+}
+
+#[query]
+pub fn admin_get_api_messages_for_user_by_bot(identifier: AccountUserIdentifier, bot_name: String) -> Result<Vec<ApiMessage>, String> {
+    if !is_allowed_principal() {
+        return Err("Unauthorized: Caller is not an admin".to_string());
+    }
+    
+    // Convert AccountUserIdentifier to ApiUserIdentifier
+    let api_identifier = match identifier {
+        AccountUserIdentifier::Principal(principal) => ApiUserIdentifier::Principal(principal),
+        AccountUserIdentifier::OpenChatId(openchat_id) => ApiUserIdentifier::OpenChatId(openchat_id),
+        AccountUserIdentifier::SlackId(slack_id) => ApiUserIdentifier::SlackId(slack_id),
+        AccountUserIdentifier::DiscordId(discord_id) => ApiUserIdentifier::DiscordId(discord_id),
+    };
+    
+    let messages = get_api_messages_by_bot(api_identifier, bot_name);
+    Ok(messages)
+}
+
+#[query]
+pub fn admin_get_recent_api_messages_for_user(identifier: AccountUserIdentifier, limit: u32) -> Result<Vec<ApiMessage>, String> {
+    if !is_allowed_principal() {
+        return Err("Unauthorized: Caller is not an admin".to_string());
+    }
+    
+    // Convert AccountUserIdentifier to ApiUserIdentifier
+    let api_identifier = match identifier {
+        AccountUserIdentifier::Principal(principal) => ApiUserIdentifier::Principal(principal),
+        AccountUserIdentifier::OpenChatId(openchat_id) => ApiUserIdentifier::OpenChatId(openchat_id),
+        AccountUserIdentifier::SlackId(slack_id) => ApiUserIdentifier::SlackId(slack_id),
+        AccountUserIdentifier::DiscordId(discord_id) => ApiUserIdentifier::DiscordId(discord_id),
+    };
+    
+    let messages = get_recent_api_messages(api_identifier, limit);
+    Ok(messages)
 }
