@@ -341,6 +341,8 @@ import { getMyAccelerator } from '../../../services/accelerator';
 import { inviteTeamMember, listTeamMembers, updateTeamMemberRole, removeTeamMember } from '../../../services/team';
 import type { TeamMember, Role, RoleUnion } from '../../../types/team';
 import type { TeamMemberInviteWithId, UpdateTeamMemberRole, RemoveTeamMember } from '../../../types/team';
+import { emailService } from '../../../services/email';
+import { toast } from 'react-toastify';
 
 
 const RolesPermissions: React.FC = () => {
@@ -416,6 +418,27 @@ const RolesPermissions: React.FC = () => {
       setInviteToken(result);
       const updated = await listTeamMembers();
       if (updated) setTeamMembers(updated);
+      
+      // Send email invitation
+      try {
+        const inviteLink = `${window.location.origin}/accelerator/roles/invite/${result}`;
+        
+        // Create a team invite email template data
+        const emailData = {
+          email: inviteEmail,
+          startupName: inviteName || 'Team Member',
+          programName: acceleratorName,
+          inviteCode: result,
+          inviteLink: inviteLink,
+          expiryDate: '7 days from now'
+        };
+
+        await emailService.sendTeamInvite(emailData);
+        toast.success('Team member invited and email sent successfully!');
+      } catch (emailError) {
+        console.error('Error sending team invite email:', emailError);
+        toast.warning('Team member invited but failed to send email. You can share the invite link manually.');
+      }
     } else {
       setInviteError('Failed to send invite');
     }
@@ -440,6 +463,33 @@ const RolesPermissions: React.FC = () => {
       const updated = await listTeamMembers();
       if (updated) setTeamMembers(updated);
     } else alert('Failed to remove member');
+  };
+
+  const handleResendInvite = async (member: TeamMember) => {
+    if (!('Pending' in member.status)) {
+      toast.error('Can only resend invites to pending members');
+      return;
+    }
+
+    try {
+      // Find the invite token for this member
+      const inviteLink = `${window.location.origin}/accelerator/roles/invite/${member.token}`;
+      
+      const emailData = {
+        email: member.email,
+        startupName: member.name || 'Team Member',
+        programName: acceleratorName,
+        inviteCode: member.token || '',
+        inviteLink: inviteLink,
+        expiryDate: '7 days from now'
+      };
+
+              await emailService.sendTeamInvite(emailData);
+        toast.success('Invite email resent successfully!');
+    } catch (emailError) {
+      console.error('Error resending invite email:', emailError);
+      toast.error('Failed to resend invite email');
+    }
   };
 
   return (
@@ -518,6 +568,14 @@ const RolesPermissions: React.FC = () => {
                     >
                       Edit
                     </button>
+                    {'Pending' in member.status && (
+                      <button
+                        onClick={() => handleResendInvite(member)}
+                        className="text-green-600 underline"
+                      >
+                        Resend Invite
+                      </button>
+                    )}
                     <button
                       onClick={() => handleRemove(member.email)}
                       className="text-red-600 underline"
