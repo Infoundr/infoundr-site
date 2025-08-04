@@ -49,6 +49,12 @@ if ! grep -q "SENDGRID_API_KEY=" .env || grep -q "SENDGRID_API_KEY=your_sendgrid
     exit 1
 fi
 
+# Check if API_KEY is set
+if ! grep -q "API_KEY=" .env || grep -q "API_KEY=your_secure_api_key_here" .env; then
+    print_error "Please set your API key in the .env file"
+    exit 1
+fi
+
 print_status "Installing dependencies..."
 npm install --production
 
