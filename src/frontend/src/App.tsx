@@ -37,6 +37,7 @@ import { _SERVICE } from '../../declarations/backend/backend.did';
 import { useMockData as mockDataBoolean } from './mocks/mockData';
 import { Actor } from '@dfinity/agent';
 import StartupInviteAccept from './pages/Accelerator/Invites/StartupSignup';
+import TeamInviteAccept from './pages/Accelerator/Invites/TeamInviteAccept';
 
 const App: React.FC = () => {
   const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
@@ -125,6 +126,8 @@ const App: React.FC = () => {
           </Route>
 
           <Route path="/accelerator/login" element={<AcceleratorLogin />} />
+
+          <Route path="/accelerator/roles/invite/:token" element={<TeamInviteAccept />} />
 
           {/* BotLogin route outside of dashboard */}
           <Route path="/bot-login" element={<BotLogin />} />
