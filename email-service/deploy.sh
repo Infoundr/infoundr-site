@@ -31,11 +31,11 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# Check if running as root
-if [ "$EUID" -eq 0 ]; then
-    print_error "Please don't run this script as root"
-    exit 1
-fi
+# Check if running as root (commented out for server deployment)
+# if [ "$EUID" -eq 0 ]; then
+#     print_error "Please don't run this script as root"
+#     exit 1
+# fi
 
 # Check if .env file exists
 if [ ! -f ".env" ]; then
