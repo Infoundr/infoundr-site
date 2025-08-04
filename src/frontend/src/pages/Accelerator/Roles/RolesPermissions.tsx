@@ -336,6 +336,7 @@ const RolesPermissions: React.FC = () => {
 export default RolesPermissions;*/
 
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getMyAccelerator } from '../../../services/accelerator';
 import { inviteTeamMember, listTeamMembers, updateTeamMemberRole, removeTeamMember } from '../../../services/team';
 import type { TeamMember, Role, RoleUnion } from '../../../types/team';
@@ -343,6 +344,7 @@ import type { TeamMemberInviteWithId, UpdateTeamMemberRole, RemoveTeamMember } f
 
 
 const RolesPermissions: React.FC = () => {
+  const navigate = useNavigate();
   const [acceleratorName, setAcceleratorName] = useState<string>('');
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [searchText, setSearchText] = useState('');
@@ -355,10 +357,9 @@ const RolesPermissions: React.FC = () => {
   const [inviteLoading, setInviteLoading] = useState(false);
   const [inviteToken, setInviteToken] = useState<string | null>(null);
   const [inviteError, setInviteError] = useState<string | null>(null);
-
   const [copied, setCopied] = useState(false);
 
- const [inviteName, setInviteName] = useState('');
+  const [inviteName, setInviteName] = useState('');
 
  console.log("Accelerator Name being sent:", acceleratorName);
 
@@ -546,13 +547,12 @@ const RolesPermissions: React.FC = () => {
                   className="border p-2 rounded w-full"
                 />
                 <input
-                type="text"
-                placeholder="Full Name"
-                value={inviteName}
-                onChange={e => setInviteName(e.target.value)}
-                className="border p-2 rounded w-full"
+                  type="text"
+                  placeholder="Full Name"
+                  value={inviteName}
+                  onChange={e => setInviteName(e.target.value)}
+                  className="border p-2 rounded w-full"
                 />
-
                 <select
                   value={inviteRole}
                   onChange={e => setInviteRole(e.target.value as RoleUnion)}
@@ -581,34 +581,36 @@ const RolesPermissions: React.FC = () => {
               </>
             ) : (
               <>
-               <h3 className="text-xl font-semibold">Invite Sent!</h3>
-  <p className="break-all">{inviteToken}</p>
-
-  {/* Copied confirmation message */}
-  {copied && (
-    <p className="text-green-600 text-sm mt-1">Copied!</p>
-  )}
-
-  <button
-    onClick={() => {
-      navigator.clipboard.writeText(inviteToken);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000); // hide after 2 seconds
-    }}
-    className="px-3 py-1 mt-2 bg-green-600 text-white rounded"
-  >
-    Copy Token
-  </button>
-
-  <div className="flex justify-end pt-4">
-    <button
-      onClick={() => setInviteModalOpen(false)}
-      className="px-4 py-2 bg-gray-200 rounded"
-    >
-      Close
-          </button>
-        </div>
-        </>  
+                <h3 className="text-xl font-semibold">Invite Sent!</h3>
+                <p className="text-sm text-gray-600 mb-2">Share this invite link with your team member:</p>
+                <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-md">
+                  <p className="font-medium text-sm flex-1 break-all">
+                    {`${window.location.origin}/accelerator/roles/invite/${inviteToken}`}
+                  </p>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(`${window.location.origin}/accelerator/roles/invite/${inviteToken}`);
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 2000);
+                    }}
+                    className="text-blue-600 hover:text-blue-700 p-1"
+                    title="Copy to clipboard"
+                  >
+                    {copied ? '✓' : '📋'}
+                  </button>
+                </div>
+                {copied && (
+                  <p className="text-green-600 text-sm">Copied to clipboard!</p>
+                )}
+                <div className="flex justify-end pt-4">
+                  <button
+                    onClick={() => setInviteModalOpen(false)}
+                    className="px-4 py-2 bg-gray-200 rounded"
+                  >
+                    Close
+                  </button>
+                </div>
+              </>
             )}
           </div>
         </div>
