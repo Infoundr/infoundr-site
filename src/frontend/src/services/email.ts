@@ -1,7 +1,7 @@
 // Email service for InFoundr frontend
 // This service handles communication with the email service
 
-const EMAIL_SERVICE_URL = import.meta.env.VITE_EMAIL_SERVICE_URL || 'http://localhost:3001';
+const EMAIL_SERVICE_URL = import.meta.env.VITE_EMAIL_SERVICE_URL || 'http://154.38.174.112:3002';
 
 export interface EmailInviteData {
   email: string;
@@ -66,9 +66,17 @@ class EmailService {
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
     
+    // Get API key from environment
+    const apiKey = import.meta.env.VITE_EMAIL_SERVICE_API_KEY;
+    
+    if (!apiKey) {
+      console.warn('Email service API key not configured. Email functionality may not work.');
+    }
+    
     const defaultOptions: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
+        ...(apiKey && { 'X-API-Key': apiKey }),
         ...options.headers,
       },
     };
@@ -167,6 +175,20 @@ class EmailService {
     } catch (error) {
       console.error('Error checking email service health:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Test the connection to the email service
+  */
+  async testConnection(): Promise<boolean> {
+    try {
+      const health = await this.healthCheck();
+      console.log('Email service connection successful:', health);
+      return true;
+    } catch (error) {
+      console.error('Email service connection failed:', error);
+      return false;
     }
   }
 
