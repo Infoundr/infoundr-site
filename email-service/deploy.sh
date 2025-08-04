@@ -9,7 +9,7 @@ echo "🚀 Starting InFoundr Email Service deployment..."
 
 # Configuration
 SERVICE_NAME="infoundr-email-service"
-SERVICE_PORT="5005"
+SERVICE_PORT="3002"
 PM2_APP_NAME="infoundr-email"
 
 # Colors for output
