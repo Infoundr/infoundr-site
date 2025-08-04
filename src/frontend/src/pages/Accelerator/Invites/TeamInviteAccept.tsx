@@ -8,22 +8,34 @@ const TeamInviteAccept: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [inviteData, setInviteData] = useState<any>(null);
 
+  console.log('TeamInviteAccept component rendered with token:', token);
+
   useEffect(() => {
-    // TODO: Fetch invite data using the token
-    // This is a skeleton structure - implement actual invite validation logic
     const fetchInviteData = async () => {
       try {
         setLoading(true);
+        console.log('Fetching invite data for token:', token);
+        
+        // Decode the token if it's URL encoded
+        const decodedToken = token ? decodeURIComponent(token) : '';
+        console.log('Decoded token:', decodedToken);
+        
         // TODO: Call backend service to validate and get invite data
-        // const invite = await validateTeamInvite(token);
+        // const invite = await validateTeamInvite(decodedToken);
         // setInviteData(invite);
         
-        // For now, just simulate loading
+        // For now, just simulate loading and show a mock response
         setTimeout(() => {
           setLoading(false);
-          // setError('Invite not found or expired');
+          setInviteData({
+            invitedBy: 'Admin User',
+            role: 'Team Member',
+            acceleratorName: 'InFoundr Accelerator',
+            email: 'invited@example.com'
+          });
         }, 1000);
       } catch (err) {
+        console.error('Error fetching invite data:', err);
         setError('Failed to load invite');
         setLoading(false);
       }
@@ -31,6 +43,9 @@ const TeamInviteAccept: React.FC = () => {
 
     if (token) {
       fetchInviteData();
+    } else {
+      setError('No invite token provided');
+      setLoading(false);
     }
   }, [token]);
 

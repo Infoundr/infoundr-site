@@ -127,10 +127,11 @@ const App: React.FC = () => {
 
           <Route path="/accelerator/login" element={<AcceleratorLogin />} />
 
-          <Route path="/accelerator/roles/invite/:token" element={<TeamInviteAccept />} />
-
           {/* BotLogin route outside of dashboard */}
           <Route path="/bot-login" element={<BotLogin />} />
+
+          {/* Team invite accept route - accessible without authentication */}
+          <Route path="/accelerator/roles/invite/:token" element={<TeamInviteAccept />} />
 
           {/* Add AdminPanel route outside of dashboard */}
           <Route path="/admin" element={<AdminPanel />} />
