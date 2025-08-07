@@ -1,4 +1,4 @@
-import { createAuthenticatedActor } from './auth';
+import { createAuthenticatedActor, createUnauthenticatedActor } from './auth';
 import { GenerateStartupInviteInput, StartupInvite } from '../types/startup-invites';
 import type { StartupRegistrationInput } from '../types/startup-invites';
 
@@ -97,23 +97,32 @@ export const listStartupInvites = async (accelerator_id: string): Promise<Startu
 }; 
 
 // Function to validate invite code and get basic info
-// Since there's no get_invite_by_code, we simulate this by attempting to fetch accelerator info
-export const validateInviteCode = async (inviteCode: string): Promise<{ isValid: boolean; acceleratorName?: string; programName?: string; startupName?: string } | string> => {
+export const validateInviteCode = async (inviteCode: string): Promise<{ isValid: boolean; acceleratorName?: string; programName?: string; startupName?: string; email?: string } | string> => {
   try {
-    // For now, we'll assume the invite is valid and return placeholder data
-    // In a real scenario, you might need a backend method to validate just the code
-    // without accepting the invite
     console.log('Validating invite code:', inviteCode);
     
-    // Since we can't get invite details directly, we'll return a basic validation
-    // The real details will be filled when the invite is actually accepted
-    return {
-      isValid: true,
-      // We could potentially extract some info from URL patterns or other sources
-      acceleratorName: undefined, // Will be filled from actual invite data
-      programName: undefined,
-      startupName: undefined
-    };
+    const actor = await createUnauthenticatedActor();
+    const result = await actor.get_startup_invite_by_code(inviteCode);
+    
+    if ('Ok' in result) {
+      const inviteArray = result.Ok;
+      if (inviteArray && inviteArray.length > 0) {
+        const invite = inviteArray[0];
+        if (invite) {
+          return {
+            isValid: true,
+            acceleratorName: invite.program_name, 
+            programName: invite.program_name,
+            startupName: invite.startup_name,
+            email: invite.email?.[0] || undefined
+          };
+        }
+      }
+      return 'Invalid invite code';
+    } else {
+      console.error('Error from backend:', result.Err);
+      return result.Err;
+    }
   } catch (error) {
     console.error('Error validating invite code:', error);
     return 'Failed to validate invite code';

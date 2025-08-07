@@ -44,13 +44,12 @@ const StartupInviteAccept: React.FC = () => {
           console.log('Invite code validated successfully');
           setInviteValidated(true);
           
-          // Pre-fill startup name if available
-          if (validationResult.startupName) {
-            setForm(prev => ({
-              ...prev,
-              startupName: validationResult.startupName || ""
-            }));
-          }
+          // Pre-fill all form fields with invite data
+          setForm({
+            startupName: validationResult.startupName || "",
+            founderName: "", 
+            email: validationResult.email || "",
+          });
         } else {
           setError('Invalid or expired invite code.');
         }
@@ -90,12 +89,21 @@ const StartupInviteAccept: React.FC = () => {
     
     setError(null);
     setLoading(true);
+    
+    // Validate that founder name is provided
+    if (!form.founderName.trim()) {
+      setError('Please enter your founder name.');
+      setLoading(false);
+      return;
+    }
+    
     if (!inviteCode) {
       console.error('No invite code available for submission');
       setError('Invalid invite link.');
       setLoading(false);
       return;
     }
+    
     try {
       const input = {
         invite_code: inviteCode,
@@ -149,23 +157,12 @@ const StartupInviteAccept: React.FC = () => {
           </div>
         )}
         
-        <div className="bg-gray-50 rounded-lg p-3 mb-6">
-          <p className="text-xs text-gray-500 mb-1">Invite Code</p>
-          <p className="font-mono text-xs text-gray-700 break-all">{inviteCode}</p>
-        </div>
-        
         <form onSubmit={handleSubmit} className="space-y-4 text-left">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Startup Name</label>
-            <input
-              type="text"
-              name="startupName"
-              placeholder="Your startup name"
-              className="w-full border border-gray-300 px-3 py-2 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              value={form.startupName}
-              onChange={handleChange}
-              required
-            />
+            <div className="w-full border border-gray-300 px-3 py-2 rounded-md bg-gray-50 text-gray-700">
+              {form.startupName || 'Loading...'}
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Founder Name</label>
@@ -180,16 +177,10 @@ const StartupInviteAccept: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-            <input
-              type="email"
-              name="email"
-              placeholder="you@example.com"
-              className="w-full border border-gray-300 px-3 py-2 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              value={form.email}
-              onChange={handleChange}
-              required
-            />
+            <label className="text-sm font-medium text-gray-700 mb-1">Email Address</label>
+            <div className="w-full border border-gray-300 px-3 py-2 rounded-md bg-gray-50 text-gray-700">
+              {form.email || 'Loading...'}
+            </div>
           </div>
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-md p-3">
@@ -209,7 +200,7 @@ const StartupInviteAccept: React.FC = () => {
                 </svg>
                 Joining Program...
               </span>
-            ) : 'Join Accelerator Program'}
+            ) : 'Join Accelerator'}
           </button>
         </form>
         
