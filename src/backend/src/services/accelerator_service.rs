@@ -538,9 +538,10 @@ pub fn accept_startup_invite(input: StartupRegistrationInput) -> Result<(), Stri
 
     if now >= invite.expiry {
         STARTUP_INVITES.with(|invites| {
-            if let Some(mut inv) = invites.borrow().get(&StableString::new(&input.invite_code)) {
+            let mut invites_mut = invites.borrow_mut();
+            if let Some(mut inv) = invites_mut.get(&StableString::new(&input.invite_code)) {
                 inv.status = InviteStatus::Expired;
-                invites.borrow_mut().insert(StableString::new(&input.invite_code), inv);
+                invites_mut.insert(StableString::new(&input.invite_code), inv);
             }
         });
         return Err("Invite has expired".to_string());
@@ -556,12 +557,13 @@ pub fn accept_startup_invite(input: StartupRegistrationInput) -> Result<(), Stri
     }
     
     STARTUP_INVITES.with(|invites| {
-        if let Some(mut inv) = invites.borrow().get(&StableString::new(&input.invite_code)) {
+        let mut invites_mut = invites.borrow_mut();
+        if let Some(mut inv) = invites_mut.get(&StableString::new(&input.invite_code)) {
             inv.status = InviteStatus::Used;
             inv.used_at = Some(now);
             inv.registered_principal = Some(principal);
             inv.registered_at = Some(now);
-            invites.borrow_mut().insert(StableString::new(&input.invite_code), inv);
+            invites_mut.insert(StableString::new(&input.invite_code), inv);
         }
     });
 
@@ -640,4 +642,29 @@ pub fn revoke_startup_invite(invite_code: String) -> Result<(), String> {
             None => Err("Invite not found".to_string()),
         }
     })
-} 
+}
+
+#[query]
+pub fn get_startup_invite_by_code(invite_code: String) -> Result<Option<StartupInvite>, String> {
+    let now = ic_cdk::api::time();
+    
+    let invite = STARTUP_INVITES.with(|invites| {
+        invites.borrow().get(&StableString::new(&invite_code))
+    });
+    
+    match invite {
+        Some(mut invite) => {
+            // Check if invite has expired and update status if needed
+            if invite.status == InviteStatus::Pending && now >= invite.expiry {
+                invite.status = InviteStatus::Expired;
+                STARTUP_INVITES.with(|invites| {
+                    let mut invites_mut = invites.borrow_mut();
+                    invites_mut.insert(StableString::new(&invite_code), invite.clone());
+                });
+            }
+            
+            Ok(Some(invite))
+        }
+        None => Ok(None)
+    }
+}
