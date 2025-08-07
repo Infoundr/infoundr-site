@@ -12,7 +12,7 @@ use crate::storage::memory::STARTUP_INVITES;
 use crate::models::user::{User, SubscriptionTier};
 use crate::storage::memory::USERS;
 // use crate::services::auth::register_startup;
-use ic_cdk::api::time;
+use ic_cdk::api::time;  
 
 // ==================================================================================================
 // Accelerator Sign Up
