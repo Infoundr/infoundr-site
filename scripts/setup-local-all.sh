@@ -67,16 +67,43 @@ else
 fi
 
 # Create/update .env file for local
-echo "📝 Creating local environment configuration..."
-cat > src/frontend/.env << EOL
-VITE_DFX_NETWORK=local
-VITE_IC_HOST=http://localhost:4943
-VITE_CANISTER_ID=$CANISTER_ID
-VITE_PLAYGROUND_CANISTER_ID=$CANISTER_ID
-VITE_AUTH_MODE=backend
-VITE_ENV_MODE=local
-VITE_II_URL=http://127.0.0.1:4943/?canisterId=$CANISTER_ID
-EOL
+echo "📝 Updating local environment configuration..."
+ENV_FILE="src/frontend/.env"
+
+# Function to update or add environment variable
+update_env_var() {
+    local key=$1
+    local value=$2
+    
+    if [ -f "$ENV_FILE" ] && grep -q "^${key}=" "$ENV_FILE"; then
+        # Variable exists, update it
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            sed -i '' "s|^${key}=.*|${key}=${value}|" "$ENV_FILE"
+        else
+            sed -i "s|^${key}=.*|${key}=${value}|" "$ENV_FILE"
+        fi
+    else
+        # Variable doesn't exist, add it
+        echo "${key}=${value}" >> "$ENV_FILE"
+    fi
+}
+
+# Create .env file if it doesn't exist
+if [ ! -f "$ENV_FILE" ]; then
+    touch "$ENV_FILE"
+    echo "Created new .env file"
+else
+    echo "Updating existing .env file"
+fi
+
+# Update or add required environment variables
+update_env_var "VITE_DFX_NETWORK" "local"
+update_env_var "VITE_IC_HOST" "http://localhost:4943"
+update_env_var "VITE_CANISTER_ID" "$CANISTER_ID"
+update_env_var "VITE_PLAYGROUND_CANISTER_ID" "$CANISTER_ID"
+update_env_var "VITE_AUTH_MODE" "backend"
+update_env_var "VITE_ENV_MODE" "local"
+update_env_var "VITE_II_URL" "http://127.0.0.1:4943/?canisterId=$CANISTER_ID"
 
 # Setup frontend for deployment
 printf "\n${GREEN}Setting up frontend...${NC}\n"

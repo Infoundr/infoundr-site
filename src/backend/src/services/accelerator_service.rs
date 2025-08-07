@@ -9,8 +9,10 @@ use rand::rngs::OsRng;
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine as _};
 use crate::models::startup_invite::{StartupInvite, InviteType, InviteStatus};
 use crate::storage::memory::STARTUP_INVITES;
-use crate::services::auth::register_startup;
-use ic_cdk::api::time;
+use crate::models::user::{User, SubscriptionTier};
+use crate::storage::memory::USERS;
+// use crate::services::auth::register_startup;
+use ic_cdk::api::time;  
 
 // ==================================================================================================
 // Accelerator Sign Up
@@ -538,30 +540,27 @@ pub fn accept_startup_invite(input: StartupRegistrationInput) -> Result<(), Stri
 
     if now >= invite.expiry {
         STARTUP_INVITES.with(|invites| {
-            if let Some(mut inv) = invites.borrow().get(&StableString::new(&input.invite_code)) {
+            let mut invites_mut = invites.borrow_mut();
+            if let Some(mut inv) = invites_mut.get(&StableString::new(&input.invite_code)) {
                 inv.status = InviteStatus::Expired;
-                invites.borrow_mut().insert(StableString::new(&input.invite_code), inv);
+                invites_mut.insert(StableString::new(&input.invite_code), inv);
             }
         });
         return Err("Invite has expired".to_string());
     }
 
-    let registration_result = register_startup(
-        input.startup_name.clone(),
-        input.founder_name.clone(),
-        input.email.clone(),
-    );
-    if let Err(e) = registration_result {
-        return Err(format!("Failed to register startup: {}", e));
-    }
-    
+    // Store the startup registration data in the invite for later use
+    // We'll register the startup when the user authenticates
     STARTUP_INVITES.with(|invites| {
-        if let Some(mut inv) = invites.borrow().get(&StableString::new(&input.invite_code)) {
+        let mut invites_mut = invites.borrow_mut();
+        if let Some(mut inv) = invites_mut.get(&StableString::new(&input.invite_code)) {
             inv.status = InviteStatus::Used;
             inv.used_at = Some(now);
             inv.registered_principal = Some(principal);
             inv.registered_at = Some(now);
-            invites.borrow_mut().insert(StableString::new(&input.invite_code), inv);
+            // Store the startup registration data
+            inv.startup_name = input.startup_name.clone();
+            invites_mut.insert(StableString::new(&input.invite_code), inv);
         }
     });
 
@@ -640,4 +639,80 @@ pub fn revoke_startup_invite(invite_code: String) -> Result<(), String> {
             None => Err("Invite not found".to_string()),
         }
     })
-} 
+}
+
+#[query]
+pub fn get_startup_invite_by_code(invite_code: String) -> Result<Option<StartupInvite>, String> {
+    let now = ic_cdk::api::time();
+    
+    let invite = STARTUP_INVITES.with(|invites| {
+        invites.borrow().get(&StableString::new(&invite_code))
+    });
+    
+    match invite {
+        Some(mut invite) => {
+            // Check if invite has expired and update status if needed
+            if invite.status == InviteStatus::Pending && now >= invite.expiry {
+                invite.status = InviteStatus::Expired;
+                STARTUP_INVITES.with(|invites| {
+                    let mut invites_mut = invites.borrow_mut();
+                    invites_mut.insert(StableString::new(&invite_code), invite.clone());
+                });
+            }
+            
+            Ok(Some(invite))
+        }
+        None => Ok(None)
+    }
+}
+
+#[update]
+pub fn link_startup_principal(startup_email: String, founder_name: String) -> Result<(), String> {
+    let principal = caller();
+    let now = time();
+
+    // Check if user already exists with this principal
+    if USERS.with(|users| users.borrow().contains_key(&StablePrincipal::new(principal))) {
+        return Err("User already exists with this principal".to_string());
+    }
+
+    // Find the startup by email in the USERS storage
+    let startup_user = USERS.with(|users| {
+        users.borrow().iter().find(|(_, user)| {
+            user.email.as_ref().map(|email| email == &startup_email).unwrap_or(false)
+        }).map(|(_, user)| user.clone())
+    });
+
+    match startup_user {
+        Some(mut user) => {
+            // Update the user's principal to link it
+            user.principal = StablePrincipal::new(principal);
+            user.name = format!("{} ({})", user.name.split(" (").next().unwrap_or("Startup"), founder_name);
+            
+            USERS.with(|users| {
+                users.borrow_mut().insert(StablePrincipal::new(principal), user);
+            });
+            
+            Ok(())
+        }
+        None => {
+            // If no user found, create a new one (this is the normal case for startup invites)
+            let user = User {
+                principal: StablePrincipal::new(principal),
+                name: format!("Startup ({})", founder_name),
+                email: Some(startup_email),
+                created_at: now,
+                subscription_tier: SubscriptionTier::Free,
+                openchat_id: None,
+                slack_id: None,
+                discord_id: None,
+            };
+            
+            USERS.with(|users| {
+                users.borrow_mut().insert(StablePrincipal::new(principal), user);
+            });
+            
+            Ok(())
+        }
+    }
+}

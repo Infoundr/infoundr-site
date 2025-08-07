@@ -4,6 +4,7 @@ import { generateStartupInvite, listStartupInvites } from '../../../services/sta
 import { InviteType, InviteStatus, StartupInvite } from '../../../types/startup-invites';
 import { getMyAccelerator } from '../../../services/accelerator';
 import type { Accelerator } from '../../../types/accelerator';
+import { emailService } from '../../../services/email';
 import { toast } from 'react-toastify';
 
 interface InviteModalProps {
@@ -16,9 +17,7 @@ const InviteModal: React.FC<InviteModalProps> = ({ isOpen, onClose, invite }) =>
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
-    const textToCopy = 'Link' in invite.invite_type ? 
-      `https://infoundr.com/accelerator/invite/${invite.invite_code}` : 
-      invite.invite_code;
+    const textToCopy = `${window.location.origin}/accelerator/invite/${invite.invite_code}`;
     
     try {
       await navigator.clipboard.writeText(textToCopy);
@@ -50,15 +49,10 @@ const InviteModal: React.FC<InviteModalProps> = ({ isOpen, onClose, invite }) =>
         </div>
 
         <div className="mb-4">
-          <p className="text-sm text-gray-600 mb-2">
-            {'Link' in invite.invite_type ? 'Invite Link' : 'Invite Code'}
-          </p>
+          <p className="text-sm text-gray-600 mb-2">Invite Link</p>
           <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-md">
             <p className="font-medium text-sm flex-1 break-all">
-              {'Link' in invite.invite_type 
-                ? `https://infoundr.com/accelerator/invite/${invite.invite_code}`
-                : invite.invite_code
-              }
+              {`${window.location.origin}/accelerator/invite/${invite.invite_code}`}
             </p>
             <button
               onClick={handleCopy}
@@ -131,6 +125,7 @@ const SendInvites = () => {
       if (result) {
         console.log('Accelerator data fetched successfully:', result);
         setAccelerator(result);
+        setProgram(result.name); 
         await fetchInvitesForAccelerator(result.id.toString());
       } else {
         console.error('No accelerator data returned');
@@ -156,7 +151,7 @@ const SendInvites = () => {
       accelerator
     });
 
-    if (!startupName || !program) {
+    if (!startupName || !program || !email) {
       console.error('Validation failed: Missing required fields');
       toast.error('Please fill in all required fields');
       return;
@@ -200,9 +195,29 @@ const SendInvites = () => {
         console.log('Invite generated successfully:', result);
         setGeneratedInvite(result);
         setShowInviteModal(true);
-        // Reset form
+        
+        // Send email invitation
+        try {
+          const inviteLink = `${window.location.origin}/accelerator/invite/${result.invite_code}`;
+          
+          const emailData = {
+            email: email,
+            startupName: startupName,
+            programName: program,
+            inviteCode: result.invite_code,
+            inviteLink: inviteLink,
+            expiryDate: expiryDate ? new Date(expiryDate).toLocaleDateString() : '30 days from now'
+          };
+
+          await emailService.sendStartupInvite(emailData);
+          toast.success('Invite generated and email sent successfully!');
+        } catch (emailError) {
+          console.error('Error sending startup invite email:', emailError);
+          toast.warning('Invite generated but failed to send email. You can share the invite link manually.');
+        }
+        
+        // Reset form (keep program as it's automatically set)
         setStartupName('');
-        setProgram('');
         setExpiryDate('');
         setEmail('');
         // Refresh invites table
@@ -232,12 +247,9 @@ const SendInvites = () => {
     return '';
   };
 
-  // Helper to get invite code or link
-  const getInviteCodeOrLink = (invite: StartupInvite) => {
-    if ('Link' in invite.invite_type) {
-      return `https://infoundr.com/accelerator/invite/${invite.invite_code}`;
-    }
-    return invite.invite_code;
+  // Helper to get invite link
+  const getInviteLink = (invite: StartupInvite) => {
+    return `${window.location.origin}/accelerator/invite/${invite.invite_code}`;
   };
 
   // Helper to format expiry date
@@ -296,13 +308,14 @@ const SendInvites = () => {
           </div>
 
           <div className="flex flex-col">
-            <label className="text-sm text-gray-700 mb-1">Email (Optional)</label>
+            <label className="text-sm text-gray-700 mb-1">Email</label>
             <input
               type="email"
               placeholder="Enter email address"
               className="border px-4 py-2 rounded-md"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              required
             />
           </div>
 
@@ -320,32 +333,14 @@ const SendInvites = () => {
                 />
                 Generate Invite Link
               </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="type"
-                  value="Code"
-                  checked={'Code' in inviteType}
-                  onChange={() => setInviteType({ Code: null })}
-                  className="mr-2"
-                />
-                Generate Invite Code
-              </label>
             </div>
           </div>
 
           <div className="flex flex-col">
             <label className="text-sm text-gray-700 mb-1">Program or Accelerator</label>
-            <select
-              className="border px-4 py-2 rounded-md"
-              value={program}
-              onChange={(e) => setProgram(e.target.value)}
-            >
-              <option value="">Select a program</option>
-              {accelerator && (
-                <option value={accelerator.name}>{accelerator.name}</option>
-              )}
-            </select>
+            <div className="border px-4 py-2 rounded-md bg-gray-50 text-gray-700">
+              {program || 'Loading...'}
+            </div>
           </div>
 
           <div className="flex flex-col">
@@ -404,7 +399,7 @@ const SendInvites = () => {
               <tr>
                 <th className="py-2 px-4">Startup Name</th>
                 <th className="py-2 px-4">Program</th>
-                <th className="py-2 px-4">Invite Code/Link</th>
+                <th className="py-2 px-4">Invite Link</th>
                 <th className="py-2 px-4">Status</th>
                 <th className="py-2 px-4">Expiry Date</th>
                 <th className="py-2 px-4">Actions</th>
@@ -419,7 +414,7 @@ const SendInvites = () => {
                     <td className="py-2 px-4">{invite.startup_name}</td>
                     <td className="py-2 px-4">{invite.program_name}</td>
                     <td className="py-2 px-4 text-purple-700 truncate max-w-[200px]">
-                      {getInviteCodeOrLink(invite)}
+                      {getInviteLink(invite)}
                     </td>
                     <td className="py-2 px-4">
                       <span
