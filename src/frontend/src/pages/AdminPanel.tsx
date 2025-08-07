@@ -314,6 +314,26 @@ const AdminPanel: React.FC = () => {
         }
     };
 
+    const fetchAllApiMessages = async () => {
+        if (!actor) return;
+        
+        try {
+            console.log('Fetching all API messages');
+            const result = await actor.admin_get_all_api_messages();
+            console.log('All API messages result:', result);
+            
+            if ('Ok' in result) {
+                setAllApiMessages(result.Ok);
+                setApiMessageFilter('all');
+            } else {
+                alert(`Error fetching all API messages: ${result.Err}`);
+            }
+        } catch (error) {
+            console.error('Error fetching all API messages:', error);
+            alert('Error fetching all API messages');
+        }
+    };
+
     const fetchRecentApiMessages = async (limit: number) => {
         if (!actor) return;
         
@@ -338,7 +358,9 @@ const AdminPanel: React.FC = () => {
         setApiMessageFilter(filter);
         setShowApiMessages(true);
         
-        if (filter === 'byBot' && selectedBotName) {
+        if (filter === 'all') {
+            fetchAllApiMessages();
+        } else if (filter === 'byBot' && selectedBotName) {
             fetchApiMessagesByBot(selectedBotName);
         } else if (filter === 'recent') {
             fetchRecentApiMessages(recentMessageLimit);
@@ -772,10 +794,7 @@ const AdminPanel: React.FC = () => {
                         <Button
                             variant="primary"
                             className="!bg-[#8B5CF6] hover:!bg-[#7C3AED]"
-                            onClick={() => {
-                                setApiMessageFilter('all');
-                                setShowApiMessages(true);
-                            }}
+                            onClick={() => handleApiMessageFilter('all')}
                         >
                             View All API Messages ({allApiMessages.length})
                         </Button>
