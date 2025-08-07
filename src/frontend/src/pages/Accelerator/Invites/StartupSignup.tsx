@@ -118,10 +118,16 @@ const StartupInviteAccept: React.FC = () => {
       console.log('Result === true:', result === true);
       
       if (result === true) {
-        console.log('Invite acceptance successful, redirecting to dashboard');
+        console.log('Invite acceptance successful, redirecting to authentication page');
         // Set a flag to indicate successful startup registration
         sessionStorage.setItem('startup_registration_success', 'true');
-        navigate('/dashboard/home');
+        // Redirect to the authentication page with startup details
+        const params = new URLSearchParams({
+          startup: form.startupName,
+          founder: form.founderName,
+          email: form.email
+        });
+        navigate(`/accelerator/auth?${params.toString()}`);
       } else {
         console.error('Invite acceptance failed:', result);
         const errorMessage = typeof result === 'string' ? result : 'Failed to accept invite.';

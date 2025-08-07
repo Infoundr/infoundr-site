@@ -127,4 +127,33 @@ export const validateInviteCode = async (inviteCode: string): Promise<{ isValid:
     console.error('Error validating invite code:', error);
     return 'Failed to validate invite code';
   }
+};
+
+export const linkStartupPrincipal = async (startupEmail: string, founderName: string): Promise<true | string> => {
+  try {
+    console.log('linkStartupPrincipal: Creating authenticated actor...');
+    const actor = await createAuthenticatedActor();
+    console.log('linkStartupPrincipal: Actor created successfully');
+    
+    console.log('linkStartupPrincipal: Calling backend with data:', { startupEmail, founderName });
+    const result = await actor.link_startup_principal(startupEmail, founderName);
+    console.log('linkStartupPrincipal: Received response from backend:', result);
+    
+    if ('Ok' in result) {
+      console.log('linkStartupPrincipal: Success');
+      return true;
+    } else {
+      console.error('linkStartupPrincipal: Error from backend:', result.Err);
+      return result.Err;
+    }
+  } catch (error) {
+    console.error('linkStartupPrincipal: Exception occurred:', error);
+    if (error instanceof Error) {
+      console.error('linkStartupPrincipal: Error details:', {
+        message: error.message,
+        stack: error.stack
+      });
+    }
+    return 'Failed to link startup principal';
+  }
 }; 
