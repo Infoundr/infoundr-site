@@ -414,6 +414,7 @@ service : {
   is_slack_user_registered : (text) -> (bool) query;
   join_waitlist : (text) -> (Result_21);
   link_accounts : (principal, text) -> (Result);
+  link_startup_principal : (text, text) -> (Result);
   link_token_to_principal : (text, principal) -> (Result);
   list_startup_cohorts : () -> (Result_22) query;
   list_startup_invites : (text) -> (vec StartupInvite) query;
