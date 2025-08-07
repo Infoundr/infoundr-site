@@ -19,7 +19,8 @@ const Login: React.FC = () => {
     const [registrationData, setRegistrationData] = useState({
         name: '',
         email: '',
-        website: ''
+        website: '',
+        membername:''
     });
     const [showRegistrationForm, setShowRegistrationForm] = useState(false);
 
@@ -138,6 +139,12 @@ const Login: React.FC = () => {
                 setIsLoading(false);
                 return;
             }
+
+            if (!registrationData.membername.trim()) {
+                setError('Your name is required');
+                setIsLoading(false);
+                return;
+            }
             
             if (!registrationData.email.trim()) {
                 setError('Email address is required');
@@ -159,7 +166,7 @@ const Login: React.FC = () => {
             }
             
             console.log("Starting accelerator registration with:", registrationData);
-            await signUpAccelerator(registrationData.name, registrationData.email, registrationData.website);
+            await signUpAccelerator(registrationData.membername, registrationData.name, registrationData.email, registrationData.website);
             console.log("Accelerator registration successful, navigating to accelerator dashboard");
             
             // Store user principal in session storage after successful registration
@@ -213,6 +220,22 @@ const Login: React.FC = () => {
                                     name: e.target.value
                                 }))}
                                 placeholder="Enter your accelerator name"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Member Name *
+                            </label>
+                            <input
+                                type="text"
+                                required
+                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                value={registrationData.membername}
+                                onChange={(e) => setRegistrationData(prev => ({
+                                    ...prev,
+                                    membername: e.target.value
+                                }))}
+                                placeholder="Enter your name"
                             />
                         </div>
                         <div>

@@ -67,3 +67,19 @@ export const acceptStartupInvite = async (input: StartupRegistrationInput): Prom
     return 'Failed to accept startup invite';
   }
 }; 
+
+export const listStartupInvites = async (accelerator_id: string): Promise<StartupInvite[]> => {
+  try {
+    const actor = await createAuthenticatedActor();
+    const result = await actor.list_startup_invites(accelerator_id);
+    if (Array.isArray(result)) {
+      return result;
+    } else {
+      console.error('Unexpected response from list_startup_invites:', result);
+      return [];
+    }
+  } catch (error) {
+    console.error('Error listing startup invites:', error);
+    return [];
+  }
+}; 

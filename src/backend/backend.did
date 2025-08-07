@@ -12,7 +12,12 @@ type Accelerator = record {
   email_verified : bool;
   invites_sent : nat32;
 };
-type AcceleratorSignUp = record { name : text; email : text; website : text };
+type AcceleratorSignUp = record {
+  name : text;
+  email : text;
+  website : text;
+  membername : text;
+};
 type AcceleratorUpdate = record {
   graduated_startups : opt nat32;
   active_startups : opt nat32;
@@ -299,10 +304,11 @@ type TeamMember = record {
   status : MemberStatus;
   "principal" : opt principal;
   token : opt text;
+  name : text;
   role : Role;
   email : text;
 };
-type TeamMemberInviteWithId = record { role : Role; email : text };
+type TeamMemberInviteWithId = record { name : text; role : Role; email : text };
 type TokenValidationResult = record { platform_id : text; platform : text };
 type UpdateTeamMemberRole = record { email : text; new_role : Role };
 type User = record {
