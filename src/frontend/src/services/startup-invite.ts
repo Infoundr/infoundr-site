@@ -42,8 +42,8 @@ export const generateStartupInvite = async (input: GenerateStartupInviteInput): 
 
 export const acceptStartupInvite = async (input: StartupRegistrationInput): Promise<true | string> => {
   try {
-    console.log('acceptStartupInvite: Creating authenticated actor...');
-    const actor = await createAuthenticatedActor();
+    console.log('acceptStartupInvite: Creating unauthenticated actor...');
+    const actor = await createUnauthenticatedActor();
     console.log('acceptStartupInvite: Actor created successfully');
     
     console.log('acceptStartupInvite: Calling backend with input:', input);
