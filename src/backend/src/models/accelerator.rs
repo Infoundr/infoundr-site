@@ -25,6 +25,7 @@ pub struct TeamMember {
     pub status: MemberStatus,
     pub token: Option<String>,
     pub principal: Option<Principal>,
+    pub name: String,
 }
 
 #[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
