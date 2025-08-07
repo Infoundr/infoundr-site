@@ -37,6 +37,15 @@ const AdminPanel: React.FC = () => {
     const [showUserActivity, setShowUserActivity] = useState<boolean>(false);
     const [selectedUserIdentifier, setSelectedUserIdentifier] = useState<any>(null);
 
+    // API message management state
+    const [allApiMessages, setAllApiMessages] = useState<any[]>([]);
+    const [apiMessagesByBot, setApiMessagesByBot] = useState<any[]>([]);
+    const [recentApiMessages, setRecentApiMessages] = useState<any[]>([]);
+    const [selectedBotName, setSelectedBotName] = useState<string>("");
+    const [recentMessageLimit, setRecentMessageLimit] = useState<number>(50);
+    const [showApiMessages, setShowApiMessages] = useState<boolean>(false);
+    const [apiMessageFilter, setApiMessageFilter] = useState<'all' | 'byBot' | 'recent'>('all');
+
     useEffect(() => {
         initializeActor();
         // TEST: Call get_admins and log the result
@@ -282,6 +291,79 @@ const AdminPanel: React.FC = () => {
         } catch (error) {
             console.error('Error getting user activity:', error);
             alert('Error getting user activity');
+        }
+    };
+
+    const fetchApiMessagesByBot = async (botName: string) => {
+        if (!actor) return;
+        
+        try {
+            console.log('Fetching API messages for bot:', botName);
+            const result = await actor.admin_get_api_messages_by_bot(botName);
+            console.log('API messages by bot result:', result);
+            
+            if ('Ok' in result) {
+                setApiMessagesByBot(result.Ok);
+                setApiMessageFilter('byBot');
+            } else {
+                alert(`Error fetching API messages by bot: ${result.Err}`);
+            }
+        } catch (error) {
+            console.error('Error fetching API messages by bot:', error);
+            alert('Error fetching API messages by bot');
+        }
+    };
+
+    const fetchAllApiMessages = async () => {
+        if (!actor) return;
+        
+        try {
+            console.log('Fetching all API messages');
+            const result = await actor.admin_get_all_api_messages();
+            console.log('All API messages result:', result);
+            
+            if ('Ok' in result) {
+                setAllApiMessages(result.Ok);
+                setApiMessageFilter('all');
+            } else {
+                alert(`Error fetching all API messages: ${result.Err}`);
+            }
+        } catch (error) {
+            console.error('Error fetching all API messages:', error);
+            alert('Error fetching all API messages');
+        }
+    };
+
+    const fetchRecentApiMessages = async (limit: number) => {
+        if (!actor) return;
+        
+        try {
+            console.log('Fetching recent API messages with limit:', limit);
+            const result = await actor.admin_get_recent_api_messages(limit);
+            console.log('Recent API messages result:', result);
+            
+            if ('Ok' in result) {
+                setRecentApiMessages(result.Ok);
+                setApiMessageFilter('recent');
+            } else {
+                alert(`Error fetching recent API messages: ${result.Err}`);
+            }
+        } catch (error) {
+            console.error('Error fetching recent API messages:', error);
+            alert('Error fetching recent API messages');
+        }
+    };
+
+    const handleApiMessageFilter = (filter: 'all' | 'byBot' | 'recent') => {
+        setApiMessageFilter(filter);
+        setShowApiMessages(true);
+        
+        if (filter === 'all') {
+            fetchAllApiMessages();
+        } else if (filter === 'byBot' && selectedBotName) {
+            fetchApiMessagesByBot(selectedBotName);
+        } else if (filter === 'recent') {
+            fetchRecentApiMessages(recentMessageLimit);
         }
     };
 
@@ -700,6 +782,142 @@ const AdminPanel: React.FC = () => {
                         </table>
                     </div>
                 </div>
+            </section>
+
+            {/* API Message Management Section */}
+            <section className="mt-12">
+                <h2 className="text-2xl font-semibold mb-4">API Message Management</h2>
+                
+                {/* API Message Controls */}
+                <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+                    <div className="flex flex-wrap gap-4 items-center">
+                        <Button
+                            variant="primary"
+                            className="!bg-[#8B5CF6] hover:!bg-[#7C3AED]"
+                            onClick={() => handleApiMessageFilter('all')}
+                        >
+                            View All API Messages ({allApiMessages.length})
+                        </Button>
+                        
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="text"
+                                placeholder="Enter bot name (e.g., Benny, Uncle, Dean)"
+                                value={selectedBotName}
+                                onChange={(e) => setSelectedBotName(e.target.value)}
+                                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            />
+                            <Button
+                                variant="secondary"
+                                onClick={() => handleApiMessageFilter('byBot')}
+                                disabled={!selectedBotName.trim()}
+                            >
+                                Filter by Bot
+                            </Button>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="number"
+                                placeholder="Limit"
+                                value={recentMessageLimit}
+                                onChange={(e) => setRecentMessageLimit(Number(e.target.value))}
+                                className="w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                min="1"
+                                max="1000"
+                            />
+                            <Button
+                                variant="secondary"
+                                onClick={() => handleApiMessageFilter('recent')}
+                            >
+                                Recent Messages
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* API Messages Display */}
+                {showApiMessages && (
+                    <div className="bg-white rounded-lg shadow-md">
+                        <div className="p-6 border-b">
+                            <div className="flex justify-between items-center">
+                                <h3 className="text-lg font-semibold">
+                                    {apiMessageFilter === 'all' && 'All API Messages'}
+                                    {apiMessageFilter === 'byBot' && `API Messages from ${selectedBotName}`}
+                                    {apiMessageFilter === 'recent' && `Recent API Messages (${recentMessageLimit})`}
+                                </h3>
+                                <Button
+                                    variant="secondary"
+                                    onClick={() => setShowApiMessages(false)}
+                                >
+                                    Close
+                                </Button>
+                            </div>
+                        </div>
+                        
+                        <div className="max-h-96 overflow-y-auto">
+                            <table className="min-w-full">
+                                <thead className="bg-gray-50 sticky top-0">
+                                    <tr>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User ID</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bot</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Message</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Response</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timestamp</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200">
+                                    {(() => {
+                                        const messages = apiMessageFilter === 'all' ? allApiMessages :
+                                                       apiMessageFilter === 'byBot' ? apiMessagesByBot :
+                                                       recentApiMessages;
+                                        
+                                        return messages.length > 0 ? (
+                                            messages.map((message: any, index: number) => (
+                                                <tr key={message.id || index} className="hover:bg-gray-50">
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                        {message.user_id || 'Unknown'}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                                            {message.bot_name || 'Unknown'}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-sm text-gray-700 max-w-xs truncate">
+                                                        {message.message || 'No message'}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-sm text-gray-700 max-w-xs truncate">
+                                                        {message.response || 'No response'}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                        {message.timestamp ? new Date(Number(message.timestamp) / 1000000).toLocaleString('en-US', {
+                                                            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                                                            year: 'numeric',
+                                                            month: '2-digit',
+                                                            day: '2-digit',
+                                                            hour: '2-digit',
+                                                            minute: '2-digit',
+                                                            second: '2-digit',
+                                                            hour12: true
+                                                        }) : 'Unknown'}
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr>
+                                                <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                                                    {apiMessageFilter === 'all' && 'No API messages found'}
+                                                    {apiMessageFilter === 'byBot' && `No messages found for bot: ${selectedBotName}`}
+                                                    {apiMessageFilter === 'recent' && 'No recent messages found'}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })()}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
             </section>
 
             {/* User Activity Modal */}
