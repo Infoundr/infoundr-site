@@ -41,6 +41,7 @@ import Documentation from './pages/documentation/Documentation';
 import SlackDoc from './pages/documentation/SlackDoc';
 import DiscordDoc from './pages/documentation/DiscordDoc';
 import OpenChatDoc from './pages/documentation/OpenChatDoc';
+import TeamInviteAccept from './pages/Accelerator/Invites/TeamInviteAccept';
 
 const App: React.FC = () => {
   const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
@@ -132,6 +133,9 @@ const App: React.FC = () => {
 
           {/* BotLogin route outside of dashboard */}
           <Route path="/bot-login" element={<BotLogin />} />
+
+          {/* Team invite accept route - accessible without authentication */}
+          <Route path="/accelerator/roles/invite/:token" element={<TeamInviteAccept />} />
 
           {/* Add AdminPanel route outside of dashboard */}
           <Route path="/admin" element={<AdminPanel />} />
