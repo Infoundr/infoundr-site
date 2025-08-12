@@ -3,19 +3,19 @@ import React from 'react';
 const SlackIntegration: React.FC = () => {
   const features = [
     {
-      icon: '⚖️',
-      title: 'Legal & Contract Management',
-      description: 'Get instant contract review, legal compliance checks, and IP tracking directly in Slack channels.'
+      icon: '💼',
+      title: 'Workspace Integration',
+      description: 'Access your AI co-founder directly in Slack channels and direct messages for seamless workflow integration.'
     },
     {
-      icon: '💰',
-      title: 'Financial Operations',
-      description: 'Automate bookkeeping, generate financial reports, and track investor updates with simple commands.'
+      icon: '🚀',
+      title: 'Easy Setup',
+      description: 'Simple installation process that brings AI-powered automation to your existing Slack workspace.'
     },
     {
-      icon: '🎯',
-      title: 'Strategic Decision Support',
-      description: 'Access market research, business simulations, and data-driven insights for smarter choices.'
+      icon: '🔄',
+      title: 'Real-time Collaboration',
+      description: 'Get instant AI assistance while collaborating with your team in real-time conversations.'
     }
   ];
 
@@ -26,7 +26,7 @@ const SlackIntegration: React.FC = () => {
           {/* Left Column - Text Content */}
           <div className="flex-1 w-full lg:w-1/2 text-center lg:text-left">
             <h2 className="text-3xl sm:text-4xl font-bold mb-6 text-gray-900">
-              Infoundr on Slack
+              Try Your AI Co-Founder in Slack
             </h2>
             <div className="space-y-6">
               {features.map((feature, index) => (
@@ -83,12 +83,10 @@ const SlackIntegration: React.FC = () => {
         {/* Call to Action */}
         <div className="mt-12 text-center">
           <a 
-            href="https://slack.infoundr.com/" 
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/documentation/slack" 
             className="inline-flex items-center justify-center px-6 sm:px-8 py-3 text-base font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors duration-200"
           >
-            Add to Slack
+            Try on Slack
             <svg className="ml-2 -mr-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
             </svg>

@@ -3,19 +3,19 @@ import React from 'react';
 const DiscordIntegration: React.FC = () => {
   const features = [
     {
-      icon: '📋',
-      title: 'Project & Task Management',
-      description: 'Create and manage projects, automate workflows, and track progress with AI-powered project management.'
+      icon: '🎮',
+      title: 'Server Integration',
+      description: 'Add your AI co-founder to any Discord server for seamless team collaboration and automation.'
     },
     {
-      icon: '📊',
-      title: 'Financial Tracking',
-      description: 'Monitor financial metrics, generate reports, and track investor relations directly in Discord.'
+      icon: '⚡',
+      title: 'Instant Access',
+      description: 'Get immediate AI assistance through slash commands and mentions in your Discord channels.'
     },
     {
-      icon: '🚀',
-      title: 'Strategic Planning',
-      description: 'Get market insights, business simulations, and strategic recommendations for growth decisions.'
+      icon: '🤖',
+      title: 'Smart Automation',
+      description: 'Automate workflows and get AI-powered insights directly in your Discord conversations.'
     }
   ];
 
@@ -26,7 +26,7 @@ const DiscordIntegration: React.FC = () => {
           {/* Left Column - Text Content */}
           <div className="flex-1 w-full lg:w-1/2 text-center lg:text-left">
             <h2 className="text-3xl sm:text-4xl font-bold mb-6 text-gray-900">
-              Infoundr on Discord
+              Try Your AI Co-Founder in Discord
             </h2>
             <div className="space-y-6">
               {features.map((feature, index) => (
@@ -83,12 +83,10 @@ const DiscordIntegration: React.FC = () => {
         {/* Call to Action */}
         <div className="mt-12 text-center">
           <a 
-            href="https://discord.infoundr.com/" 
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/documentation/discord" 
             className="inline-flex items-center justify-center px-6 sm:px-8 py-3 text-base font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors duration-200"
           >
-            Invite Infoundr to your Discord Server
+            Try on Discord
             <svg className="ml-2 -mr-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
             </svg>
