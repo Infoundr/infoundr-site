@@ -48,6 +48,14 @@ const EmailAgent: React.FC = () => {
             className="w-full rounded-lg shadow-md"
           />
         </div>
+
+        <div className="mb-6">
+          <img 
+            src="/images/documentation/discord/email-agent-2.png" 
+            alt="Email Agent Example" 
+            className="w-full rounded-lg shadow-md"
+          />
+        </div>
         
         <div className="bg-red-50 border border-red-200 rounded-2xl p-6">
           <h4 className="text-lg font-semibold text-red-800 mb-4">Gmail Authentication</h4>
