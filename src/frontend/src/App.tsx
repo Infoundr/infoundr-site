@@ -27,6 +27,7 @@ import Startups from './pages/Accelerator/Startups/Startups';
 import StartupDetails from './pages/Accelerator/Startups/StartupDetails';
 import SendInvites from './pages/Accelerator/Invites/SendInvites';
 import RolesPermissions from './pages/Accelerator/Roles/RolesPermissions';
+import TeamInviteAccept from "./pages/Accelerator/Roles/TeamInviteAccept";
 import Settings from './pages/Accelerator/Settings/Settings';
 import Analytics from './pages/Accelerator/Analytics/Analytics';
 import StartupsLayout from './pages/Accelerator/Startups/StartupsLayout';
@@ -105,6 +106,7 @@ const App: React.FC = () => {
             <Route path="invites/generate-invite" element={<StartupSignup />} />
             <Route path="invite/:invite-code" element={<StartupInviteAccept />} />
             <Route path="roles" element={<RolesPermissions />} />
+            <Route path="team-invite/:token" element={<TeamInviteAccept />} />
             <Route path="settings" element={<Settings />} />
           </Route>
 

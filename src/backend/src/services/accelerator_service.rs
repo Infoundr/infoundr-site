@@ -303,6 +303,33 @@ pub fn accept_invitation(token: String) -> Result<(), String> {
     }
 }
 
+#[update]
+pub fn decline_invitation(token: String) -> Result<(), String> {
+    let mut found = false;
+
+    ACCELERATORS.with(|accs| {
+        let mut accs = accs.borrow_mut();
+        let keys: Vec<_> = accs.iter().map(|(k, _)| k.clone()).collect();
+        for key in keys {
+            if let Some(accelerator) = accs.get(&key) {
+                let mut accelerator = accelerator.clone();
+                if let Some(member) = accelerator.team_members.iter_mut().find(|m| m.token.as_ref() == Some(&token) && m.status == MemberStatus::Pending) {
+                    member.token = None; // Remove the token so it can't be reused
+                    accs.insert(key, accelerator);
+                    found = true;
+                    break;
+                }
+            }
+        }
+    });
+
+    if found {
+        Ok(())
+    } else {
+        Err("Invalid or already used invitation token".to_string())
+    }
+}
+
 #[query]
 pub fn list_team_members() -> Result<Vec<TeamMember>, String> {
     let caller_principal = caller();
