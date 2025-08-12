@@ -3,19 +3,19 @@ import React from 'react';
 const DiscordIntegration: React.FC = () => {
   const features = [
     {
-      icon: '🎮',
-      title: 'Community Collaboration',
-      description: 'Connect with fellow founders in Discord servers. Get advice, share insights, and collaborate with AI advisors in real-time conversations.'
+      icon: '📋',
+      title: 'Project & Task Management',
+      description: 'Create and manage projects, automate workflows, and track progress with AI-powered project management.'
     },
     {
-      icon: '⚡',
-      title: 'Instant AI Support',
-      description: 'Use slash commands to get immediate help from our AI mentors. Create tasks, get strategic advice, and manage your startup workflow seamlessly.'
+      icon: '📊',
+      title: 'Financial Tracking',
+      description: 'Monitor financial metrics, generate reports, and track investor relations directly in Discord.'
     },
     {
       icon: '🚀',
-      title: 'Build in Public',
-      description: 'Share your startup journey with the community. Get feedback, track progress, and celebrate milestones with other entrepreneurs.'
+      title: 'Strategic Planning',
+      description: 'Get market insights, business simulations, and strategic recommendations for growth decisions.'
     }
   ];
 

@@ -3,24 +3,24 @@ import React from 'react';
 const Features: React.FC = () => {
   const features = [
     {
-      title: 'Bot Management',
-      description: 'Easily manage and customize your AI assistants to match your business needs',
-      icon: '/icons/robot.png'
+      title: 'Contract Review & Legal',
+      description: 'Automate contract analysis, legal compliance, and IP tracking with AI-powered legal assistance',
+      icon: '/icons/check.png'
     },
     {
-      title: 'Task Automation',
-      description: 'Automate repetitive tasks and workflows to save time and resources',
-      icon: '/icons/gear.png'
-    },
-    {
-      title: 'Critical Thinking',
-      description: 'Advanced AI algorithms for strategic decision-making and problem-solving',
-      icon: '/icons/brain.png'
-    },
-    {
-      title: 'Analytics & Insights',
-      description: 'Comprehensive data analysis and actionable business insights',
+      title: 'Financial Reporting & Bookkeeping',
+      description: 'Streamline bookkeeping, tax compliance, and financial insights with automated reporting',
       icon: '/icons/piechart.png'
+    },
+    {
+      title: 'Investor Relations & Deal Rooms',
+      description: 'Create deal rooms, manage investor updates, and automate fundraising workflows',
+      icon: '/icons/rocket.png'
+    },
+    {
+      title: 'Hiring & HR Workflows',
+      description: 'Automate job creation, candidate screening, and onboarding processes',
+      icon: '/icons/people.png'
     }
   ];
 

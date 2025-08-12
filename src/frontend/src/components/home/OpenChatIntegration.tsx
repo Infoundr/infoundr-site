@@ -3,19 +3,19 @@ import React from 'react';
 const OpenChatIntegration: React.FC = () => {
   const features = [
     {
-      icon: '🤖',
-      title: 'Expert AI Advisors',
-      description: 'Chat with AI advisors modeled after successful founders. Get strategic advice from experts like Benny for fintech or Felix for crypto regulation.'
-    },
-    {
       icon: '⚙️',
-      title: 'Seamless Integrations',
-      description: 'Connect your workflow tools directly in chat. Create Asana tasks, manage GitHub issues, and track your progress without switching contexts.'
+      title: 'Business Operations',
+      description: 'Streamline operations, automate workflows, and manage your startup processes with AI assistance.'
     },
     {
-      icon: '📊',
-      title: 'Dashboard Analytics',
-      description: 'Access your interaction history, track your startup progress, and review all your conversations with a simple /dashboard command.'
+      icon: '💼',
+      title: 'Financial Management',
+      description: 'Track finances, generate reports, and manage investor relations with comprehensive financial tools.'
+    },
+    {
+      icon: '📈',
+      title: 'Strategic Insights',
+      description: 'Access market research, business simulations, and data-driven insights for strategic decision-making.'
     }
   ];
 

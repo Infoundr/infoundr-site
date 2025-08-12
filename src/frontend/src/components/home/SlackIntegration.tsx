@@ -3,19 +3,19 @@ import React from 'react';
 const SlackIntegration: React.FC = () => {
   const features = [
     {
-      icon: '🧠',
-      title: 'Tag Expert Bots',
-      description: 'Access specialized AI advisors like @Felix for fundraising or @Nelly for customer insights — get instant, practical advice.'
+      icon: '⚖️',
+      title: 'Legal & Contract Management',
+      description: 'Get instant contract review, legal compliance checks, and IP tracking directly in Slack channels.'
     },
     {
-      icon: '📋',
-      title: 'Automate Tasks',
-      description: 'Streamline operations with simple Slack commands for CRM creation, sending emails, hiring, follow-ups, and licensing.'
+      icon: '💰',
+      title: 'Financial Operations',
+      description: 'Automate bookkeeping, generate financial reports, and track investor updates with simple commands.'
     },
     {
       icon: '🎯',
-      title: 'Strategic Insights',
-      description: 'Start smart threads with our AI mentors for market analysis, strategy planning, and decision-making support.'
+      title: 'Strategic Decision Support',
+      description: 'Access market research, business simulations, and data-driven insights for smarter choices.'
     }
   ];
 
