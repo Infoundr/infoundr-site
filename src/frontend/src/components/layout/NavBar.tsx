@@ -11,7 +11,6 @@ interface NavBarProps {
 const NavBar: React.FC<NavBarProps> = ({ onGetStartedClick, isAuthenticated: isUserAuthenticated, onAuthChange }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [showFeaturesDropdown, setShowFeaturesDropdown] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -40,7 +39,6 @@ const NavBar: React.FC<NavBarProps> = ({ onGetStartedClick, isAuthenticated: isU
         behavior: 'smooth'
       });
       setIsMenuOpen(false);
-      setShowFeaturesDropdown(false);
     }
   };
 
@@ -72,51 +70,27 @@ const NavBar: React.FC<NavBarProps> = ({ onGetStartedClick, isAuthenticated: isU
           >
             Home
           </a>
-          {/* <a href="#bots" className="text-gray-600 hover:text-gray-900">
-            Bots
-          </a> */}
-          <div className="relative group">
-            <a 
-              href="#features" 
-              onClick={(e) => handleNavClick(e, 'features')}
-              className="text-gray-600 hover:text-gray-900 transition-colors duration-200 flex items-center"
-              onMouseEnter={() => setShowFeaturesDropdown(true)}
-              onMouseLeave={() => setShowFeaturesDropdown(false)}
-            >
-              Features
-              <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </a>
-            <div 
-              className={`absolute left-0 mt-2 w-48 bg-white/95 backdrop-blur-md shadow-lg rounded-md transition-all duration-200 ease-in-out overflow-hidden z-50
-                ${showFeaturesDropdown ? 'opacity-100 max-h-96 visible' : 'opacity-0 max-h-0 invisible'}`}
-              onMouseEnter={() => setShowFeaturesDropdown(true)}
-              onMouseLeave={() => setShowFeaturesDropdown(false)}
-            >
-              <a 
-                href="#slack-integration" 
-                onClick={(e) => handleNavClick(e, 'slack-integration')}
-                className="block px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200"
-              >
-                Try on Slack
-              </a>
-              <a 
-                href="#openchat-integration" 
-                onClick={(e) => handleNavClick(e, 'openchat-integration')}
-                className="block px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200"
-              >
-                Try on OpenChat
-              </a>
-              <a 
-                href="#discord-integration" 
-                onClick={(e) => handleNavClick(e, 'discord-integration')}
-                className="block px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200"
-              >
-                Try on Discord
-              </a>
-            </div>
-          </div>
+          <a 
+            href="#features" 
+            onClick={(e) => handleNavClick(e, 'features')}
+            className="text-gray-600 hover:text-gray-900 transition-colors duration-200"
+          >
+            Features
+          </a>
+          <a 
+            href="#slack-integration" 
+            onClick={(e) => handleNavClick(e, 'slack-integration')}
+            className="text-gray-600 hover:text-gray-900 transition-colors duration-200"
+          >
+            Try on Slack
+          </a>
+          <a 
+            href="#discord-integration" 
+            onClick={(e) => handleNavClick(e, 'discord-integration')}
+            className="text-gray-600 hover:text-gray-900 transition-colors duration-200"
+          >
+            Try on Discord
+          </a>
           <a 
             href="#pricing" 
             onClick={(e) => handleNavClick(e, 'pricing')}
@@ -124,9 +98,6 @@ const NavBar: React.FC<NavBarProps> = ({ onGetStartedClick, isAuthenticated: isU
           >
             Pricing
           </a>
-          {/* <a href="#contact" className="text-gray-600 hover:text-gray-900">
-            Contact
-          </a> */}
         </div>
 
         {/* Desktop CTA Button */}
@@ -192,29 +163,20 @@ const NavBar: React.FC<NavBarProps> = ({ onGetStartedClick, isAuthenticated: isU
           >
             Features
           </a>
-          <div className="pl-4 space-y-2">
-            <a 
-              href="#slack-integration" 
-              onClick={(e) => handleNavClick(e, 'slack-integration')}
-              className="block text-gray-600 hover:text-gray-900 transition-colors duration-200"
-            >
-              - Try on Slack
-            </a>
-            <a 
-              href="#openchat-integration" 
-              onClick={(e) => handleNavClick(e, 'openchat-integration')}
-              className="block text-gray-600 hover:text-gray-900 transition-colors duration-200"
-            >
-              - Try on OpenChat
-            </a>
-            <a 
-              href="#discord-integration" 
-              onClick={(e) => handleNavClick(e, 'discord-integration')}
-              className="block text-gray-600 hover:text-gray-900 transition-colors duration-200"
-            >
-              - Try on Discord
-            </a>
-          </div>
+          <a 
+            href="#slack-integration" 
+            onClick={(e) => handleNavClick(e, 'slack-integration')}
+            className="block text-gray-600 hover:text-gray-900 transition-colors duration-200"
+          >
+            Try on Slack
+          </a>
+          <a 
+            href="#discord-integration" 
+            onClick={(e) => handleNavClick(e, 'discord-integration')}
+            className="block text-gray-600 hover:text-gray-900 transition-colors duration-200"
+          >
+            Try on Discord
+          </a>
           <a 
             href="#pricing" 
             onClick={(e) => handleNavClick(e, 'pricing')}
