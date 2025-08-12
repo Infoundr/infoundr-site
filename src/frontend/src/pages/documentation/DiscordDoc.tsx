@@ -1,12 +1,25 @@
 import React from 'react';
 
 const DiscordDoc: React.FC = () => {
+  const gettingStartedCommands = [
+    {
+      command: '/help',
+      description: 'Get started with basic commands and bot functionality',
+      responseImage: '/images/documentation/discord/01-help.png'
+    },
+    {
+      command: '@Infoundr hi there, how can you help me today?',
+      description: 'Start a conversation with the AI co-founder',
+      responseImage: '/images/documentation/discord/02-help.png'
+    }
+  ];
+
   const agents = [
     {
       name: 'Help Agent',
       description: 'Get started with basic commands and bot functionality',
       image: '/images/documentation/discord/01-help.png',
-      commands: ['!help', '!start', '!guide']
+      commands: ['/help', '@Infoundr mention']
     },
     {
       name: 'GitHub Agent',
@@ -53,7 +66,7 @@ const DiscordDoc: React.FC = () => {
         {/* Getting Started */}
         <div className="bg-white rounded-3xl shadow-lg p-8 mb-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Getting Started</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
             <div>
               <h3 className="text-lg font-semibold text-gray-800 mb-3">1. Invite the Bot</h3>
               <p className="text-gray-600 mb-4">Add our Discord bot to your server using the invite link below.</p>
@@ -67,14 +80,32 @@ const DiscordDoc: React.FC = () => {
               </a>
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-3">2. Basic Commands</h3>
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">2. Essential Commands</h3>
               <p className="text-gray-600 mb-4">Start with these essential commands to get familiar with the bot.</p>
-              <div className="space-y-2">
-                <div className="bg-gray-100 px-3 py-2 rounded font-mono text-sm">!help</div>
-                <div className="bg-gray-100 px-3 py-2 rounded font-mono text-sm">!start</div>
-                <div className="bg-gray-100 px-3 py-2 rounded font-mono text-sm">!guide</div>
-              </div>
             </div>
+          </div>
+          
+          {/* Command Examples with Screenshots */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {gettingStartedCommands.map((cmd, index) => (
+              <div key={index} className="bg-gray-50 rounded-2xl p-6">
+                <div className="mb-4">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-2">Command {index + 1}:</h4>
+                  <div className="bg-gray-100 px-4 py-3 rounded-lg font-mono text-sm text-gray-700 mb-3">
+                    {cmd.command}
+                  </div>
+                  <p className="text-gray-600 text-sm mb-4">{cmd.description}</p>
+                </div>
+                <div>
+                  <h5 className="text-sm font-semibold text-gray-700 mb-2">Bot Response:</h5>
+                  <img 
+                    src={cmd.responseImage} 
+                    alt={`Response to ${cmd.command}`} 
+                    className="w-full rounded-lg shadow-md"
+                  />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -135,7 +166,7 @@ const DiscordDoc: React.FC = () => {
               <p className="text-gray-600 mb-4">Connect your existing tools and services for seamless automation.</p>
               <div className="space-y-2">
                 <div className="bg-gray-100 px-3 py-2 rounded font-mono text-sm">!connect github</div>
-                <div className="bg-gray-100 px-3 py-2 rounded font-mono text-sm">!connect calendar</div>
+                <div className="text-sm font-mono text-gray-700">!connect calendar</div>
                 <div className="bg-gray-100 px-3 py-2 rounded font-mono text-sm">!connect email</div>
               </div>
             </div>
