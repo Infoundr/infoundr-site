@@ -37,6 +37,14 @@ import { _SERVICE } from '../../declarations/backend/backend.did';
 import { useMockData as mockDataBoolean } from './mocks/mockData';
 import { Actor } from '@dfinity/agent';
 import StartupInviteAccept from './pages/Accelerator/Invites/StartupSignup';
+import Documentation from './pages/documentation/Documentation';
+import SlackDoc from './pages/documentation/SlackDoc';
+import OpenChatDoc from './pages/documentation/OpenChatDoc';
+import DiscordLayout from './pages/documentation/DiscordLayout';
+import GitHubAgent from './pages/documentation/discord/GitHubAgent';
+import ProjectManagementAgent from './pages/documentation/discord/ProjectManagementAgent';
+import CalendarAgent from './pages/documentation/discord/CalendarAgent';
+import EmailAgent from './pages/documentation/discord/EmailAgent';
 import TeamInviteAccept from './pages/Accelerator/Invites/TeamInviteAccept';
 
 const App: React.FC = () => {
@@ -136,6 +144,18 @@ const App: React.FC = () => {
           {/* Add AdminPanel route outside of dashboard */}
           <Route path="/admin" element={<AdminPanel />} />
           
+          {/* Documentation Routes */}
+          <Route path="/documentation" element={<Documentation />} />
+          <Route path="/documentation/slack" element={<SlackDoc />} />
+          <Route path="/documentation/discord" element={<DiscordLayout />}>
+            <Route index element={<Navigate to="/documentation/discord/github" replace />} />
+            <Route path="github" element={<GitHubAgent />} />
+            <Route path="project-management" element={<ProjectManagementAgent />} />
+            <Route path="calendar" element={<CalendarAgent />} />
+            <Route path="email" element={<EmailAgent />} />
+          </Route>
+          <Route path="/documentation/openchat" element={<OpenChatDoc />} />
+
         </Routes>
 
         <WaitlistModal 
