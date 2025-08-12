@@ -98,11 +98,43 @@ const DiscordDoc: React.FC = () => {
                 </div>
                 <div>
                   <h5 className="text-sm font-semibold text-gray-700 mb-2">Bot Response:</h5>
-                  <img 
-                    src={cmd.responseImage} 
-                    alt={`Response to ${cmd.command}`} 
-                    className="w-full rounded-lg shadow-md"
-                  />
+                  {index === 0 ? (
+                    <img 
+                      src={cmd.responseImage} 
+                      alt={`Response to ${cmd.command}`} 
+                      className="w-full rounded-lg shadow-md"
+                    />
+                  ) : (
+                    <div className="bg-white p-4 rounded-lg border border-gray-200">
+                      <p className="text-gray-700 text-sm leading-relaxed">
+                        The bot will respond as "Infoundr AI Co-founder" with a comprehensive introduction explaining its capabilities. 
+                        It will mention that it can assist with startup-related topics like fundraising, team building, market research, 
+                        operational tasks (contract review, financial reporting, investor updates), and business decision simulation. 
+                        The response will be conversational and end by asking what challenges you're facing and how it can help.
+                      </p>
+                      
+                      <div className="mt-4">
+                        <h6 className="text-sm font-semibold text-gray-700 mb-3">Example Response:</h6>
+                        <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                          <div className="flex items-start gap-3">
+                            <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center flex-shrink-0">
+                              <span className="text-white text-xs font-bold">🤖</span>
+                            </div>
+                            <div className="bg-white rounded-lg p-3 shadow-sm max-w-sm">
+                              <p className="text-sm font-semibold text-purple-600 mb-1">Infoundr AI Co-founder</p>
+                              <p className="text-sm text-gray-700 leading-relaxed">
+                                Hi! I'm thrilled to be your AI co-founder. I can assist you with a wide range of startup-related topics. 
+                                Whether you need guidance on fundraising, team building, or market research, I'm here to provide personalized 
+                                advice and support. I can also help you with operational tasks such as contract review, financial reporting, 
+                                and investor updates. Plus, I can simulate business decisions to help you make informed choices. 
+                                What's on your mind today? What challenges are you facing, and how can I help you overcome them?
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
