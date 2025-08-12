@@ -10,7 +10,7 @@ const docs = [
   },
   {
     name: 'Discord Bot',
-    url: '/documentation/discord',
+    url: '/documentation/discord/github',
     icon: '/icons/discord-logo.png',
     description: 'Collaborate, get AI support, and build your community with our Discord bot.'
   },
