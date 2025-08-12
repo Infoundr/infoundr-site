@@ -16,18 +16,6 @@ const DiscordDoc: React.FC = () => {
 
   const agents = [
     {
-      name: 'Help Agent',
-      description: 'Get started with basic commands and bot functionality',
-      image: '/images/documentation/discord/01-help.png',
-      commands: ['/help', '@Infoundr mention']
-    },
-    {
-      name: 'GitHub Agent',
-      description: 'Manage GitHub repositories, issues, and pull requests',
-      image: '/images/documentation/discord/github-agent-1.png',
-      commands: ['!github create', '!github issues', '!github pr']
-    },
-    {
       name: 'Project Management Agent',
       description: 'Create and manage projects, tasks, and workflows',
       image: '/images/documentation/discord/project-management-1.png',
@@ -121,7 +109,7 @@ const DiscordDoc: React.FC = () => {
                               <span className="text-white text-xs font-bold">🤖</span>
                             </div>
                             <div className="bg-white rounded-lg p-3 shadow-sm max-w-sm">
-                              <p className="text-sm font-semibold text-purple-600 mb-1">Infoundr AI Co-founder</p>
+                              <p className="text-sm font-semibold text-purple-600 mb-1">Infoundr</p>
                               <p className="text-sm text-gray-700 leading-relaxed">
                                 Hi! I'm thrilled to be your AI co-founder. I can assist you with a wide range of startup-related topics. 
                                 Whether you need guidance on fundraising, team building, or market research, I'm here to provide personalized 
@@ -141,15 +129,97 @@ const DiscordDoc: React.FC = () => {
           </div>
         </div>
 
-        {/* AI Agents */}
+        {/* GitHub Agent - Dedicated Section */}
         <div className="mb-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">AI-Powered Agents</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">GitHub Agent</h2>
+          <div className="bg-white rounded-3xl shadow-lg p-8">
+            <div className="flex items-start gap-6 mb-8">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center flex-shrink-0">
+                <span className="text-purple-600 font-bold text-xl">1</span>
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">GitHub Repository Management</h3>
+                <p className="text-gray-600 text-lg">Manage GitHub repositories, issues, and pull requests directly from Discord</p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+              <div>
+                <h4 className="text-lg font-semibold text-gray-800 mb-4">Example Interactions</h4>
+                <div className="space-y-3">
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-gray-700 text-sm">"create an issue for the login bug"</p>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-gray-700 text-sm">"what pull requests are currently open"</p>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-gray-700 text-sm">"what issues have not been solved"</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <h4 className="text-lg font-semibold text-gray-800 mb-4">Interaction Flow</h4>
+                <ol className="list-decimal list-inside space-y-2 text-gray-700">
+                  <li>Provide a statement about what you want to do</li>
+                  <li>The agent will ask for your GitHub token for authentication</li>
+                  <li>Specify which repository the agent should access to perform the action</li>
+                  <li>The agent will execute your request and provide results</li>
+                </ol>
+              </div>
+            </div>
+            
+            <div className="mb-6">
+              <img 
+                src="/images/documentation/discord/github-agent-1.png" 
+                alt="GitHub Agent Example" 
+                className="w-full rounded-lg shadow-md"
+              />
+            </div>
+            
+            <div className="mb-6">
+              <img 
+                src="/images/documentation/discord/github-agent-2.png" 
+                alt="GitHub Agent Complete Conversation Flow" 
+                className="w-full rounded-lg shadow-md"
+              />
+            </div>
+            
+            <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6">
+              <h4 className="text-lg font-semibold text-blue-800 mb-4">GitHub Authentication Setup</h4>
+              <div className="space-y-4">
+                <div>
+                  <h5 className="text-md font-semibold text-blue-700 mb-2">Getting Your GitHub Token</h5>
+                  <ol className="list-decimal list-inside space-y-2 text-blue-700 text-sm">
+                    <li>Go to <a href="https://github.com/settings/tokens" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-semibold">GitHub Settings → Developer Settings → Personal Access Tokens</a></li>
+                    <li>Click "Generate new token (classic)"</li>
+                    <li>Give your token a descriptive name (e.g., "Infoundr Discord Bot")</li>
+                    <li>Select the following scopes: <code className="bg-blue-100 px-2 py-1 rounded text-sm">repo</code>, <code className="bg-blue-100 px-2 py-1 rounded text-sm">workflow</code></li>
+                    <li>Click "Generate token"</li>
+                    <li>Copy the token immediately (you won't see it again)</li>
+                    <li>Share the token with the Discord bot when prompted</li>
+                  </ol>
+                </div>
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <p className="text-yellow-800 text-sm">
+                    <strong>Security Note:</strong> Keep your GitHub token secure and never share it publicly. The bot will only use it to access the repositories you specify.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Other AI Agents */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">Other AI-Powered Agents</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {agents.map((agent, index) => (
               <div key={agent.name} className="bg-white rounded-3xl shadow-lg p-6 hover:shadow-xl transition-shadow">
                 <div className="flex items-start gap-4 mb-4">
                   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center flex-shrink-0">
-                    <span className="text-purple-600 font-bold text-lg">{index + 1}</span>
+                    <span className="text-purple-600 font-bold text-lg">{index + 2}</span>
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-gray-900 mb-2">{agent.name}</h3>
