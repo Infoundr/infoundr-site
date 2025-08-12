@@ -78,6 +78,12 @@ const NavBar: React.FC<NavBarProps> = ({ onGetStartedClick, isAuthenticated: isU
             Features
           </a>
           <a 
+            href="/documentation"
+            className="text-gray-600 hover:text-gray-900 transition-colors duration-200"
+          >
+            Documentation
+          </a>
+          <a 
             href="#slack-integration" 
             onClick={(e) => handleNavClick(e, 'slack-integration')}
             className="text-gray-600 hover:text-gray-900 transition-colors duration-200"
@@ -162,6 +168,12 @@ const NavBar: React.FC<NavBarProps> = ({ onGetStartedClick, isAuthenticated: isU
             className="block text-gray-600 hover:text-gray-900 transition-colors duration-200"
           >
             Features
+          </a>
+          <a 
+            href="/documentation"
+            className="block text-gray-600 hover:text-gray-900 transition-colors duration-200"
+          >
+            Documentation
           </a>
           <a 
             href="#slack-integration" 
