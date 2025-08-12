@@ -13,7 +13,14 @@ import { checkIsAuthenticated } from './services/auth';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import AdminPanel from './pages/AdminPanel';
+import AdminLayout from './pages/Admin/AdminLayout';
+import AdminDashboard from './pages/Admin/Dashboard';
+import AdminUsers from './pages/Admin/Users';
+import AdminWaitlist from './pages/Admin/Waitlist';
+import AdminAdmins from './pages/Admin/Admins';
+import AdminAccelerators from './pages/Admin/Accelerators';
+import AdminPlatformUsers from './pages/Admin/PlatformUsers';
+import AdminApiMessages from './pages/Admin/ApiMessages';
 import Auth from './pages/Dashboard/Auth';
 import DashboardLayout from './pages/Dashboard/layouts/DashboardLayout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -133,8 +140,17 @@ const App: React.FC = () => {
           {/* Team invite accept route - accessible without authentication */}
           <Route path="/accelerator/roles/invite/:token" element={<TeamInviteAccept />} />
 
-          {/* Add AdminPanel route outside of dashboard */}
-          <Route path="/admin" element={<AdminPanel />} />
+          {/* Admin Routes */}
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<Navigate to="/admin/dashboard" replace />} />
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="users" element={<AdminUsers />} />
+            <Route path="waitlist" element={<AdminWaitlist />} />
+            <Route path="admins" element={<AdminAdmins />} />
+            <Route path="accelerators" element={<AdminAccelerators />} />
+            <Route path="platform-users" element={<AdminPlatformUsers />} />
+            <Route path="api-messages" element={<AdminApiMessages />} />
+          </Route>
           
         </Routes>
 
