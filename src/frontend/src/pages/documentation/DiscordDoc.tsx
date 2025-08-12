@@ -130,7 +130,7 @@ const DiscordDoc: React.FC = () => {
         </div>
 
         {/* GitHub Agent - Dedicated Section */}
-        <div className="mb-12">
+        <div id="github-agent" className="mb-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">GitHub Agent</h2>
           <div className="bg-white rounded-3xl shadow-lg p-8">
             <div className="flex items-start gap-6 mb-8">
