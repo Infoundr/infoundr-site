@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { createActor } from '../../../../declarations/backend';
-import { HttpAgent, ActorSubclass } from '@dfinity/agent';
-import { AuthClient } from '@dfinity/auth-client';
+import { useNavigate, useOutletContext } from 'react-router-dom';
+import { ActorSubclass } from '@dfinity/agent';
 import { _SERVICE } from '../../../../declarations/backend/backend.did.d';
-import { CANISTER_ID } from '../../config';
-import { checkIsAuthenticated, createAuthenticatedActor } from '../../services/auth';
+
+interface AdminContext {
+    actor: ActorSubclass<_SERVICE> | null;
+    currentPrincipal: string;
+}
 
 const AdminDashboard: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
-    const [actor, setActor] = useState<ActorSubclass<_SERVICE> | null>(null);
+    const { actor, currentPrincipal } = useOutletContext<AdminContext>();
     
     // Dashboard stats
     const [stats, setStats] = useState({
@@ -25,29 +26,16 @@ const AdminDashboard: React.FC = () => {
     });
 
     useEffect(() => {
-        initializeActor();
-    }, []);
-
-    const initializeActor = async () => {
-        try {
-            // Check if user is already authenticated
-            const auth = await checkIsAuthenticated();
-            
-            if (auth) {
-                const authenticatedActor = await createAuthenticatedActor();
-                setActor(authenticatedActor);
-                await fetchDashboardStats(authenticatedActor);
-            }
-            
-            setLoading(false);
-        } catch (error) {
-            console.error('Error initializing actor:', error);
-            setLoading(false);
+        if (actor) {
+            fetchDashboardStats(actor);
         }
-    };
+    }, [actor]);
 
     const fetchDashboardStats = async (authenticatedActor: ActorSubclass<_SERVICE>) => {
         try {
+            console.log("fetching dashboard stats");
+            console.log("Current Principal:", currentPrincipal);
+            
             // Fetch all stats in parallel
             const [
                 usersResult,
@@ -66,6 +54,8 @@ const AdminDashboard: React.FC = () => {
                 authenticatedActor.get_registered_discord_users_admin(),
                 authenticatedActor.get_registered_openchat_users_admin()
             ]);
+
+            console.log(usersResult);
 
             setStats({
                 totalUsers: 'Ok' in usersResult ? usersResult.Ok.length : 0,
@@ -150,6 +140,11 @@ const AdminDashboard: React.FC = () => {
             <div className="bg-white rounded-lg shadow-sm p-6">
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome to Admin Dashboard</h2>
                 <p className="text-gray-600">Manage your platform, users, and monitor system activity from one central location.</p>
+                {currentPrincipal && (
+                    <p className="text-sm text-gray-500 mt-2">
+                        Logged in as: {currentPrincipal.substring(0, 8)}...{currentPrincipal.substring(currentPrincipal.length - 8)}
+                    </p>
+                )}
             </div>
 
             {/* Stats Grid */}

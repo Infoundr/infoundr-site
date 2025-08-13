@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import Button from '../../components/common/Button';
-import { logout, checkIsAuthenticated, createAuthenticatedActor } from '../../services/auth';
+import { logout, checkIsAuthenticated, createAuthenticatedActor, loginWithII, loginWithNFID } from '../../services/auth';
 import { ActorSubclass } from '@dfinity/agent';
 import { _SERVICE } from '../../../../declarations/backend/backend.did.d';
+import { AuthClient } from '@dfinity/auth-client';
+import { createActor } from '../../../../declarations/backend';
+import { HttpAgent } from '@dfinity/agent';
+import { CANISTER_ID } from '../../config';
 
 const AdminLayout: React.FC = () => {
     const navigate = useNavigate();
@@ -12,9 +16,24 @@ const AdminLayout: React.FC = () => {
     const [isAdmin, setIsAdmin] = useState<boolean>(false);
     const [loading, setLoading] = useState(true);
     const [actor, setActor] = useState<ActorSubclass<_SERVICE> | null>(null);
+    const [currentPrincipal, setCurrentPrincipal] = useState<string>("");
 
     useEffect(() => {
         initializeActor();
+        // TEST: Call get_admins and log the result
+        (async () => {
+            try {
+                const agent = new HttpAgent({});
+                if (import.meta.env.VITE_DFX_NETWORK !== 'ic') {
+                    await agent.fetchRootKey();
+                }
+                const actor = createActor(CANISTER_ID, { agent });
+                const admins = await actor.get_admins();
+                console.log('TEST get_admins result:', admins);
+            } catch (err) {
+                console.error('TEST get_admins error:', err);
+            }
+        })();
     }, []);
 
     const initializeActor = async () => {
@@ -26,6 +45,13 @@ const AdminLayout: React.FC = () => {
             if (auth) {
                 const authenticatedActor = await createAuthenticatedActor();
                 setActor(authenticatedActor);
+                
+                // Get the current principal
+                const authClient = await AuthClient.create();
+                const identity = authClient.getIdentity();
+                const principal = identity.getPrincipal().toString();
+                setCurrentPrincipal(principal);
+                
                 await checkAdminStatus(authenticatedActor);
             }
             
@@ -38,7 +64,14 @@ const AdminLayout: React.FC = () => {
 
     const checkAdminStatus = async (authenticatedActor: ActorSubclass<_SERVICE>) => {
         try {
+            // Get the current principal from the actor's identity
+            const authClient = await AuthClient.create();
+            const identity = authClient.getIdentity();
+            const principal = identity.getPrincipal().toString();
+            
+            console.log("Checking admin status with principal:", principal);
             const isAdminUser = await authenticatedActor.is_admin();
+            console.log('isAdminUser', isAdminUser);    
             setIsAdmin(isAdminUser);
         } catch (error) {
             console.error('Error checking admin status:', error);
@@ -50,12 +83,17 @@ const AdminLayout: React.FC = () => {
             let authenticatedActor: ActorSubclass<_SERVICE>;
             
             if (method === 'ii') {
-                const { loginWithII } = await import('../../services/auth');
                 authenticatedActor = await loginWithII();
             } else {
-                const { loginWithNFID } = await import('../../services/auth');
                 authenticatedActor = await loginWithNFID();
             }
+            
+            // Get the principal from the authenticated actor
+            const authClient = await AuthClient.create();
+            const identity = authClient.getIdentity();
+            const principal = identity.getPrincipal().toString();
+            setCurrentPrincipal(principal);
+            console.log("Current Principal:", principal);
             
             // Set the actor and check admin status
             setActor(authenticatedActor);
@@ -74,6 +112,7 @@ const AdminLayout: React.FC = () => {
         setIsAuthenticated(false);
         setIsAdmin(false);
         setActor(null);
+        setCurrentPrincipal("");
         navigate('/admin');
     };
 
@@ -190,6 +229,11 @@ const AdminLayout: React.FC = () => {
                     <div className="flex justify-between items-center h-16">
                         <div className="flex items-center">
                             <h1 className="text-2xl font-bold text-gray-900">Admin Panel</h1>
+                            {currentPrincipal && (
+                                <span className="ml-4 text-sm text-gray-500">
+                                    Principal: {currentPrincipal.substring(0, 8)}...{currentPrincipal.substring(currentPrincipal.length - 8)}
+                                </span>
+                            )}
                         </div>
                         <Button
                             variant="secondary"
@@ -245,7 +289,7 @@ const AdminLayout: React.FC = () => {
 
                     {/* Main Content Area */}
                     <div className="flex-1">
-                        <Outlet />
+                        <Outlet context={{ actor, currentPrincipal }} />
                     </div>
                 </div>
             </div>
