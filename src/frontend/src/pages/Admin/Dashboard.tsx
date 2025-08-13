@@ -5,12 +5,9 @@ import { HttpAgent, ActorSubclass } from '@dfinity/agent';
 import { AuthClient } from '@dfinity/auth-client';
 import { _SERVICE } from '../../../../declarations/backend/backend.did.d';
 import { CANISTER_ID } from '../../config';
-import { checkIsAuthenticated, createAuthenticatedActor, loginWithII, loginWithNFID } from '../../services/auth';
-import Button from '../../components/common/Button';
+import { checkIsAuthenticated, createAuthenticatedActor } from '../../services/auth';
 
 const AdminDashboard: React.FC = () => {
-    const [isAdmin, setIsAdmin] = useState<boolean>(false);
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
     const [actor, setActor] = useState<ActorSubclass<_SERVICE> | null>(null);
@@ -35,52 +32,17 @@ const AdminDashboard: React.FC = () => {
         try {
             // Check if user is already authenticated
             const auth = await checkIsAuthenticated();
-            setIsAuthenticated(auth);
             
             if (auth) {
                 const authenticatedActor = await createAuthenticatedActor();
                 setActor(authenticatedActor);
-                await checkAdminStatus(authenticatedActor);
+                await fetchDashboardStats(authenticatedActor);
             }
             
             setLoading(false);
         } catch (error) {
             console.error('Error initializing actor:', error);
             setLoading(false);
-        }
-    };
-
-    const checkAdminStatus = async (authenticatedActor: ActorSubclass<_SERVICE>) => {
-        try {
-            const isAdminUser = await authenticatedActor.is_admin();
-            setIsAdmin(isAdminUser);
-            if (isAdminUser) {
-                await fetchDashboardStats(authenticatedActor);
-            }
-        } catch (error) {
-            console.error('Error checking admin status:', error);
-        }
-    };
-
-    const handleLogin = async (method: 'ii' | 'nfid') => {
-        try {
-            let authenticatedActor: ActorSubclass<_SERVICE>;
-            
-            if (method === 'ii') {
-                authenticatedActor = await loginWithII();
-            } else {
-                authenticatedActor = await loginWithNFID();
-            }
-            
-            // Set the actor and check admin status
-            setActor(authenticatedActor);
-            await checkAdminStatus(authenticatedActor);
-            
-            // Set authenticated state
-            setIsAuthenticated(true);
-            setLoading(false);
-        } catch (error) {
-            console.error('Login error:', error);
         }
     };
 
@@ -126,92 +88,6 @@ const AdminDashboard: React.FC = () => {
         return (
             <div className="flex justify-center items-center h-64">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-            </div>
-        );
-    }
-
-    if (!isAuthenticated) {
-        // Show login form
-        return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-                <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-xl">
-                    <div className="flex justify-end mb-4">
-                        <Button
-                            variant="secondary"
-                            className="text-gray-600 hover:text-gray-900"
-                            onClick={() => navigate('/')}
-                        >
-                            <div className="flex items-center gap-2">
-                                <svg 
-                                    className="w-5 h-5" 
-                                    fill="none" 
-                                    stroke="currentColor" 
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path 
-                                        strokeLinecap="round" 
-                                        strokeLinejoin="round" 
-                                        strokeWidth={2} 
-                                        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" 
-                                    />
-                                </svg>
-                                Home
-                            </div>
-                        </Button>
-                    </div>
-                    <h2 className="text-3xl font-bold mb-8 text-center">Admin Authentication</h2>
-                    
-                    {/* Internet Identity */}
-                    <Button
-                        variant="primary"
-                        className="w-full mb-4 flex items-center justify-center gap-3 !bg-[#8B5CF6] hover:!bg-[#7C3AED]"
-                        onClick={() => handleLogin('ii')}
-                    >
-                        <img src="/images/icp-logo.png" alt="Internet Identity" className="w-6 h-6" />
-                        Login with Internet Identity
-                    </Button>
-
-                    {/* NFID */}
-                    <Button
-                        variant="primary"
-                        className="w-full flex items-center justify-center gap-3 !bg-[#8B5CF6] hover:!bg-[#7C3AED]"
-                        onClick={() => handleLogin('nfid')}
-                    >
-                        <svg
-                            className="w-6 h-6 text-white"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                            />
-                        </svg>
-                        Login with NFID
-                    </Button>
-                </div>
-            </div>
-        );
-    }
-
-    if (!isAdmin) {
-        return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-                <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-xl text-center">
-                    <h2 className="text-2xl font-bold mb-4">Unauthorized Access</h2>
-                    <p className="text-gray-600 mb-6">You do not have admin privileges.</p>
-                    <Button
-                        variant="primary"
-                        className="!bg-[#8B5CF6] hover:!bg-[#7C3AED]"
-                        onClick={() => navigate('/')}
-                    >
-                        Return to Home
-                    </Button>
-                </div>
             </div>
         );
     }
