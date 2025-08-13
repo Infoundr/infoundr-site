@@ -1,73 +1,49 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { createActor } from '../../../../declarations/backend';
-import { HttpAgent, ActorSubclass } from '@dfinity/agent';
-import { AuthClient } from '@dfinity/auth-client';
+import { useNavigate, useOutletContext } from 'react-router-dom';
+import { ActorSubclass } from '@dfinity/agent';
 import { _SERVICE } from '../../../../declarations/backend/backend.did.d';
-import { CANISTER_ID } from '../../config';
-import { checkIsAuthenticated, createAuthenticatedActor } from '../../services/auth';
 import Button from '../../components/common/Button';
 
+interface AdminContext {
+    actor: ActorSubclass<_SERVICE> | null;
+    currentPrincipal: string;
+}
+
 const AdminAccelerators: React.FC = () => {
-    const [isAdmin, setIsAdmin] = useState<boolean>(false);
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-    const [accelerators, setAccelerators] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
-    const [actor, setActor] = useState<ActorSubclass<_SERVICE> | null>(null);
-    
-    // Accelerator management state
+    const { actor, currentPrincipal } = useOutletContext<AdminContext>();
+    const [accelerators, setAccelerators] = useState<any[]>([]);
     const [selectedAccelerator, setSelectedAccelerator] = useState<any>(null);
     const [showAcceleratorDetails, setShowAcceleratorDetails] = useState<boolean>(false);
     const [isDeletingAccelerator, setIsDeletingAccelerator] = useState<string | null>(null);
     
     // Search and filter state
     const [searchTerm, setSearchTerm] = useState('');
-    const [sortBy, setSortBy] = useState<'name' | 'email' | 'total_startups'>('name');
+    const [sortBy, setSortBy] = useState<'name' | 'email' | 'website' | 'total_startups'>('name');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
     useEffect(() => {
-        initializeActor();
-    }, []);
-
-    const initializeActor = async () => {
-        try {
-            const auth = await checkIsAuthenticated();
-            setIsAuthenticated(auth);
-            
-            if (auth) {
-                const authenticatedActor = await createAuthenticatedActor();
-                setActor(authenticatedActor);
-                await checkAdminStatus(authenticatedActor);
-            }
-            
-            setLoading(false);
-        } catch (error) {
-            console.error('Error initializing actor:', error);
-            setLoading(false);
+        if (actor) {
+            fetchAccelerators(actor);
         }
-    };
-
-    const checkAdminStatus = async (authenticatedActor: ActorSubclass<_SERVICE>) => {
-        try {
-            const isAdminUser = await authenticatedActor.is_admin();
-            setIsAdmin(isAdminUser);
-            if (isAdminUser) {
-                await fetchAccelerators(authenticatedActor);
-            }
-        } catch (error) {
-            console.error('Error checking admin status:', error);
-        }
-    };
+    }, [actor]);
 
     const fetchAccelerators = async (authenticatedActor: ActorSubclass<_SERVICE>) => {
         try {
+            console.log('Fetching accelerators with actor:', authenticatedActor);
+            console.log('Current Principal:', currentPrincipal);
+            
             const acceleratorsResult = await authenticatedActor.get_all_accelerators();
+            console.log('Accelerators result:', acceleratorsResult);
+            
             if ('Ok' in acceleratorsResult) {
                 setAccelerators(acceleratorsResult.Ok);
             }
         } catch (error) {
             console.error('Error fetching accelerators:', error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -148,7 +124,7 @@ const AdminAccelerators: React.FC = () => {
             }
         });
 
-    const handleSort = (field: 'name' | 'email' | 'total_startups') => {
+    const handleSort = (field: 'name' | 'email' | 'website' | 'total_startups') => {
         if (sortBy === field) {
             setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
         } else {
@@ -205,11 +181,12 @@ const AdminAccelerators: React.FC = () => {
                     <div className="flex gap-2">
                         <select
                             value={sortBy}
-                            onChange={(e) => handleSort(e.target.value as 'name' | 'email' | 'total_startups')}
+                            onChange={(e) => handleSort(e.target.value as 'name' | 'email' | 'website' | 'total_startups')}
                             className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         >
                             <option value="name">Sort by Name</option>
                             <option value="email">Sort by Email</option>
+                            <option value="website">Sort by Website</option>
                             <option value="total_startups">Sort by Startups</option>
                         </select>
                         <button
@@ -236,7 +213,7 @@ const AdminAccelerators: React.FC = () => {
                                         )}
                                     </div>
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" onClick={() => handleSort('email')}>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" onClick={() => handleSort('email')}>
                                     <div className="flex items-center gap-2">
                                         Contact
                                         {sortBy === 'email' && (

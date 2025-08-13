@@ -1,69 +1,46 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { createActor } from '../../../../declarations/backend';
-import { HttpAgent, ActorSubclass } from '@dfinity/agent';
-import { AuthClient } from '@dfinity/auth-client';
+import { useNavigate, useOutletContext } from 'react-router-dom';
+import { ActorSubclass } from '@dfinity/agent';
 import { _SERVICE } from '../../../../declarations/backend/backend.did.d';
-import { CANISTER_ID } from '../../config';
-import { User } from '../../../../declarations/backend/backend.did';
-import { checkIsAuthenticated, createAuthenticatedActor } from '../../services/auth';
 import Button from '../../components/common/Button';
 
+interface AdminContext {
+    actor: ActorSubclass<_SERVICE> | null;
+    currentPrincipal: string;
+}
+
 const AdminUsers: React.FC = () => {
-    const [isAdmin, setIsAdmin] = useState<boolean>(false);
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-    const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
-    const [actor, setActor] = useState<ActorSubclass<_SERVICE> | null>(null);
+    const { actor, currentPrincipal } = useOutletContext<AdminContext>();
+    const [users, setUsers] = useState<any[]>([]);
     
     // Search and filter state
     const [searchTerm, setSearchTerm] = useState('');
-    const [sortBy, setSortBy] = useState<'name' | 'email' | 'created_at'>('created_at');
+    const [sortBy, setSortBy] = useState<'principal' | 'name' | 'email' | 'created_at'>('created_at');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
     useEffect(() => {
-        initializeActor();
-    }, []);
-
-    const initializeActor = async () => {
-        try {
-            const auth = await checkIsAuthenticated();
-            setIsAuthenticated(auth);
-            
-            if (auth) {
-                const authenticatedActor = await createAuthenticatedActor();
-                setActor(authenticatedActor);
-                await checkAdminStatus(authenticatedActor);
-            }
-            
-            setLoading(false);
-        } catch (error) {
-            console.error('Error initializing actor:', error);
-            setLoading(false);
+        if (actor) {
+            fetchUsers(actor);
         }
-    };
-
-    const checkAdminStatus = async (authenticatedActor: ActorSubclass<_SERVICE>) => {
-        try {
-            const isAdminUser = await authenticatedActor.is_admin();
-            setIsAdmin(isAdminUser);
-            if (isAdminUser) {
-                await fetchUsers(authenticatedActor);
-            }
-        } catch (error) {
-            console.error('Error checking admin status:', error);
-        }
-    };
+    }, [actor]);
 
     const fetchUsers = async (authenticatedActor: ActorSubclass<_SERVICE>) => {
         try {
+            console.log('Fetching users with actor:', authenticatedActor);
+            console.log('Current Principal:', currentPrincipal);
+            
             const usersResult = await authenticatedActor.get_users();
+            console.log('Users result:', usersResult);
+            
             if ('Ok' in usersResult) {
                 setUsers(usersResult.Ok);
             }
         } catch (error) {
             console.error('Error fetching users:', error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -118,7 +95,7 @@ const AdminUsers: React.FC = () => {
             }
         });
 
-    const handleSort = (field: 'name' | 'email' | 'created_at') => {
+    const handleSort = (field: 'principal' | 'name' | 'email' | 'created_at') => {
         if (sortBy === field) {
             setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
         } else {
@@ -183,9 +160,10 @@ const AdminUsers: React.FC = () => {
                     <div className="flex gap-2">
                         <select
                             value={sortBy}
-                            onChange={(e) => handleSort(e.target.value as 'name' | 'email' | 'created_at')}
+                            onChange={(e) => handleSort(e.target.value as 'principal' | 'name' | 'email' | 'created_at')}
                             className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         >
+                            <option value="principal">Sort by Principal ID</option>
                             <option value="created_at">Sort by Date</option>
                             <option value="name">Sort by Name</option>
                             <option value="email">Sort by Email</option>
@@ -214,16 +192,13 @@ const AdminUsers: React.FC = () => {
                                         )}
                                     </div>
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" onClick={() => handleSort('email')}>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" onClick={() => handleSort('principal')}>
                                     <div className="flex items-center gap-2">
-                                        Email
-                                        {sortBy === 'email' && (
+                                        Principal ID
+                                        {sortBy === 'principal' && (
                                             <span className="text-purple-600">{sortOrder === 'asc' ? '↑' : '↓'}</span>
                                         )}
                                     </div>
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Principal ID
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" onClick={() => handleSort('created_at')}>
                                     <div className="flex items-center gap-2">
@@ -252,11 +227,6 @@ const AdminUsers: React.FC = () => {
                                                 <div className="ml-4">
                                                     <div className="text-sm font-medium text-gray-900">{user.name}</div>
                                                 </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900">
-                                                {user.email && user.email.length > 0 && user.email[0] ? user.email[0] : 'No email'}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">

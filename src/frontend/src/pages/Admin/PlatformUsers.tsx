@@ -1,19 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { createActor } from '../../../../declarations/backend';
-import { HttpAgent, ActorSubclass } from '@dfinity/agent';
-import { AuthClient } from '@dfinity/auth-client';
+import { useNavigate, useOutletContext } from 'react-router-dom';
+import { ActorSubclass } from '@dfinity/agent';
 import { _SERVICE } from '../../../../declarations/backend/backend.did.d';
-import { CANISTER_ID } from '../../config';
-import { checkIsAuthenticated, createAuthenticatedActor } from '../../services/auth';
 import Button from '../../components/common/Button';
 
+interface AdminContext {
+    actor: ActorSubclass<_SERVICE> | null;
+    currentPrincipal: string;
+}
+
 const AdminPlatformUsers: React.FC = () => {
-    const [isAdmin, setIsAdmin] = useState<boolean>(false);
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
-    const [actor, setActor] = useState<ActorSubclass<_SERVICE> | null>(null);
+    const { actor, currentPrincipal } = useOutletContext<AdminContext>();
     
     // Platform user management state
     const [slackUsers, setSlackUsers] = useState<any[]>([]);
@@ -30,52 +29,33 @@ const AdminPlatformUsers: React.FC = () => {
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
     useEffect(() => {
-        initializeActor();
-    }, []);
-
-    const initializeActor = async () => {
-        try {
-            const auth = await checkIsAuthenticated();
-            setIsAuthenticated(auth);
-            
-            if (auth) {
-                const authenticatedActor = await createAuthenticatedActor();
-                setActor(authenticatedActor);
-                await checkAdminStatus(authenticatedActor);
-            }
-            
-            setLoading(false);
-        } catch (error) {
-            console.error('Error initializing actor:', error);
-            setLoading(false);
+        if (actor) {
+            fetchPlatformUsers(actor);
         }
-    };
-
-    const checkAdminStatus = async (authenticatedActor: ActorSubclass<_SERVICE>) => {
-        try {
-            const isAdminUser = await authenticatedActor.is_admin();
-            setIsAdmin(isAdminUser);
-            if (isAdminUser) {
-                await fetchPlatformUsers(authenticatedActor);
-            }
-        } catch (error) {
-            console.error('Error checking admin status:', error);
-        }
-    };
+    }, [actor]);
 
     const fetchPlatformUsers = async (authenticatedActor: ActorSubclass<_SERVICE>) => {
         try {
+            console.log('Fetching platform users with actor:', authenticatedActor);
+            console.log('Current Principal:', currentPrincipal);
+            
             const [slackResult, discordResult, openchatResult] = await Promise.all([
                 authenticatedActor.get_registered_slack_users_admin(),
                 authenticatedActor.get_registered_discord_users_admin(),
                 authenticatedActor.get_registered_openchat_users_admin()
             ]);
 
+            console.log('Slack result:', slackResult);
+            console.log('Discord result:', discordResult);
+            console.log('OpenChat result:', openchatResult);
+
             if ('Ok' in slackResult) setSlackUsers(slackResult.Ok);
             if ('Ok' in discordResult) setDiscordUsers(discordResult.Ok);
             if ('Ok' in openchatResult) setOpenchatUsers(openchatResult.Ok);
         } catch (error) {
             console.error('Error fetching platform users:', error);
+        } finally {
+            setLoading(false);
         }
     };
 

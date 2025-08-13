@@ -1,70 +1,47 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { createActor } from '../../../../declarations/backend';
-import { HttpAgent, ActorSubclass } from '@dfinity/agent';
-import { AuthClient } from '@dfinity/auth-client';
+import { useNavigate, useOutletContext } from 'react-router-dom';
+import { ActorSubclass } from '@dfinity/agent';
 import { _SERVICE } from '../../../../declarations/backend/backend.did.d';
-import { CANISTER_ID } from '../../config';
-import { WaitlistEntry } from '../../../../declarations/backend/backend.did';
-import { checkIsAuthenticated, createAuthenticatedActor } from '../../services/auth';
 import Button from '../../components/common/Button';
 
+interface AdminContext {
+    actor: ActorSubclass<_SERVICE> | null;
+    currentPrincipal: string;
+}
+
 const AdminWaitlist: React.FC = () => {
-    const [isAdmin, setIsAdmin] = useState<boolean>(false);
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-    const [waitlist, setWaitlist] = useState<WaitlistEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
-    const [actor, setActor] = useState<ActorSubclass<_SERVICE> | null>(null);
+    const { actor, currentPrincipal } = useOutletContext<AdminContext>();
+    const [waitlist, setWaitlist] = useState<any[]>([]);
     
     // Search and filter state
     const [searchTerm, setSearchTerm] = useState('');
-    const [statusFilter, setStatusFilter] = useState<'all' | 'Pending' | 'Approved' | 'Rejected'>('all');
+    const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
     const [sortBy, setSortBy] = useState<'name' | 'email' | 'created_at'>('created_at');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
     useEffect(() => {
-        initializeActor();
-    }, []);
-
-    const initializeActor = async () => {
-        try {
-            const auth = await checkIsAuthenticated();
-            setIsAuthenticated(auth);
-            
-            if (auth) {
-                const authenticatedActor = await createAuthenticatedActor();
-                setActor(authenticatedActor);
-                await checkAdminStatus(authenticatedActor);
-            }
-            
-            setLoading(false);
-        } catch (error) {
-            console.error('Error initializing actor:', error);
-            setLoading(false);
+        if (actor) {
+            fetchWaitlist(actor);
         }
-    };
-
-    const checkAdminStatus = async (authenticatedActor: ActorSubclass<_SERVICE>) => {
-        try {
-            const isAdminUser = await authenticatedActor.is_admin();
-            setIsAdmin(isAdminUser);
-            if (isAdminUser) {
-                await fetchWaitlist(authenticatedActor);
-            }
-        } catch (error) {
-            console.error('Error checking admin status:', error);
-        }
-    };
+    }, [actor]);
 
     const fetchWaitlist = async (authenticatedActor: ActorSubclass<_SERVICE>) => {
         try {
+            console.log('Fetching waitlist with actor:', authenticatedActor);
+            console.log('Current Principal:', currentPrincipal);
+            
             const waitlistResult = await authenticatedActor.get_waitlist();
+            console.log('Waitlist result:', waitlistResult);
+            
             if ('Ok' in waitlistResult) {
                 setWaitlist(waitlistResult.Ok);
             }
         } catch (error) {
             console.error('Error fetching waitlist:', error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -148,24 +125,24 @@ const AdminWaitlist: React.FC = () => {
         const statusValue = status[statusKey];
         
         switch (statusKey) {
-            case 'Pending':
-                return (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                        ⏳ Pending
-                    </span>
-                );
-            case 'Approved':
-                return (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        ✅ Approved
-                    </span>
-                );
-            case 'Rejected':
-                return (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                        ❌ Rejected
-                    </span>
-                );
+                    case 'pending':
+            return (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                    ⏳ Pending
+                </span>
+            );
+        case 'approved':
+            return (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    ✅ Approved
+                </span>
+            );
+        case 'rejected':
+            return (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                    ❌ Rejected
+                </span>
+            );
             default:
                 return (
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
@@ -176,7 +153,7 @@ const AdminWaitlist: React.FC = () => {
     };
 
     const getStatusCounts = () => {
-        const counts = { Pending: 0, Approved: 0, Rejected: 0 };
+        const counts = { pending: 0, approved: 0, rejected: 0 };
         waitlist.forEach(entry => {
             const status = Object.keys(entry.status)[0];
             if (counts.hasOwnProperty(status)) {
@@ -211,8 +188,8 @@ const AdminWaitlist: React.FC = () => {
                             <span className="text-2xl">⏳</span>
                         </div>
                         <div className="ml-4">
-                            <p className="text-sm font-medium text-gray-500">Pending</p>
-                            <p className="text-2xl font-bold text-gray-900">{statusCounts.Pending}</p>
+                                                    <p className="text-sm font-medium text-gray-500">Pending</p>
+                        <p className="text-2xl font-bold text-gray-900">{statusCounts.pending}</p>
                         </div>
                     </div>
                 </div>
@@ -222,8 +199,8 @@ const AdminWaitlist: React.FC = () => {
                             <span className="text-2xl">✅</span>
                         </div>
                         <div className="ml-4">
-                            <p className="text-sm font-medium text-gray-500">Approved</p>
-                            <p className="text-2xl font-bold text-gray-900">{statusCounts.Approved}</p>
+                                                    <p className="text-sm font-medium text-gray-500">Approved</p>
+                        <p className="text-2xl font-bold text-gray-900">{statusCounts.approved}</p>
                         </div>
                     </div>
                 </div>
@@ -233,8 +210,8 @@ const AdminWaitlist: React.FC = () => {
                             <span className="text-2xl">❌</span>
                         </div>
                         <div className="ml-4">
-                            <p className="text-sm font-medium text-gray-500">Rejected</p>
-                            <p className="text-2xl font-bold text-gray-900">{statusCounts.Rejected}</p>
+                                                    <p className="text-sm font-medium text-gray-500">Rejected</p>
+                        <p className="text-2xl font-bold text-gray-900">{statusCounts.rejected}</p>
                         </div>
                     </div>
                 </div>
@@ -266,13 +243,13 @@ const AdminWaitlist: React.FC = () => {
                     <div className="flex gap-2">
                         <select
                             value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value as 'all' | 'Pending' | 'Approved' | 'Rejected')}
+                            onChange={(e) => setStatusFilter(e.target.value as 'all' | 'pending' | 'approved' | 'rejected')}
                             className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         >
                             <option value="all">All Statuses</option>
-                            <option value="Pending">Pending</option>
-                            <option value="Approved">Approved</option>
-                            <option value="Rejected">Rejected</option>
+                            <option value="pending">Pending</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
                         </select>
                         <select
                             value={sortBy}
