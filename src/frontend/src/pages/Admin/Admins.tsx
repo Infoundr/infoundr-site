@@ -1,67 +1,48 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { createActor } from '../../../../declarations/backend';
-import { HttpAgent, ActorSubclass } from '@dfinity/agent';
-import { AuthClient } from '@dfinity/auth-client';
+import { useNavigate, useOutletContext } from 'react-router-dom';
+import { ActorSubclass } from '@dfinity/agent';
 import { _SERVICE } from '../../../../declarations/backend/backend.did.d';
-import { CANISTER_ID } from '../../config';
-import { checkIsAuthenticated, createAuthenticatedActor } from '../../services/auth';
 import Button from '../../components/common/Button';
 
+interface AdminContext {
+    actor: ActorSubclass<_SERVICE> | null;
+    currentPrincipal: string;
+}
+
 const AdminAdmins: React.FC = () => {
-    const [isAdmin, setIsAdmin] = useState<boolean>(false);
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-    const [admins, setAdmins] = useState<Array<[any, any]>>([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
-    const [actor, setActor] = useState<ActorSubclass<_SERVICE> | null>(null);
-    
-    // Admin management state
+    const { actor, currentPrincipal } = useOutletContext<AdminContext>();
+    const [admins, setAdmins] = useState<Array<[any, any]>>([]);
     const [newAdminPrincipal, setNewAdminPrincipal] = useState<string>("");
     const [showAddAdminForm, setShowAddAdminForm] = useState<boolean>(false);
     const [isAddingAdmin, setIsAddingAdmin] = useState<boolean>(false);
     const [isRemovingAdmin, setIsRemovingAdmin] = useState<string | null>(null);
+    
+    // Search and filter state
+    const [searchTerm, setSearchTerm] = useState('');
+    const [sortBy, setSortBy] = useState<'principal' | 'created_at'>('created_at');
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
     useEffect(() => {
-        initializeActor();
-    }, []);
-
-    const initializeActor = async () => {
-        try {
-            const auth = await checkIsAuthenticated();
-            setIsAuthenticated(auth);
-            
-            if (auth) {
-                const authenticatedActor = await createAuthenticatedActor();
-                setActor(authenticatedActor);
-                await checkAdminStatus(authenticatedActor);
-            }
-            
-            setLoading(false);
-        } catch (error) {
-            console.error('Error initializing actor:', error);
-            setLoading(false);
+        if (actor) {
+            fetchAdmins(actor);
         }
-    };
-
-    const checkAdminStatus = async (authenticatedActor: ActorSubclass<_SERVICE>) => {
-        try {
-            const isAdminUser = await authenticatedActor.is_admin();
-            setIsAdmin(isAdminUser);
-            if (isAdminUser) {
-                await fetchAdmins(authenticatedActor);
-            }
-        } catch (error) {
-            console.error('Error checking admin status:', error);
-        }
-    };
+    }, [actor]);
 
     const fetchAdmins = async (authenticatedActor: ActorSubclass<_SERVICE>) => {
         try {
+            console.log('Fetching admins with actor:', authenticatedActor);
+            console.log('Current Principal:', currentPrincipal);
+            
             const adminsResult = await authenticatedActor.get_admin_details();
+            console.log('Admins result:', adminsResult);
+            
             setAdmins(adminsResult);
         } catch (error) {
             console.error('Error fetching admins:', error);
+        } finally {
+            setLoading(false);
         }
     };
 

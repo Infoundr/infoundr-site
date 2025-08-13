@@ -1,19 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { createActor } from '../../../../declarations/backend';
-import { HttpAgent, ActorSubclass } from '@dfinity/agent';
-import { AuthClient } from '@dfinity/auth-client';
+import { useNavigate, useOutletContext } from 'react-router-dom';
+import { ActorSubclass } from '@dfinity/agent';
 import { _SERVICE } from '../../../../declarations/backend/backend.did.d';
-import { CANISTER_ID } from '../../config';
-import { checkIsAuthenticated, createAuthenticatedActor } from '../../services/auth';
 import Button from '../../components/common/Button';
 
+interface AdminContext {
+    actor: ActorSubclass<_SERVICE> | null;
+    currentPrincipal: string;
+}
+
 const AdminApiMessages: React.FC = () => {
-    const [isAdmin, setIsAdmin] = useState<boolean>(false);
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
-    const [actor, setActor] = useState<ActorSubclass<_SERVICE> | null>(null);
+    const { actor, currentPrincipal } = useOutletContext<AdminContext>();
     
     // API message management state
     const [allApiMessages, setAllApiMessages] = useState<any[]>([]);
@@ -21,6 +20,7 @@ const AdminApiMessages: React.FC = () => {
     const [recentApiMessages, setRecentApiMessages] = useState<any[]>([]);
     const [selectedBotName, setSelectedBotName] = useState<string>("");
     const [recentMessageLimit, setRecentMessageLimit] = useState<number>(50);
+    const [showApiMessages, setShowApiMessages] = useState<boolean>(false);
     const [apiMessageFilter, setApiMessageFilter] = useState<'all' | 'byBot' | 'recent'>('all');
     
     // Search and filter state
@@ -29,45 +29,19 @@ const AdminApiMessages: React.FC = () => {
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
     useEffect(() => {
-        initializeActor();
-    }, []);
-
-    const initializeActor = async () => {
-        try {
-            const auth = await checkIsAuthenticated();
-            setIsAuthenticated(auth);
-            
-            if (auth) {
-                const authenticatedActor = await createAuthenticatedActor();
-                setActor(authenticatedActor);
-                await checkAdminStatus(authenticatedActor);
-            }
-            
-            setLoading(false);
-        } catch (error) {
-            console.error('Error initializing actor:', error);
-            setLoading(false);
+        if (actor) {
+            // Initialize with recent messages by default
+            fetchRecentApiMessages(recentMessageLimit);
         }
-    };
-
-    const checkAdminStatus = async (authenticatedActor: ActorSubclass<_SERVICE>) => {
-        try {
-            const isAdminUser = await authenticatedActor.is_admin();
-            setIsAdmin(isAdminUser);
-            if (isAdminUser) {
-                // Load recent messages by default
-                await fetchRecentApiMessages(authenticatedActor, recentMessageLimit);
-            }
-        } catch (error) {
-            console.error('Error checking admin status:', error);
-        }
-    };
+    }, [actor]);
 
     const fetchApiMessagesByBot = async (botName: string) => {
         if (!actor) return;
         
         try {
             console.log('Fetching API messages for bot:', botName);
+            console.log('Current Principal:', currentPrincipal);
+            
             const result = await actor.admin_get_api_messages_by_bot(botName);
             console.log('API messages by bot result:', result);
             
@@ -88,6 +62,8 @@ const AdminApiMessages: React.FC = () => {
         
         try {
             console.log('Fetching all API messages');
+            console.log('Current Principal:', currentPrincipal);
+            
             const result = await actor.admin_get_all_api_messages();
             console.log('All API messages result:', result);
             
@@ -103,10 +79,14 @@ const AdminApiMessages: React.FC = () => {
         }
     };
 
-    const fetchRecentApiMessages = async (authenticatedActor: ActorSubclass<_SERVICE>, limit: number) => {
+    const fetchRecentApiMessages = async (limit: number) => {
+        if (!actor) return;
+        
         try {
             console.log('Fetching recent API messages with limit:', limit);
-            const result = await authenticatedActor.admin_get_recent_api_messages(limit);
+            console.log('Current Principal:', currentPrincipal);
+            
+            const result = await actor.admin_get_recent_api_messages(limit);
             console.log('Recent API messages result:', result);
             
             if ('Ok' in result) {
@@ -118,6 +98,8 @@ const AdminApiMessages: React.FC = () => {
         } catch (error) {
             console.error('Error fetching recent API messages:', error);
             alert('Error fetching recent API messages');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -129,7 +111,7 @@ const AdminApiMessages: React.FC = () => {
         } else if (filter === 'byBot' && selectedBotName) {
             fetchApiMessagesByBot(selectedBotName);
         } else if (filter === 'recent') {
-            fetchRecentApiMessages(actor!, recentMessageLimit);
+            fetchRecentApiMessages(recentMessageLimit);
         }
     };
 
@@ -369,7 +351,7 @@ const AdminApiMessages: React.FC = () => {
                                         )}
                                     </div>
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" onClick={() => handleSort('bot_name')}>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" onClick={() => handleSort('bot_name')}>
                                     <div className="flex items-center gap-2">
                                         Bot
                                         {sortBy === 'bot_name' && (
