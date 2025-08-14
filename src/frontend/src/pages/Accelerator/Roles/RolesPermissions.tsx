@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getMyAccelerator } from '../../../services/accelerator';
-import { inviteTeamMember, listTeamMembers, updateTeamMemberRole, removeTeamMember } from '../../../services/team';
+import {
+  inviteTeamMember,
+  listTeamMembers,
+  updateTeamMemberRole,
+  removeTeamMember
+} from '../../../services/team';
 import type { TeamMember, Role, RoleUnion } from '../../../types/team';
 import type { TeamMemberInviteWithId, UpdateTeamMemberRole, RemoveTeamMember } from '../../../types/team';
 import { emailService } from '../../../services/email';
@@ -23,10 +28,7 @@ const RolesPermissions: React.FC = () => {
   const [inviteToken, setInviteToken] = useState<string | null>(null);
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-
   const [inviteName, setInviteName] = useState('');
-
- console.log("Accelerator Name being sent:", acceleratorName);
 
   const roleOptions: RoleUnion[] = ['Viewer', 'ProgramManager', 'Admin', 'SuperAdmin'];
 
@@ -39,8 +41,12 @@ const RolesPermissions: React.FC = () => {
     const init = async () => {
       const acc = await getMyAccelerator();
       if (!acc) return;
-      setAcceleratorName(acc.name);
-      const me = acc.team_members.find(m => m.principalId === acc.id.toText());
+
+      setAcceleratorName(acc.name ?? '');
+
+      const me = acc.team_members.find(
+        m => m.principalId && acc.id && m.principalId === acc.id.toText?.()
+      );
       setCurrentUserRole(me?.roleString || 'Viewer');
 
       const members = await listTeamMembers();
@@ -50,8 +56,9 @@ const RolesPermissions: React.FC = () => {
   }, []);
 
   const filtered = teamMembers.filter(m =>
+    (m.name ?? '').toLowerCase().includes(searchText.toLowerCase()) ||
     m.email.toLowerCase().includes(searchText.toLowerCase()) ||
-    m.principalId?.toLowerCase().includes(searchText.toLowerCase())
+    (m.principalId ?? '').toLowerCase().includes(searchText.toLowerCase())
   );
 
   const openInvite = () => {
@@ -60,10 +67,10 @@ const RolesPermissions: React.FC = () => {
     setInviteName('');
     setInviteToken(null);
     setInviteError(null);
+    setCopied(false);
     setInviteModalOpen(true);
   };
 
- 
   const handleInvite = async () => {
     setInviteLoading(true);
     setInviteToken(null);
@@ -72,13 +79,17 @@ const RolesPermissions: React.FC = () => {
     const payload: TeamMemberInviteWithId = {
       email: inviteEmail,
       role: roleToVariant(inviteRole),
-      name: inviteName,
+      name: inviteName
     };
+
     const result = await inviteTeamMember(payload);
     setInviteLoading(false);
 
     if (result) {
-      setInviteToken(result);
+      // ✅ Correct route for team invites
+      const inviteUrl = `${window.location.origin}/accelerator/team-invite/${encodeURIComponent(result)}`;
+      setInviteToken(inviteUrl);
+
       const updated = await listTeamMembers();
       if (updated) setTeamMembers(updated);
       
@@ -110,13 +121,15 @@ const RolesPermissions: React.FC = () => {
   const handleRoleUpdate = async (email: string, newRole: RoleUnion) => {
     const payload: UpdateTeamMemberRole = {
       email,
-      new_role: roleToVariant(newRole),
+      new_role: roleToVariant(newRole)
     };
     const ok = await updateTeamMemberRole(payload);
     if (ok) {
       const updated = await listTeamMembers();
       if (updated) setTeamMembers(updated);
-    } else alert('Failed to update role');
+    } else {
+      alert('Failed to update role');
+    }
   };
 
   const handleRemove = async (email: string) => {
@@ -125,7 +138,9 @@ const RolesPermissions: React.FC = () => {
     if (ok) {
       const updated = await listTeamMembers();
       if (updated) setTeamMembers(updated);
-    } else alert('Failed to remove member');
+    } else {
+      alert('Failed to remove member');
+    }
   };
 
   const handleResendInvite = async (member: TeamMember) => {
@@ -164,7 +179,9 @@ const RolesPermissions: React.FC = () => {
           <p className="text-gray-600">Manage team access and control permissions</p>
         </div>
         <div className="flex items-center gap-4">
-          <span className="px-3 py-2 bg-white border rounded-md">{acceleratorName}</span>
+          <span className="px-3 py-2 bg-white border rounded-md">
+            {acceleratorName || '—'}
+          </span>
           <button
             onClick={openInvite}
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
@@ -180,7 +197,7 @@ const RolesPermissions: React.FC = () => {
           <h2 className="text-xl font-semibold">Team Members</h2>
           <input
             type="text"
-            placeholder="Search team member"
+            placeholder="Search team member..."
             value={searchText}
             onChange={e => setSearchText(e.target.value)}
             className="border p-2 rounded w-64"
@@ -201,23 +218,28 @@ const RolesPermissions: React.FC = () => {
             {filtered.map(member => (
               <tr key={member.email} className="border-b">
                 <td className="px-4 py-3 flex items-center gap-2">
-                <img
-                className="w-8 h-8 rounded-full"
-                src={
-                member.token?.length
-                ? `https://avatars.dicebear.com/api/initials/${member.email}.svg`
-                : 'https://via.placeholder.com/32'
-                }
-                alt="avatar"
-                />
-                <div>
-                <span>{member.name || 'No Name'}</span> {/* Shows accelerator name or fallback */}
-                </div>
+                  <img
+                    className="w-8 h-8 rounded-full"
+                    src={
+                      member.token && member.token.length
+                        ? `https://avatars.dicebear.com/api/initials/${encodeURIComponent(member.name || member.email)}.svg`
+                        : 'https://via.placeholder.com/32'
+                    }
+                    alt="avatar"
+                  />
+                  <div>
+                    <span>{member.name ?? member.email}</span>
+                  </div>
                 </td>
                 <td className="px-4 py-3">{member.email}</td>
-                <td className="px-4 py-3">{member.roleString}</td>
                 <td className="px-4 py-3">
-                  { 'Active' in member.status ? (
+                  {member.roleString ??
+                    (typeof member.role === 'object'
+                      ? Object.keys(member.role)[0]
+                      : 'Viewer')}
+                </td>
+                <td className="px-4 py-3">
+                  {'Active' in member.status ? (
                     <span className="bg-green-100 text-green-800 px-2 py-1 rounded">Active</span>
                   ) : (
                     <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Pending</span>
@@ -226,7 +248,9 @@ const RolesPermissions: React.FC = () => {
                 {canEdit && (
                   <td className="px-4 py-3 space-x-2">
                     <button
-                      onClick={() => handleRoleUpdate(member.email, member.roleString!)}
+                      onClick={() =>
+                        handleRoleUpdate(member.email, (member.roleString ?? 'Viewer') as RoleUnion)
+                      }
                       className="text-blue-600 underline"
                     >
                       Edit
@@ -249,13 +273,20 @@ const RolesPermissions: React.FC = () => {
                 )}
               </tr>
             ))}
+            {filtered.length === 0 && (
+              <tr>
+                <td colSpan={canEdit ? 5 : 4} className="px-4 py-6 text-center text-gray-500">
+                  No team members found.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
 
       {/* Invite Modal */}
       {inviteModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center">
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50">
           <div className="bg-white rounded-lg max-w-md p-6 space-y-4">
             {!inviteToken ? (
               <>
@@ -303,29 +334,42 @@ const RolesPermissions: React.FC = () => {
             ) : (
               <>
                 <h3 className="text-xl font-semibold">Invite Sent!</h3>
-                <p className="text-sm text-gray-600 mb-2">Share this invite link with your team member:</p>
-                <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-md">
-                  <p className="font-medium text-sm flex-1 break-all">
-                    {`${window.location.origin}/accelerator/roles/invite/${inviteToken}`}
-                  </p>
+                <p className="break-all text-blue-600 underline">
+                  <a href={inviteToken} target="_blank" rel="noopener noreferrer">
+                    {inviteToken}
+                  </a>
+                </p>
+                {copied && <p className="text-green-600 text-sm mt-1">Copied!</p>}
+                <div className="flex items-center gap-3">
                   <button
                     onClick={() => {
-                      navigator.clipboard.writeText(`${window.location.origin}/accelerator/roles/invite/${inviteToken}`);
+                      navigator.clipboard.writeText(inviteToken || '');
                       setCopied(true);
                       setTimeout(() => setCopied(false), 2000);
                     }}
-                    className="text-blue-600 hover:text-blue-700 p-1"
-                    title="Copy to clipboard"
+                    className="px-3 py-1 mt-2 bg-green-600 text-white rounded"
                   >
-                    {copied ? '✓' : '📋'}
+                    Copy Token
+                  </button>
+                  <button
+                    onClick={() => {
+                      window.open(inviteToken || '', '_blank', 'noopener');
+                    }}
+                    className="px-3 py-1 mt-2 border rounded"
+                  >
+                    Open Link
                   </button>
                 </div>
-                {copied && (
-                  <p className="text-green-600 text-sm">Copied to clipboard!</p>
-                )}
                 <div className="flex justify-end pt-4">
                   <button
-                    onClick={() => setInviteModalOpen(false)}
+                    onClick={() => {
+                      setInviteModalOpen(false);
+                      setInviteToken(null);
+                      setInviteEmail('');
+                      setInviteName('');
+                      setInviteRole('Viewer');
+                      setCopied(false);
+                    }}
                     className="px-4 py-2 bg-gray-200 rounded"
                   >
                     Close

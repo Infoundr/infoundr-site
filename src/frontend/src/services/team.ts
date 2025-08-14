@@ -7,7 +7,6 @@ import type {
 } from '../types/team';
 import { createAuthenticatedActor } from './auth';
 
-
 export const listTeamMembers = async (
 ): Promise<TeamMember[] | null> => {
   try {
@@ -42,8 +41,6 @@ export const listTeamMembers = async (
     return null;
   }
 };
-
-
 
 export const inviteTeamMember = async (
   payload: TeamMemberInviteWithId
@@ -115,4 +112,41 @@ const roleToVariant = (role: RoleUnion): Role => {
       throw new Error(`Invalid role: ${role}`);
   }
 };
+
+export async function accept_invitation(token: string) {
+  if (!token) throw new Error("No invitation token provided");
+
+  try {
+    const actor = await createAuthenticatedActor();
+    const result = await actor.accept_invitation(token);
+
+    if ("Err" in result) {
+      throw new Error(result.Err);
+    }
+
+    return true; // success
+  } catch (error) {
+    console.error("Error accepting invitation:", error);
+    throw error; // allow UI to handle it
+  }
+}
+
+export async function decline_invitation(token: string) {
+  if (!token) throw new Error("No invitation token provided");
+
+  try {
+    const actor = await createAuthenticatedActor();
+    const result = await actor.decline_invitation(token);
+
+    if ("Err" in result) {
+      throw new Error(result.Err);
+    }
+
+    return true; // success
+  } catch (error) {
+    console.error("Error declining invitation:", error);
+    throw error; // keep consistent with accept_invitation
+  }
+}
+
 
