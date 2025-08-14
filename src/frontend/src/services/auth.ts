@@ -282,6 +282,17 @@ export const createAuthenticatedActor = async () => {
     return createActor(CANISTER_ID, { agent });  
 };
 
+// Helper function to create unauthenticated actor for public operations
+export const createUnauthenticatedActor = async () => {
+    const agent = new HttpAgent({});
+    
+    if (import.meta.env.VITE_DFX_NETWORK !== 'ic') {
+        await agent.fetchRootKey();
+    }
+    
+    return createActor(CANISTER_ID, { agent });
+};
+
 export const loginWithBotToken = async (token: string): Promise<{
     isValid: boolean;
     openchatId: string | null;

@@ -10,19 +10,24 @@ interface Assistant {
 const AIAssistants: React.FC = () => {
   const assistants: Assistant[] = [
     {
-      name: 'Benny',
-      description: 'Your strategic thinking partner for business planning and decision making',
+      name: 'Legal & Compliance',
+      description: 'Your AI legal partner for contract review, IP tracking, and regulatory compliance',
+      icon: '/icons/check.png'
+    },
+    {
+      name: 'Finance & Operations',
+      description: 'AI-powered financial reporting, bookkeeping, and operational insights',
+      icon: '/icons/piechart.png'
+    },
+    {
+      name: 'Strategy & Growth',
+      description: 'Strategic decision simulation and market research for smarter business choices',
       icon: '/icons/brain.png'
     },
     {
-      name: 'Uncle Startups',
-      description: 'Expert guidance on startup growth and market analysis',
-      icon: '/icons/analytics.png'
-    },
-    {
-      name: 'Dean',
-      description: 'Creative problem solving and innovation strategy specialist',
-      icon: '/icons/bulb.png'
+      name: 'HR & Hiring',
+      description: 'Automated hiring workflows, candidate screening, and team management',
+      icon: '/icons/people.png'
     }
   ];
 

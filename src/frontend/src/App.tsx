@@ -4,7 +4,6 @@ import Hero from './components/home/Hero';
 // import AIAssistants from './components/home/AIAssistants';
 import Features from './components/home/Features';
 import SlackIntegration from './components/home/SlackIntegration';
-import OpenChatIntegration from './components/home/OpenChatIntegration';
 import DiscordIntegration from './components/home/DiscordIntegration';
 import Pricing from './components/home/Pricing';
 import Footer from './components/layout/Footer';
@@ -13,7 +12,14 @@ import { checkIsAuthenticated } from './services/auth';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import AdminPanel from './pages/AdminPanel';
+import AdminLayout from './pages/Admin/AdminLayout';
+import AdminDashboard from './pages/Admin/Dashboard';
+import AdminUsers from './pages/Admin/Users';
+import AdminWaitlist from './pages/Admin/Waitlist';
+import AdminAdmins from './pages/Admin/Admins';
+import AdminAccelerators from './pages/Admin/Accelerators';
+import AdminPlatformUsers from './pages/Admin/PlatformUsers';
+import AdminApiMessages from './pages/Admin/ApiMessages';
 import Auth from './pages/Dashboard/Auth';
 import DashboardLayout from './pages/Dashboard/layouts/DashboardLayout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -33,11 +39,21 @@ import Analytics from './pages/Accelerator/Analytics/Analytics';
 import StartupsLayout from './pages/Accelerator/Startups/StartupsLayout';
 import StartupDetailsLayout from './pages/Accelerator/Startups/StartupDetailsLayout';
 import StartupSignup from './pages/Accelerator/Invites/StartupSignup';
+import StartupAuth from './pages/Accelerator/Invites/StartupAuth';
 import AcceleratorLogin from './pages/Accelerator/Auth/Login';
 import { _SERVICE } from '../../declarations/backend/backend.did';
 import { useMockData as mockDataBoolean } from './mocks/mockData';
 import { Actor } from '@dfinity/agent';
 import StartupInviteAccept from './pages/Accelerator/Invites/StartupSignup';
+import Documentation from './pages/documentation/Documentation';
+import SlackDoc from './pages/documentation/SlackDoc';
+import OpenChatDoc from './pages/documentation/OpenChatDoc';
+import DiscordLayout from './pages/documentation/DiscordLayout';
+import GitHubAgent from './pages/documentation/discord/GitHubAgent';
+import ProjectManagementAgent from './pages/documentation/discord/ProjectManagementAgent';
+import CalendarAgent from './pages/documentation/discord/CalendarAgent';
+import EmailAgent from './pages/documentation/discord/EmailAgent';
+import TeamInviteAccept from './pages/Accelerator/Invites/TeamInviteAccept';
 
 const App: React.FC = () => {
   const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
@@ -75,7 +91,6 @@ const App: React.FC = () => {
                 <Features />
                 <SlackIntegration />
                 <DiscordIntegration />
-                <OpenChatIntegration />
                 {/* <AIAssistants /> */}
                 <Pricing onGetStartedClick={() => setIsWaitlistModalOpen(true)} />
               </main>
@@ -85,6 +100,12 @@ const App: React.FC = () => {
 
           {/* Auth Route */}
           <Route path="/dashboard" element={<Auth />} />
+
+          {/* Public invite accept route (not protected) - must be before other /accelerator routes */}
+          <Route path="/accelerator/invite/:inviteCode/*" element={<StartupInviteAccept />} />
+
+          {/* Public startup authentication route (not protected) */}
+          <Route path="/accelerator/auth" element={<StartupAuth />} />
 
           {/* Protected Dashboard Routes */}
           <Route path="/dashboard/*" element={
@@ -104,7 +125,6 @@ const App: React.FC = () => {
             <Route path="analytics" element={<Analytics />} />
             <Route path="invites" element={<SendInvites />} />
             <Route path="invites/generate-invite" element={<StartupSignup />} />
-            <Route path="invite/:invite-code" element={<StartupInviteAccept />} />
             <Route path="roles" element={<RolesPermissions />} />
             <Route path="team-invite/:token" element={<TeamInviteAccept />} />
             <Route path="settings" element={<Settings />} />
@@ -131,9 +151,33 @@ const App: React.FC = () => {
           {/* BotLogin route outside of dashboard */}
           <Route path="/bot-login" element={<BotLogin />} />
 
-          {/* Add AdminPanel route outside of dashboard */}
-          <Route path="/admin" element={<AdminPanel />} />
+          {/* Team invite accept route - accessible without authentication */}
+          <Route path="/accelerator/roles/invite/:token" element={<TeamInviteAccept />} />
+
+          {/* Admin Routes */}
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<Navigate to="/admin/dashboard" replace />} />
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="users" element={<AdminUsers />} />
+            <Route path="waitlist" element={<AdminWaitlist />} />
+            <Route path="admins" element={<AdminAdmins />} />
+            <Route path="accelerators" element={<AdminAccelerators />} />
+            <Route path="platform-users" element={<AdminPlatformUsers />} />
+            <Route path="api-messages" element={<AdminApiMessages />} />
+          </Route>
           
+          {/* Documentation Routes */}
+          <Route path="/documentation" element={<Documentation />} />
+          <Route path="/documentation/slack" element={<SlackDoc />} />
+          <Route path="/documentation/discord" element={<DiscordLayout />}>
+            <Route index element={<Navigate to="/documentation/discord/github" replace />} />
+            <Route path="github" element={<GitHubAgent />} />
+            <Route path="project-management" element={<ProjectManagementAgent />} />
+            <Route path="calendar" element={<CalendarAgent />} />
+            <Route path="email" element={<EmailAgent />} />
+          </Route>
+          <Route path="/documentation/openchat" element={<OpenChatDoc />} />
+
         </Routes>
 
         <WaitlistModal 
