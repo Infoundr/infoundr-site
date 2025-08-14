@@ -38,6 +38,7 @@ import Analytics from './pages/Accelerator/Analytics/Analytics';
 import StartupsLayout from './pages/Accelerator/Startups/StartupsLayout';
 import StartupDetailsLayout from './pages/Accelerator/Startups/StartupDetailsLayout';
 import StartupSignup from './pages/Accelerator/Invites/StartupSignup';
+import StartupAuth from './pages/Accelerator/Invites/StartupAuth';
 import AcceleratorLogin from './pages/Accelerator/Auth/Login';
 import { _SERVICE } from '../../declarations/backend/backend.did';
 import { useMockData as mockDataBoolean } from './mocks/mockData';
@@ -99,6 +100,12 @@ const App: React.FC = () => {
           {/* Auth Route */}
           <Route path="/dashboard" element={<Auth />} />
 
+          {/* Public invite accept route (not protected) - must be before other /accelerator routes */}
+          <Route path="/accelerator/invite/:inviteCode/*" element={<StartupInviteAccept />} />
+
+          {/* Public startup authentication route (not protected) */}
+          <Route path="/accelerator/auth" element={<StartupAuth />} />
+
           {/* Protected Dashboard Routes */}
           <Route path="/dashboard/*" element={
             <ProtectedRoute>
@@ -117,7 +124,6 @@ const App: React.FC = () => {
             <Route path="analytics" element={<Analytics />} />
             <Route path="invites" element={<SendInvites />} />
             <Route path="invites/generate-invite" element={<StartupSignup />} />
-            <Route path="invite/:invite-code" element={<StartupInviteAccept />} />
             <Route path="roles" element={<RolesPermissions />} />
             <Route path="settings" element={<Settings />} />
           </Route>
