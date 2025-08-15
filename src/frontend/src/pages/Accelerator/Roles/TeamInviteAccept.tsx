@@ -83,11 +83,3 @@ const TeamInviteAccept: React.FC = () => {
 };
 
 export default TeamInviteAccept;
-
-
-
-
-
-
-
-

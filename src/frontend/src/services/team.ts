@@ -148,5 +148,24 @@ export async function decline_invitation(token: string) {
     throw error; // keep consistent with accept_invitation
   }
 }
+/*export async function updateTeamMemberStatus(
+  token: string,
+  status: MemberStatus
+) {
+  try {
+    const actor = await createAuthenticatedActor();
+
+    return await actor.update_team_member_status({
+      token,
+      new_status: status
+    });
+  } catch (error) {
+    console.error("Error updating member status:", error);
+    throw error;
+  }
+}*/
+
+
+
 
 

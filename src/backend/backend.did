@@ -104,7 +104,7 @@ type Issue = record {
   repository : text;
 };
 type IssueStatus = variant { Open; Closed };
-type MemberStatus = variant { Active; Pending };
+type MemberStatus = variant { Active; Declined; Pending };
 type MessageRole = variant { User; Assistant };
 type OpenChatUser = record {
   site_principal : opt principal;

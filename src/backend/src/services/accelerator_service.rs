@@ -305,6 +305,7 @@ pub fn accept_invitation(token: String) -> Result<(), String> {
 
 #[update]
 pub fn decline_invitation(token: String) -> Result<(), String> {
+    let caller_principal = caller();
     let mut found = false;
 
     ACCELERATORS.with(|accs| {
@@ -314,6 +315,8 @@ pub fn decline_invitation(token: String) -> Result<(), String> {
             if let Some(accelerator) = accs.get(&key) {
                 let mut accelerator = accelerator.clone();
                 if let Some(member) = accelerator.team_members.iter_mut().find(|m| m.token.as_ref() == Some(&token) && m.status == MemberStatus::Pending) {
+                    member.status = MemberStatus::Declined; // Mark as declined
+                    member.principal = Some(caller_principal);
                     member.token = None; // Remove the token so it can't be reused
                     accs.insert(key, accelerator);
                     found = true;
@@ -407,7 +410,51 @@ pub fn update_team_member_role(input: UpdateTeamMemberRole) -> Result<(), String
     });
     Ok(())
 }
+/*
+#[derive(Clone, Debug, CandidType, Deserialize)]
+pub struct UpdateTeamMemberStatus {
+    pub token: String,
+    pub new_status: MemberStatus,
+}
 
+#[update]
+pub fn update_team_member_status(input: UpdateTeamMemberStatus) -> Result<(), String> {
+    let accelerator = get_my_accelerator()?;
+    let mut accelerator = match accelerator {
+        Some(acc) => acc,
+        None => return Err("Accelerator not found".to_string()),
+    };
+
+    // Find and update member by token
+    let mut found = false;
+    for member in accelerator.team_members.iter_mut() {
+        if member.invite_token == Some(input.token.clone()) {
+            member.status = input.new_status.clone();
+            found = true;
+            break;
+        }
+    }
+
+    if !found {
+        return Err("Team member not found".to_string());
+    }
+
+    // Save updated accelerator
+    ACCELERATORS.with(|accs| {
+        let key = accs
+            .borrow()
+            .iter()
+            .find(|(k, _)| k.to_string() == accelerator.id.to_string())
+            .map(|(k, _)| k.clone());
+
+        if let Some(key) = key {
+            accs.borrow_mut().insert(key, accelerator);
+        }
+    });
+
+    Ok(())
+}
+*/
 #[derive(Clone, Debug, CandidType, Deserialize)]
 pub struct RemoveTeamMember {
     pub email: String,

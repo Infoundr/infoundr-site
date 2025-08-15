@@ -12,7 +12,7 @@ export interface TeamMember {
   avatarUrl?: string;
 }
 
-export type MemberStatus = { Active: null } | { Pending: null };
+export type MemberStatus = { Active: null } | { Declined: null } | { Pending: null };
 
 export type Role = { ProgramManager: null } | { Viewer: null } | { SuperAdmin: null } | { Admin: null };
 
@@ -24,7 +24,7 @@ export type RoleUnion = 'ProgramManager' | 'Viewer' | 'SuperAdmin' | 'Admin';
 export interface TeamMemberInviteWithId {
   email: string;
   role: Role; 
-  name: string
+  name: string;
 }
 
 // Used when updating a team member's role
@@ -32,10 +32,15 @@ export interface UpdateTeamMemberRole {
   email:string
   new_role: Role;
 }
+//used to update team mebers status
+/*export interface UpdateTeamMemberStatus {
+  token:string
+  new_status: MemberStatus;
+}*/
 
 // Used when removing a team member
 export interface RemoveTeamMember {
-  email:string
+  email:string;
 }
 export const convertRoleToString = (role: Role): RoleUnion => {
   if ('Admin' in role) return 'Admin';
