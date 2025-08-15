@@ -359,9 +359,9 @@ service : {
   admin_update_accelerator : (principal, AcceleratorUpdate) -> (Result);
   calculate_engagement_score : (text) -> (Result_3) query;
   check_auth : () -> (bool) query;
-  create_startup : (StartupInput) -> (Result_3);
-  create_startup_cohort : (StartupCohortInput) -> (Result_4);
-  create_startup_status : (StartupStatusInput) -> (Result_5);
+  create_startup : (StartupInput) -> (Result_4);
+  create_startup_cohort : (StartupCohortInput) -> (Result_5);
+  create_startup_status : (StartupStatusInput) -> (Result_6);
   decline_invitation : (text) -> (Result);
   delete_accelerator : (principal) -> (Result);
   delete_startup : (text) -> (Result);
