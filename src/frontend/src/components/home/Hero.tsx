@@ -37,12 +37,12 @@ const Hero: React.FC<HeroProps> = ({ onGetStartedClick }) => {
           {/* Left Column - Text Content */}
           <div className="flex-1 w-full lg:w-1/2 text-center lg:text-left">
             <h1 className="text-3xl sm:text-4xl lg:text-[56px] font-bold leading-tight mb-6 sm:mb-8 tracking-normal">
-              Founders' AI Suite
+              Your AI Co-Founder
             </h1>
             <p className="text-gray-600 text-base sm:text-lg lg:text-xl mb-8 sm:mb-10 max-w-3xl mx-auto lg:mx-0 leading-relaxed">
-              Scale smarter with AI mentors that turn founder wisdom into your competitive advantage. 
-              From rapid decision-making to automated workflows, we're your secret weapon for 
-              building faster and growing bigger than the competition.
+              Automate legal, finance, and startup operations with an AI companion trained by real startup operators. 
+              From contract review to investor updates, Infoundr acts as your strategic partner, making data-driven 
+              decisions and streamlining every aspect of your startup journey.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               {/* <Button variant="primary" className="w-full sm:w-auto px-8" onClick={handleGetStarted}>Get Started Free</Button> */}
