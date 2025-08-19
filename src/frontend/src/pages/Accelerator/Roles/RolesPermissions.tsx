@@ -340,15 +340,15 @@ import { getMyAccelerator } from '../../../services/accelerator';
 import {
   inviteTeamMember,
   listTeamMembers,
-  updateTeamMemberRole,
-  removeTeamMember
+  removeTeamMember,
+  updateTeamMemberRole
 } from '../../../services/team';
-import type { TeamMember, Role, RoleUnion } from '../../../types/team';
 import type {
-  TeamMemberInviteWithId,
-  UpdateTeamMemberRole,
-  RemoveTeamMember
+  RemoveTeamMember, Role, RoleUnion, TeamMember, TeamMemberInviteWithId,
+  UpdateTeamMemberRole
 } from '../../../types/team';
+import { X } from 'lucide-react';
+import { emailService } from "../../../services/email";
 
 const RolesPermissions: React.FC = () => {
   const [acceleratorName, setAcceleratorName] = useState<string>('');
@@ -365,6 +365,9 @@ const RolesPermissions: React.FC = () => {
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [inviteName, setInviteName] = useState('');
   const [copied, setCopied] = useState(false);
+
+  // Success popup state
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
 
   const roleOptions: RoleUnion[] = ['Viewer', 'ProgramManager', 'Admin', 'SuperAdmin'];
   const roleToVariant = (r: RoleUnion): Role => ({ [r]: null } as Role);
@@ -429,6 +432,29 @@ const RolesPermissions: React.FC = () => {
       const inviteUrl = `${window.location.origin}/accelerator/team-invite/${encodeURIComponent(result)}`;
       setInviteToken(inviteUrl);
 
+      // 🔹 Call backend to send actual email using EmailInviteData shape
+      try {
+        const expiryDateIso = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString();
+
+        await emailService.sendTeamInvite({
+          email: inviteEmail.trim(),
+          startupName: inviteName.trim(),      
+          programName: acceleratorName || '',
+          inviteCode: result,                  
+          inviteLink: inviteUrl,               
+          expiryDate: expiryDateIso            
+        }).then(res => {
+        console.log("Email service response:", res);
+        }).catch(err => {
+        console.error("Email service error:", err);
+        });
+
+        setShowSuccessPopup(true); // show popup after email is sent
+      } catch (e) {
+        setInviteError("Failed to send email, but invite was generated.");
+      }
+
+      // Refresh members list
       const updated = await listTeamMembers();
       if (updated) setTeamMembers(updated);
     } else {
@@ -532,6 +558,8 @@ const RolesPermissions: React.FC = () => {
                 <td className="px-4 py-3">
                   {'Active' in member.status ? (
                     <span className="bg-green-100 text-green-800 px-2 py-1 rounded">Active</span>
+                  ) : 'Declined' in member.status ? (
+                    <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Declined</span>
                   ) : (
                     <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Pending</span>
                   )}
@@ -570,7 +598,15 @@ const RolesPermissions: React.FC = () => {
       {/* Invite Modal */}
       {inviteModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50">
-          <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-lg space-y-4">
+          <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-lg space-y-4 relative">
+            {/* X Close Button */}
+            <button
+              onClick={() => setInviteModalOpen(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"
+            >
+              <X size={20} />
+            </button>
+
             {!inviteToken ? (
               <>
                 <h3 className="text-2xl font-bold text-gray-900">Invite a Team Member</h3>
@@ -578,7 +614,7 @@ const RolesPermissions: React.FC = () => {
                 <label className="text-sm font-medium text-gray-700">Email</label>
                 <input
                   type="email"
-                  placeholder="Enter team member's email"
+                  placeholder="Email"
                   value={inviteEmail}
                   onChange={e => setInviteEmail(e.target.value)}
                   className="border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-50"
@@ -587,7 +623,7 @@ const RolesPermissions: React.FC = () => {
                 <label className="text-sm font-medium text-gray-700">Full Name</label>
                 <input
                   type="text"
-                  placeholder="Enter full name"
+                  placeholder="Full name"
                   value={inviteName}
                   onChange={e => setInviteName(e.target.value)}
                   className="border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-50"
@@ -689,9 +725,28 @@ const RolesPermissions: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Success Popup */}
+      {showSuccessPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
+            <h3 className="text-xl font-bold text-green-600">Invite Sent!</h3>
+            <p className="text-gray-700 mt-2">
+              The invite and email have been sent successfully to <strong>{inviteEmail}</strong>.
+            </p>
+            <button
+              onClick={() => setShowSuccessPopup(false)}
+              className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default RolesPermissions;
+
 

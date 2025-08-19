@@ -32,11 +32,6 @@ export interface UpdateTeamMemberRole {
   email:string
   new_role: Role;
 }
-//used to update team mebers status
-/*export interface UpdateTeamMemberStatus {
-  token:string
-  new_status: MemberStatus;
-}*/
 
 // Used when removing a team member
 export interface RemoveTeamMember {
@@ -48,4 +43,11 @@ export const convertRoleToString = (role: Role): RoleUnion => {
   if ('ProgramManager' in role) return 'ProgramManager';
   if ('Viewer' in role) return 'Viewer';
   throw new Error('Unknown role');
+};
+
+export type TeamInvite = {
+  name: string;
+  email: string;
+  role: string;
+  accelerator_name: string;              
 };

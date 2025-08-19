@@ -42,6 +42,7 @@ use crate::services::token_service::TokenValidationResult;
 use crate::services::accelerator_service::{AcceleratorSignUp, TeamMemberInviteWithId, UpdateTeamMemberRole, RemoveTeamMember, AcceleratorUpdateWithId, AcceleratorUpdate};
 use crate::models::accelerator::{Accelerator, TeamMember};
 use crate::models::startup_invite::StartupInvite;
+use crate::services::accelerator_service::TeamInvite;
 use crate::services::accelerator_service::{GenerateStartupInviteInput, StartupRegistrationInput};
 
 #[derive(candid::CandidType, candid::Deserialize)]

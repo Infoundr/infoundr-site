@@ -412,51 +412,7 @@ pub fn update_team_member_role(input: UpdateTeamMemberRole) -> Result<(), String
     });
     Ok(())
 }
-/*
-#[derive(Clone, Debug, CandidType, Deserialize)]
-pub struct UpdateTeamMemberStatus {
-    pub token: String,
-    pub new_status: MemberStatus,
-}
 
-#[update]
-pub fn update_team_member_status(input: UpdateTeamMemberStatus) -> Result<(), String> {
-    let accelerator = get_my_accelerator()?;
-    let mut accelerator = match accelerator {
-        Some(acc) => acc,
-        None => return Err("Accelerator not found".to_string()),
-    };
-
-    // Find and update member by token
-    let mut found = false;
-    for member in accelerator.team_members.iter_mut() {
-        if member.invite_token == Some(input.token.clone()) {
-            member.status = input.new_status.clone();
-            found = true;
-            break;
-        }
-    }
-
-    if !found {
-        return Err("Team member not found".to_string());
-    }
-
-    // Save updated accelerator
-    ACCELERATORS.with(|accs| {
-        let key = accs
-            .borrow()
-            .iter()
-            .find(|(k, _)| k.to_string() == accelerator.id.to_string())
-            .map(|(k, _)| k.clone());
-
-        if let Some(key) = key {
-            accs.borrow_mut().insert(key, accelerator);
-        }
-    });
-
-    Ok(())
-}
-*/
 #[derive(Clone, Debug, CandidType, Deserialize)]
 pub struct RemoveTeamMember {
     pub email: String,
@@ -503,6 +459,38 @@ pub fn remove_team_member(input: RemoveTeamMember) -> Result<(), String> {
     });
     Ok(())
 }
+
+#[derive(Clone, Debug, CandidType, Deserialize)]
+pub struct TeamInvite {
+    pub name: String,
+    pub email: String,
+    pub role: Role,
+    pub accelerator_name: String,
+}
+
+#[query]
+pub fn get_team_invite_by_token(token: String) -> Result<Option<TeamInvite>, String> {
+    let _now = ic_cdk::api::time();
+
+    ACCELERATORS.with(|accs| {
+        for (_, accelerator) in accs.borrow().iter() {
+            if let Some(member) = accelerator.team_members.iter().find(|m| {
+                m.token.as_ref() == Some(&token) && m.status == MemberStatus::Pending
+            }) {
+                // No explicit expiry in your struct, so we skip expiry logic
+                let invite_info = TeamInvite {
+                    name: member.name.clone(),
+                    email: member.email.clone(),
+                    role: member.role.clone(),
+                    accelerator_name: accelerator.name.clone(),
+                };
+                return Ok(Some(invite_info));
+            }
+        }
+        Ok(None)
+    })
+}
+
 
 // ==================================================================================================
 // STARTUP INVITES

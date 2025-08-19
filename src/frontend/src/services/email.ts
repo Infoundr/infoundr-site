@@ -204,4 +204,5 @@ class EmailService {
 export const emailService = new EmailService();
 
 // Export the class for testing purposes
-export { EmailService }; 
+export { EmailService}; 
+
