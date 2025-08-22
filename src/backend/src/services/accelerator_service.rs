@@ -307,6 +307,7 @@ pub fn accept_invitation(token: String) -> Result<(), String> {
 
 #[update]
 pub fn decline_invitation(token: String) -> Result<(), String> {
+    let caller_principal = caller();
     let mut found = false;
 
     ACCELERATORS.with(|accs| {
@@ -316,6 +317,8 @@ pub fn decline_invitation(token: String) -> Result<(), String> {
             if let Some(accelerator) = accs.get(&key) {
                 let mut accelerator = accelerator.clone();
                 if let Some(member) = accelerator.team_members.iter_mut().find(|m| m.token.as_ref() == Some(&token) && m.status == MemberStatus::Pending) {
+                    member.status = MemberStatus::Declined; // Mark as declined
+                    member.principal = Some(caller_principal);
                     member.token = None; // Remove the token so it can't be reused
                     accs.insert(key, accelerator);
                     found = true;
@@ -456,6 +459,38 @@ pub fn remove_team_member(input: RemoveTeamMember) -> Result<(), String> {
     });
     Ok(())
 }
+
+#[derive(Clone, Debug, CandidType, Deserialize)]
+pub struct TeamInvite {
+    pub name: String,
+    pub email: String,
+    pub role: Role,
+    pub accelerator_name: String,
+}
+
+#[query]
+pub fn get_team_invite_by_token(token: String) -> Result<Option<TeamInvite>, String> {
+    let _now = ic_cdk::api::time();
+
+    ACCELERATORS.with(|accs| {
+        for (_, accelerator) in accs.borrow().iter() {
+            if let Some(member) = accelerator.team_members.iter().find(|m| {
+                m.token.as_ref() == Some(&token) && m.status == MemberStatus::Pending
+            }) {
+                // No explicit expiry in your struct, so we skip expiry logic
+                let invite_info = TeamInvite {
+                    name: member.name.clone(),
+                    email: member.email.clone(),
+                    role: member.role.clone(),
+                    accelerator_name: accelerator.name.clone(),
+                };
+                return Ok(Some(invite_info));
+            }
+        }
+        Ok(None)
+    })
+}
+
 
 // ==================================================================================================
 // STARTUP INVITES
