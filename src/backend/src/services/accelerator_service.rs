@@ -84,9 +84,16 @@ pub fn get_accelerator_by_id(id: StablePrincipal) -> Result<Option<Accelerator>,
 #[update]
 pub fn get_my_accelerator() -> Result<Option<Accelerator>, String> {
     let caller_principal = caller();
+    
+    // Search through all accelerators to find one where the caller is an active team member
     let accelerator = ACCELERATORS.with(|accs| {
-        accs.borrow().iter().find(|(k, _)| k.to_string() == caller_principal.to_string()).map(|(_, v)| v.clone())
+        accs.borrow().iter().find(|(_, acc)| {
+            acc.team_members.iter().any(|m| 
+                m.principal == Some(caller_principal) && m.status == MemberStatus::Active
+            )
+        }).map(|(_, v)| v.clone())
     });
+    
     match accelerator {
         Some(acc) => {
             let is_member = acc.team_members.iter().any(|m| m.principal == Some(caller_principal) && m.status == MemberStatus::Active);

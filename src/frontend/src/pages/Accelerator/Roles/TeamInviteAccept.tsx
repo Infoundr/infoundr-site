@@ -6,7 +6,6 @@ import {
   decline_invitation,
 } from "../../../services/team";
 import { loginWithII, loginWithNFID } from "../../../services/auth";
-import { linkStartupPrincipal } from "../../../services/startup-invite";
 import { Loader2, Gift } from "lucide-react";
 import { toast } from "react-toastify";
 
@@ -91,17 +90,8 @@ const TeamInviteAccept: React.FC = () => {
       const identity = authClient.getIdentity();
       const principal = identity.getPrincipal();
 
-      // Link identity with member account
-      if (email && memberName) {
-        const linkResult = await linkStartupPrincipal(email, memberName);
-        if (linkResult !== true) {
-          toast.warning('Authenticated, but failed to link account.');
-        } else {
-          toast.success('Welcome! Your account has been linked successfully.');
-        }
-      } else {
-        toast.success('Welcome! Authentication successful.');
-      }
+      // No need to link startup principal - the accept_invitation will link to accelerator team
+      toast.success('Authentication successful!');
 
       // Persist session info
       sessionStorage.setItem('user_principal', principal.toString());
