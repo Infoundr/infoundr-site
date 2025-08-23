@@ -78,7 +78,7 @@ const WelcomeAuth: React.FC = () => {
       sessionStorage.setItem('is_authenticated', 'true');
       sessionStorage.setItem('member_name', memberName);
 
-      navigate('/dashboard/home');
+      navigate('/accelerator/dashboard');
     } catch (error) {
       console.error('Authentication failed:', error);
       toast.error('Authentication failed. Please try again.');
