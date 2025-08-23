@@ -5,8 +5,8 @@ import type {
   TeamMemberInviteWithId,
   UpdateTeamMemberRole,
 } from '../types/team';
-import { createAuthenticatedActor } from './auth';
-
+import { createAuthenticatedActor, createUnauthenticatedActor } from './auth';
+import type { TeamInvite} from '../types/team';
 
 export const listTeamMembers = async (
 ): Promise<TeamMember[] | null> => {
@@ -42,8 +42,6 @@ export const listTeamMembers = async (
     return null;
   }
 };
-
-
 
 export const inviteTeamMember = async (
   payload: TeamMemberInviteWithId
@@ -116,3 +114,81 @@ const roleToVariant = (role: RoleUnion): Role => {
   }
 };
 
+export async function accept_invitation(token: string) {
+  if (!token) throw new Error("No invitation token provided");
+
+  try {
+    const actor = await createAuthenticatedActor();
+    const result = await actor.accept_invitation(token);
+
+    if ("Err" in result) {
+      throw new Error(result.Err);
+    }
+
+    return true; // success
+  } catch (error) {
+    console.error("Error accepting invitation:", error);
+    throw error; // allow UI to handle it
+  }
+}
+
+export async function decline_invitation(token: string) {
+  if (!token) throw new Error("No invitation token provided");
+
+  try {
+    const actor = await createUnauthenticatedActor();
+    const result = await actor.decline_invitation(token);
+
+    if ("Err" in result) {
+      throw new Error(result.Err);
+    }
+
+    return true; // success
+  } catch (error) {
+    console.error("Error declining invitation:", error);
+    throw error; // keep consistent with accept_invitation
+  }
+}
+
+export const getTeamInviteByToken = async (
+  inviteCode: string
+): Promise<
+  | {
+      isValid: boolean;
+      acceleratorName?: string;
+      memberName?: string;
+      email?: string;
+      role?: string;
+    }
+  | string
+> => {
+  try {
+    console.log("Validating team invite code:", inviteCode);
+
+    const actor = await createUnauthenticatedActor();
+    const result = await actor.get_team_invite_by_token(inviteCode);
+
+    if ("Ok" in result) {
+      const inviteArray = result.Ok as [] | [TeamInvite];
+      if (inviteArray && inviteArray.length > 0) {
+        const invite = inviteArray[0];
+        if (invite) {
+          return {
+            isValid: true,
+            acceleratorName: invite.accelerator_name,
+            memberName: invite.name,
+            email: invite.email,
+            role: invite.role, // Role type from backend
+          };
+        }
+      }
+      return "Invalid team invite code";
+    } else {
+      console.error("Error from backend:", result.Err);
+      return result.Err;
+    }
+  } catch (error) {
+    console.error("Error validating team invite code:", error);
+    return "Failed to validate team invite code";
+  }
+};

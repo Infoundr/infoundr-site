@@ -15,6 +15,7 @@ pub enum Role {
 #[derive(CandidType, Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum MemberStatus {
     Active,
+    Declined,
     Pending,
 }
 

@@ -91,7 +91,7 @@ export type ActivityType =
   | { SentInvite: null }
   | { MissedMilestone: null };
 
-export type MemberStatus = { Active: null } | { Pending: null };
+export type MemberStatus = { Active: null } | { Declined: null } | { Pending: null };
 
 export type Role =
   | { ProgramManager: null }

@@ -33,6 +33,8 @@ import Startups from './pages/Accelerator/Startups/Startups';
 import StartupDetails from './pages/Accelerator/Startups/StartupDetails';
 import SendInvites from './pages/Accelerator/Invites/SendInvites';
 import RolesPermissions from './pages/Accelerator/Roles/RolesPermissions';
+import TeamInviteAccept from "./pages/Accelerator/Roles/TeamInviteAccept";
+
 import Settings from './pages/Accelerator/Settings/Settings';
 import Analytics from './pages/Accelerator/Analytics/Analytics';
 import StartupsLayout from './pages/Accelerator/Startups/StartupsLayout';
@@ -52,7 +54,7 @@ import GitHubAgent from './pages/documentation/discord/GitHubAgent';
 import ProjectManagementAgent from './pages/documentation/discord/ProjectManagementAgent';
 import CalendarAgent from './pages/documentation/discord/CalendarAgent';
 import EmailAgent from './pages/documentation/discord/EmailAgent';
-import TeamInviteAccept from './pages/Accelerator/Invites/TeamInviteAccept';
+
 
 const App: React.FC = () => {
   const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
@@ -106,6 +108,8 @@ const App: React.FC = () => {
           {/* Public startup authentication route (not protected) */}
           <Route path="/accelerator/auth" element={<StartupAuth />} />
 
+
+
           {/* Protected Dashboard Routes */}
           <Route path="/dashboard/*" element={
             <ProtectedRoute>
@@ -127,6 +131,9 @@ const App: React.FC = () => {
             <Route path="roles" element={<RolesPermissions />} />
             <Route path="settings" element={<Settings />} />
           </Route>
+          
+            {/* ✅ Standalone invite accept page (no dashboard layout) */}
+            <Route path="/accelerator/team-invite/:token" element={<TeamInviteAccept />} />
 
           <Route path="/accelerator/startups" element={
             <ProtectedRoute>
