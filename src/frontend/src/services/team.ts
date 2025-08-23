@@ -5,7 +5,7 @@ import type {
   TeamMemberInviteWithId,
   UpdateTeamMemberRole,
 } from '../types/team';
-import { createAuthenticatedActor } from './auth';
+import { createAuthenticatedActor, createUnauthenticatedActor } from './auth';
 import type { TeamInvite} from '../types/team';
 
 export const listTeamMembers = async (
@@ -118,7 +118,7 @@ export async function accept_invitation(token: string) {
   if (!token) throw new Error("No invitation token provided");
 
   try {
-    const actor = await createAuthenticatedActor();
+    const actor = await createUnauthenticatedActor();
     const result = await actor.accept_invitation(token);
 
     if ("Err" in result) {
@@ -136,7 +136,7 @@ export async function decline_invitation(token: string) {
   if (!token) throw new Error("No invitation token provided");
 
   try {
-    const actor = await createAuthenticatedActor();
+    const actor = await createUnauthenticatedActor();
     const result = await actor.decline_invitation(token);
 
     if ("Err" in result) {
@@ -165,7 +165,7 @@ export const getTeamInviteByToken = async (
   try {
     console.log("Validating team invite code:", inviteCode);
 
-    const actor = await createAuthenticatedActor();
+    const actor = await createUnauthenticatedActor();
     const result = await actor.get_team_invite_by_token(inviteCode);
 
     if ("Ok" in result) {
