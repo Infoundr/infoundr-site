@@ -5,7 +5,10 @@ import {
   accept_invitation,
   decline_invitation,
 } from "../../../services/team";
+import { loginWithII, loginWithNFID } from "../../../services/auth";
+import { linkStartupPrincipal } from "../../../services/startup-invite";
 import { Loader2, Gift } from "lucide-react";
+import { toast } from "react-toastify";
 
 type InviteData = {
   isValid: boolean;
@@ -22,6 +25,8 @@ const TeamInviteAccept: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showAuth, setShowAuth] = useState(false);
+  const [authMethod, setAuthMethod] = useState<'ii' | 'nfid' | null>(null);
 
   // autofilled fields from invite
   const [acceleratorName, setAcceleratorName] = useState("");
@@ -67,30 +72,61 @@ const TeamInviteAccept: React.FC = () => {
     run();
   }, [token]);
 
-  // Accept → call backend, then go to the success/auth screen
-  const handleAccept = async () => {
-    if (!token) return;
+  // Handle authentication
+  const handleAuth = async (method: 'ii' | 'nfid') => {
     setSubmitting(true);
-    try {
-      const decoded = decodeURIComponent(token);
-      await accept_invitation(decoded);
+    setAuthMethod(method);
 
-      // Pass what the next screen needs
-      navigate("/accelerator/auth/team", {
-        state: {
-          acceleratorName,
-          email,
-          memberName,
-          token: decoded,
-        },
-        replace: true,
-      });
-    } catch (e) {
-      console.error("Failed to accept invitation:", e);
-      setError("Failed to accept invitation. Please try again.");
+    try {
+      const { AuthClient } = await import('@dfinity/auth-client');
+      const authClient = await AuthClient.create();
+
+      let actor;
+      if (method === 'ii') {
+        actor = await loginWithII();
+      } else {
+        actor = await loginWithNFID();
+      }
+
+      const identity = authClient.getIdentity();
+      const principal = identity.getPrincipal();
+
+      // Link identity with member account
+      if (email && memberName) {
+        const linkResult = await linkStartupPrincipal(email, memberName);
+        if (linkResult !== true) {
+          toast.warning('Authenticated, but failed to link account.');
+        } else {
+          toast.success('Welcome! Your account has been linked successfully.');
+        }
+      } else {
+        toast.success('Welcome! Authentication successful.');
+      }
+
+      // Persist session info
+      sessionStorage.setItem('user_principal', principal.toString());
+      sessionStorage.setItem('is_authenticated', 'true');
+      sessionStorage.setItem('member_name', memberName);
+
+      // Now accept the invitation with authenticated actor
+      if (token) {
+        const decoded = decodeURIComponent(token);
+        await accept_invitation(decoded);
+        toast.success('Invitation accepted successfully!');
+        navigate('/accelerator/dashboard');
+      }
+    } catch (error) {
+      console.error('Authentication failed:', error);
+      toast.error('Authentication failed. Please try again.');
+      setAuthMethod(null);
     } finally {
       setSubmitting(false);
     }
+  };
+
+  // Accept → show authentication options first
+  const handleAccept = () => {
+    setShowAuth(true);
   };
 
   // Decline → call backend, show brief popup, then home
@@ -150,6 +186,80 @@ const TeamInviteAccept: React.FC = () => {
           >
             Go to Home
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show authentication screen
+  if (showAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="bg-white rounded-lg shadow-md max-w-md w-full p-6 text-center">
+          <div className="mb-6">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h1 className="text-green-600 font-bold text-xl mb-2">Complete Your Setup 🎉</h1>
+            <p className="text-gray-600 text-sm mb-2">
+              <strong>{memberName}</strong> You're joining <strong>{acceleratorName}</strong>
+            </p>
+            <p className="text-gray-600 text-sm">
+              Authenticate to complete your registration!
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <p className="text-blue-800 text-sm">
+                <strong>Why authenticate?</strong> This links your identity to your startup account, 
+                so you can log in easily in the future without needing another invite.
+              </p>
+            </div>
+
+            {/* Internet Identity */}
+            <button
+              onClick={() => handleAuth('ii')}
+              disabled={submitting}
+              className={`w-full flex items-center justify-center gap-3 py-3 px-4 rounded-md border-2 transition-colors ${
+                submitting && authMethod === 'ii'
+                  ? 'bg-gray-100 border-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-white border-blue-500 text-blue-600 hover:bg-blue-50'
+              }`}
+            >
+              {submitting && authMethod === 'ii' ? 'Authenticating...' : 'Login with Internet Identity'}
+            </button>
+
+            {/* NFID (email) */}
+            <button
+              onClick={() => handleAuth('nfid')}
+              disabled={submitting}
+              className={`w-full flex items-center justify-center gap-3 py-3 px-4 rounded-md border-2 transition-colors ${
+                submitting && authMethod === 'nfid'
+                  ? 'bg-gray-100 border-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-white border-purple-500 text-purple-600 hover:bg-purple-50'
+              }`}
+            >
+              {submitting && authMethod === 'nfid' ? 'Authenticating...' : 'Login with Email'}
+            </button>
+
+            <div className="mt-6">
+              <button
+                onClick={() => setShowAuth(false)}
+                className="text-gray-500 text-sm underline hover:text-gray-700"
+              >
+                Back to invite details
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-6 pt-4 border-t border-gray-200">
+            <p className="text-xs text-gray-500">
+              By authenticating, you agree to link your identity with your team account for future logins.
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -238,14 +348,7 @@ const TeamInviteAccept: React.FC = () => {
             disabled={submitting}
             className="w-1/2 py-2 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
           >
-            {submitting ? (
-              <span className="inline-flex items-center gap-2">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Processing…
-              </span>
-            ) : (
-              "Accept Invite"
-            )}
+            Accept Invite
           </button>
         </div>
 

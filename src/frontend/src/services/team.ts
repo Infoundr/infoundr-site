@@ -118,7 +118,7 @@ export async function accept_invitation(token: string) {
   if (!token) throw new Error("No invitation token provided");
 
   try {
-    const actor = await createUnauthenticatedActor();
+    const actor = await createAuthenticatedActor();
     const result = await actor.accept_invitation(token);
 
     if ("Err" in result) {

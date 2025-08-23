@@ -34,7 +34,7 @@ import StartupDetails from './pages/Accelerator/Startups/StartupDetails';
 import SendInvites from './pages/Accelerator/Invites/SendInvites';
 import RolesPermissions from './pages/Accelerator/Roles/RolesPermissions';
 import TeamInviteAccept from "./pages/Accelerator/Roles/TeamInviteAccept";
-import WelcomeAuth from './pages/Accelerator/Roles/WelcomeAuth';
+
 import Settings from './pages/Accelerator/Settings/Settings';
 import Analytics from './pages/Accelerator/Analytics/Analytics';
 import StartupsLayout from './pages/Accelerator/Startups/StartupsLayout';
@@ -108,8 +108,7 @@ const App: React.FC = () => {
           {/* Public startup authentication route (not protected) */}
           <Route path="/accelerator/auth" element={<StartupAuth />} />
 
-           {/* Public team invite authentication route (not protected) */}
-          <Route path="/accelerator/auth/team" element={<WelcomeAuth />} />
+
 
           {/* Protected Dashboard Routes */}
           <Route path="/dashboard/*" element={
