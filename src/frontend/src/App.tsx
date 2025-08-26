@@ -47,7 +47,7 @@ import { useMockData as mockDataBoolean } from './mocks/mockData';
 import { Actor } from '@dfinity/agent';
 import StartupInviteAccept from './pages/Accelerator/Invites/StartupSignup';
 import Documentation from './pages/documentation/Documentation';
-import SlackDoc from './pages/documentation/SlackDoc';
+import SlackDoc from './pages/documentation/slack/SlackDoc';
 import OpenChatDoc from './pages/documentation/OpenChatDoc';
 import DiscordLayout from './pages/documentation/DiscordLayout';
 import GitHubAgent from './pages/documentation/discord/GitHubAgent';
