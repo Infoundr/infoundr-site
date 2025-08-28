@@ -4,10 +4,10 @@ import { Link } from 'react-router-dom';
 const docs = [
   {
     name: 'Slack Bot',
-    url: '#',
+    url: '/documentation/slack',
     icon: '/icons/slack_logo.png',
     description: 'Automate tasks, get instant advice, and streamline your workspace with our Slack bot.',
-    comingSoon: true
+    comingSoon: false
   },
   {
     name: 'Discord Bot',
