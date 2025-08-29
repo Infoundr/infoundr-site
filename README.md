@@ -1,6 +1,25 @@
 # Infoundr Site
 
-A decentralized AI chat platform built on the Internet Computer.
+## About Infoundr
+
+Infoundr is an AI-powered platform designed to help early-stage startup founders automate various operational tasks such as: github automation, calendar management, email automation, contract review, financial reporting, investor updates, bookkeeping, tax compliance, hiring workflows, market research, and simulating business decisions to help founders make smarter choices. It integrates with popular tools like Slack, Discord, and OpenChat to deliver personalized guidance and automate routine tasks, making startup operations faster and more efficient.
+
+With Infoundr, teams can:
+- **AI-Powered Project Management**: Get intelligent recommendations and automated task management
+- **Seamless Integration**: Connect with Discord and Slack for frictionless workflow integration
+- **Startup Acceleration**: Access tools designed specifically for startup growth and accelerator programs
+- **Decentralized Infrastructure**: Built on the Internet Computer for enhanced security and reliability
+
+## Video Demos:
+
+### 1. Pitch Demo Video
+https://github.com/user-attachments/assets/158c45fc-a20e-4523-a687-f9df03e04ec2 
+
+### 2. Using Infoundr on Discord
+https://github.com/user-attachments/assets/463b18e9-50f6-4414-81ec-da815225dd24
+
+### 3. Using Infoundr on Slack
+_Coming soon_
 
 ## Prerequisites
 
