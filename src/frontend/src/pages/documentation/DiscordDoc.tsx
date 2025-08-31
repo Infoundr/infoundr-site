@@ -211,9 +211,9 @@ const DiscordDoc: React.FC = () => {
           </div>
         </div>
 
-        {/* Other AI Agents */}
+        {/*AI Agents */}
         <div className="mb-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">Other AI-Powered Agents</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center"> AI-Powered Agents</h2>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {agents.map((agent, index) => (
               <div key={agent.name} className="bg-white rounded-3xl shadow-lg p-6 hover:shadow-xl transition-shadow">
