@@ -25,13 +25,13 @@ const SlackCalendarAgent: React.FC = () => {
             <h4 className="text-lg font-semibold text-gray-800 mb-4">Example Interactions</h4>
             <div className="space-y-3">
               <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-gray-700 text-sm">/calendar schedule team meeting tomorrow at 2 PM</p>
+                <p className="text-gray-700 text-sm">"schedule team meeting tomorrow at 2 PM"</p>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-gray-700 text-sm">/calendar remind me about investor pitch on Friday</p>
+                <p className="text-gray-700 text-sm">"remind me about investor pitch on Friday"</p>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-gray-700 text-sm">/calendar show my meetings this week</p>
+                <p className="text-gray-700 text-sm">"show my meetings this week"</p>
               </div>
             </div>
           </div>
