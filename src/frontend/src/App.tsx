@@ -47,7 +47,12 @@ import { useMockData as mockDataBoolean } from './mocks/mockData';
 import { Actor } from '@dfinity/agent';
 import StartupInviteAccept from './pages/Accelerator/Invites/StartupSignup';
 import Documentation from './pages/documentation/Documentation';
-import SlackDoc from './pages/documentation/SlackDoc';
+import SlackDoc from './pages/documentation/slack/SlackDoc';
+import SlackLayout from "./pages/documentation/slack/SlackLayout";
+import SlackGithubAgent from "./pages/documentation/slack/SlackGithubAgent";
+import SlackProjectManagementAgent from "./pages/documentation/slack/SlackProjectManagementAgent";
+import SlackCalendarAgent from "./pages/documentation/slack/SlackCalendarAgent";
+import SlackEmailAgent from "./pages/documentation/slack/SlackEmailAgent";
 import OpenChatDoc from './pages/documentation/OpenChatDoc';
 import DiscordLayout from './pages/documentation/DiscordLayout';
 import GitHubAgent from './pages/documentation/discord/GitHubAgent';
@@ -173,7 +178,13 @@ const App: React.FC = () => {
           
           {/* Documentation Routes */}
           <Route path="/documentation" element={<Documentation />} />
-          <Route path="/documentation/slack" element={<SlackDoc />} />
+          <Route path="/documentation/slack" element={<SlackLayout />} >
+          <Route index element={<Navigate to="/documentation/slack/github" replace />} />
+            <Route path="github" element={<SlackGithubAgent />} />
+            <Route path="project-management" element={<SlackProjectManagementAgent />} />
+            <Route path="calendar" element={<SlackCalendarAgent />} />
+            <Route path="email" element={<SlackEmailAgent />} />
+            </Route>
           <Route path="/documentation/discord" element={<DiscordLayout />}>
             <Route index element={<Navigate to="/documentation/discord/github" replace />} />
             <Route path="github" element={<GitHubAgent />} />
@@ -182,9 +193,7 @@ const App: React.FC = () => {
             <Route path="email" element={<EmailAgent />} />
           </Route>
           <Route path="/documentation/openchat" element={<OpenChatDoc />} />
-
-        </Routes>
-
+           </Routes>
         <WaitlistModal 
           isOpen={isWaitlistModalOpen}
           onClose={() => setIsWaitlistModalOpen(false)}
