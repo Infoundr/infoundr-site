@@ -8,83 +8,62 @@ interface PricingProps {
 const Pricing: React.FC<PricingProps> = ({ onGetStartedClick }) => {
   const plans = [
     {
-      name: 'Starter',
-      price: '49',
-      description: 'For solo founders & idea-stage startups',
+      name: 'Free',
+      price: '0',
+      description: 'Try our working AI agents today',
       features: [
-        'AI Legal Assistant (contract review, compliance)',
+        '50 AI agent requests per day',
+        'GitHub Automation (repositories, issues, pull requests)',
+        'Project Management (tasks, workflows, progress tracking)',
+        'Calendar Management (meetings, reminders, scheduling)',
+        'Email Automation (drafts, templates, outreach)',
         '1 Platform Integration (Slack, Discord, or OpenChat)',
-        'Basic Financial Tracking & Reporting',
-        'Startup Operations Checklist + Templates',
-        'Simple Project Management',
-        'Basic Hiring Workflows',
-        'Investor Outreach Templates',
-        'Access to Legal Document Templates'
+        'Community support'
       ],
-      buttonText: 'Get Started',
-      buttonVariant: 'primary' as const,
-      buttonClassName: 'bg-gray-900 text-white hover:bg-gray-800'
+      buttonText: 'Start Free',
+      buttonVariant: 'secondary' as const,
+      buttonClassName: 'bg-gray-100 text-gray-900 hover:bg-gray-200 border border-gray-300'
     },
     {
-      name: 'Professional',
-      price: '199',
-      description: 'For growing startups handling team, traction & fundraising',
+      name: 'Pro',
+      price: '20',
+      priceLabel: 'Coming Soon',
+      description: 'Unlimited access to all AI agents',
       features: [
-        'Unlimited AI Co-Founder + Smart Workflows',
-        '3 Platform Integrations (Slack, Discord, OpenChat)',
-        'Advanced Legal Automation (contracts, IP, compliance)',
-        'Comprehensive Financial Management & Reporting',
-        'Investor Relations & Deal Room Creation',
-        'Advanced Hiring & HR Workflows',
-        'Market Research & Strategic Insights',
-        'Tax Compliance & Bookkeeping Automation',
-        'Business Decision Simulation',
-        'Advanced Project Management',
-        'Custom Workflow Automation'
+        'Unlimited AI agent requests',
+        'All current agents (GitHub, Project Management, Calendar, Email)',
+        'Contract Review & Legal (Coming Soon)',
+        'Financial Reporting & Bookkeeping (Coming Soon)',
+        'Investor Relations & Deal Rooms (Coming Soon)',
+        'Hiring & HR Workflows (Coming Soon)',
+        'All platform integrations (Slack, Discord, OpenChat)',
+        'Priority support & faster response times',
+        'Advanced analytics & insights dashboard'
       ],
-      buttonText: 'Get Started',
-      buttonVariant: 'primary' as const,
+      buttonText: 'Coming Soon',
+      buttonVariant: 'secondary' as const,
+      buttonClassName: 'bg-gray-300 text-gray-500 cursor-not-allowed',
       featured: true
-    },
-    {
-      name: 'Enterprise',
-      price: '899',
-      priceLabel: 'from',
-      description: 'For accelerators, venture studios, or scaleups needing full-stack automation',
-      features: [
-        'Everything in Professional, plus:',
-        'Enterprise Legal Automation & Compliance',
-        'Advanced Financial Operations & Reporting',
-        'Custom AI Workflows & Automation',
-        'White-labeled Deal Rooms + NDA Automation',
-        'Advanced Document Management (SAFE, SAFT, SHA)',
-        'Real-time Financial Dashboards & Analytics',
-        'Multi-jurisdiction Tax & Compliance',
-        'Full HR Automation (sourcing, contracts, onboarding)',
-        'Dedicated Legal AI + Compliance Tracking',
-        'Dedicated Success Manager + Strategy Reviews'
-      ],
-      buttonText: 'Contact Sales',
-      buttonVariant: 'primary' as const,
-      buttonClassName: 'bg-gray-900 text-white hover:bg-gray-800'
     }
   ];
 
-  const handleButtonClick = (planName: string) => {
-    // Open the waitlist modal for all plans
-    onGetStartedClick();
+  const handleButtonClick = (planName: string, buttonText: string) => {
+    // Only open waitlist for available plans
+    if (buttonText !== 'Coming Soon') {
+      onGetStartedClick();
+    }
   };
 
   return (
     <section id="pricing" className="py-12 sm:py-16 bg-[#E5E7EB]">
       <div className="container mx-auto max-w-7xl px-4 sm:px-6">
         <h2 className="text-center text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">
-          AI Co-Founder Plans
+          Simple, Transparent Pricing
         </h2>
         <p className="text-center text-gray-600 text-base sm:text-lg mb-8 sm:mb-12">
-          Choose the level of AI co-founder support that matches your startup stage
+          Start free with our working AI agents, Pro tier coming soon with unlimited access
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto">
           {plans.map((plan) => (
             <div 
               key={plan.name} 
@@ -120,7 +99,7 @@ const Pricing: React.FC<PricingProps> = ({ onGetStartedClick }) => {
                     ? 'bg-purple-600 text-white hover:bg-purple-700' 
                     : (plan.buttonClassName || 'bg-gray-900 text-white hover:bg-gray-800')
                 }`}
-                onClick={() => handleButtonClick(plan.name)}
+                onClick={() => handleButtonClick(plan.name, plan.buttonText)}
               >
                 {plan.buttonText}
               </Button>
