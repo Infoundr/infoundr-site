@@ -21,14 +21,13 @@ const Pricing: React.FC<PricingProps> = ({ onGetStartedClick }) => {
         'Community support'
       ],
       buttonText: 'Start Free',
-      buttonVariant: 'secondary' as const,
-      buttonClassName: 'bg-gray-100 text-gray-900 hover:bg-gray-200 border border-gray-300',
+      buttonVariant: 'primary' as const,
+      buttonClassName: 'bg-purple-600 text-white hover:bg-purple-700 hover:shadow-lg transition-all duration-200',
       featured: true
     },
     {
       name: 'Pro',
       price: '20',
-      priceLabel: 'Coming Soon',
       description: 'Unlimited access to all AI agents',
       features: [
         'Unlimited AI agent requests',
@@ -71,17 +70,23 @@ const Pricing: React.FC<PricingProps> = ({ onGetStartedClick }) => {
               key={plan.name} 
               className={`border rounded-3xl p-6 sm:p-8 bg-white 
                 transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-lg cursor-pointer
-                ${plan.featured ? 'border-purple-600 border-2 relative' : ''}`}
+                ${plan.featured ? 'border-purple-600 border-2 relative' : ''} ${plan.name === 'Pro' ? 'relative' : ''}`}
             >
               {plan.featured && (
                 <span className="absolute top-0 right-8 -translate-y-1/2 bg-purple-600 text-white px-3 py-1 rounded-full text-sm">
                   Most Popular
                 </span>
               )}
+              {plan.name === 'Pro' && (
+                <div className="absolute inset-0 bg-black bg-opacity-20 rounded-3xl flex items-center justify-center z-10">
+                  <span className="bg-purple-600 text-white px-6 py-3 rounded-full text-lg font-semibold shadow-lg">
+                    Coming Soon
+                  </span>
+                </div>
+              )}
               <h3 className="text-xl sm:text-2xl font-bold mb-2">{plan.name}</h3>
               <p className="text-sm text-gray-600 mb-4">{plan.description}</p>
               <div className="text-2xl sm:text-3xl font-bold mb-6">
-                {plan.priceLabel && <span className="text-base font-normal mr-1">{plan.priceLabel}</span>}
                 ${plan.price}<span className="text-base font-normal">/mo</span>
               </div>
               <ul className="mb-8 space-y-3">
