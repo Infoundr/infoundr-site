@@ -22,7 +22,8 @@ const Pricing: React.FC<PricingProps> = ({ onGetStartedClick }) => {
       ],
       buttonText: 'Start Free',
       buttonVariant: 'secondary' as const,
-      buttonClassName: 'bg-gray-100 text-gray-900 hover:bg-gray-200 border border-gray-300'
+      buttonClassName: 'bg-gray-100 text-gray-900 hover:bg-gray-200 border border-gray-300',
+      featured: true
     },
     {
       name: 'Pro',
@@ -43,15 +44,16 @@ const Pricing: React.FC<PricingProps> = ({ onGetStartedClick }) => {
       buttonText: 'Coming Soon',
       buttonVariant: 'secondary' as const,
       buttonClassName: 'bg-gray-300 text-gray-500 cursor-not-allowed',
-      featured: true
+      featured: false
     }
   ];
 
   const handleButtonClick = (planName: string, buttonText: string) => {
-    // Only open waitlist for available plans
-    if (buttonText !== 'Coming Soon') {
-      onGetStartedClick();
+    // Redirect to documentation for Start Free button
+    if (buttonText === 'Start Free') {
+      window.location.href = '/documentation';
     }
+    // Coming Soon button does nothing
   };
 
   return (
