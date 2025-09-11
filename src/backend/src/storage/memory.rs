@@ -16,6 +16,7 @@ use std::cell::RefCell;
 use crate::models::accelerator::Accelerator;
 use crate::models::startup_invite::StartupInvite;
 use crate::models::startup::{Startup, StartupStatus, StartupCohort, StartupActivity};
+use crate::models::usage_service::UserSubscription;
 
 pub type Memory = VirtualMemory<DefaultMemoryImpl>;
 
@@ -130,6 +131,19 @@ thread_local! {
     pub static STARTUP_ACTIVITIES: RefCell<StableBTreeMap<(StableString, u64), StartupActivity, Memory>> = RefCell::new(
         StableBTreeMap::init(
             MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(15)))
+        )
+    );
+
+    // --- NEW USAGE TRACKING STORAGE ---
+    pub static USER_DAILY_USAGE: RefCell<StableBTreeMap<(StableString, u64), u32, Memory>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(18)))
+        )
+    );
+
+    pub static USER_SUBSCRIPTIONS: RefCell<StableBTreeMap<StableString, UserSubscription, Memory>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(19)))
         )
     );
 }

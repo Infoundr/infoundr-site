@@ -65,7 +65,7 @@ export const mockGithubIssues = [
 ];
 
 // Development mode flag - set to true for local development and playground
-export const DEV_MODE = true; // This will be the only flag we need to change
+export const DEV_MODE = false; // This will be the only flag we need to change
 
 // Use mock data when in development mode
 export const useMockData = DEV_MODE;

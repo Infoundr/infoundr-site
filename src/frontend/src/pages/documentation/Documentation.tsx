@@ -18,7 +18,7 @@ const docs = [
   },
   {
     name: 'OpenChat Bot',
-    url: '#',
+    url: '/documentation/openchat',
     icon: '/icons/openchat.png',
     description: 'Chat with AI advisors, manage tasks, and track progress in OpenChat.',
     comingSoon: true

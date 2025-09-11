@@ -1,6 +1,6 @@
-mod models;
-mod services;
-mod storage;
+pub mod models;
+pub mod services;
+pub mod storage;
 
 // Custom getrandom implementation - for pocket ic testing only
 use getrandom::register_custom_getrandom;
@@ -34,7 +34,7 @@ use crate::services::account_service::ConnectionStatus;
 use crate::services::account_service::{UserActivity, UserIdentifier,  UserIdentifier as AccountUserIdentifier};
 use crate::storage::memory::{
     API_MESSAGES, CHAT_HISTORY, CONNECTED_ACCOUNTS, DASHBOARD_TOKENS, OPENCHAT_USERS, SLACK_USERS, DISCORD_USERS, TASKS, USERS, WAITLIST, GITHUB_ISSUES,
-    STARTUPS, STARTUP_STATUSES, STARTUP_COHORTS, STARTUP_ACTIVITIES, ACCELERATORS, STARTUP_INVITES, ADMINS,
+    STARTUPS, STARTUP_STATUSES, STARTUP_COHORTS, STARTUP_ACTIVITIES, ACCELERATORS, STARTUP_INVITES, ADMINS, USER_SUBSCRIPTIONS, USER_DAILY_USAGE,
 };
 use candid::Principal;
 use ic_cdk::storage::{stable_restore, stable_save};
@@ -44,6 +44,8 @@ use crate::models::accelerator::{Accelerator, TeamMember};
 use crate::models::startup_invite::StartupInvite;
 use crate::services::accelerator_service::TeamInvite;
 use crate::services::accelerator_service::{GenerateStartupInviteInput, StartupRegistrationInput};
+use crate::models::usage_service::{UsageStats, UserTier, UserSubscription};
+
 
 #[derive(candid::CandidType, candid::Deserialize)]
 struct StableState {
@@ -65,6 +67,8 @@ struct StableState {
     startup_cohorts: Vec<(StableString, StartupCohort)>,
     startup_activities: Vec<((StableString, u64), StartupActivity)>,
     admins: Vec<(StablePrincipal, crate::models::admin::Admin)>,
+    user_subscriptions: Vec<(StableString, UserSubscription)>,  // ADD THIS
+    user_daily_usage: Vec<((StableString, u64), u32)>,          // ADD THIS
 }
 
 #[ic_cdk::pre_upgrade]
@@ -87,6 +91,9 @@ fn pre_upgrade() {
     let startup_cohorts = STARTUP_COHORTS.with(|c| c.borrow().iter().collect::<Vec<_>>());
     let startup_activities = STARTUP_ACTIVITIES.with(|a| a.borrow().iter().collect::<Vec<_>>());
     let admins = ADMINS.with(|a| a.borrow().iter().collect::<Vec<_>>());
+    let user_subscriptions = USER_SUBSCRIPTIONS.with(|s| s.borrow().iter().collect::<Vec<_>>());
+    let user_daily_usage = USER_DAILY_USAGE.with(|u| u.borrow().iter().collect::<Vec<_>>());
+
 
     let state = StableState {
         users,
@@ -107,6 +114,9 @@ fn pre_upgrade() {
         startup_cohorts,
         startup_activities,
         admins,
+        user_subscriptions,
+        user_daily_usage,
+
     };
 
     stable_save((state,)).expect("Failed to save stable state");
@@ -135,6 +145,8 @@ fn post_upgrade() {
             startup_cohorts: vec![],
             startup_activities: vec![],
             admins: vec![],
+            user_subscriptions: vec![],   // ADD THIS
+            user_daily_usage: vec![],     // ADD THIS
         },),
     };
 
@@ -281,6 +293,25 @@ fn post_upgrade() {
             a.insert(k, v);
         }
     });
+
+    // Restore user subscriptions
+    USER_SUBSCRIPTIONS.with(|s| {
+        let mut s = s.borrow_mut();
+        for (k, v) in state.user_subscriptions {
+            s.insert(k, v);
+        }
+    });
+
+    // Restore user daily usage
+    USER_DAILY_USAGE.with(|u| {
+        let mut u = u.borrow_mut();
+        for (k, v) in state.user_daily_usage {
+            u.insert(k, v);
+        }
+    });
+
 }
+
+
 
 ic_cdk::export_candid!();
