@@ -8,99 +8,85 @@ interface PricingProps {
 const Pricing: React.FC<PricingProps> = ({ onGetStartedClick }) => {
   const plans = [
     {
-      name: 'Starter',
-      price: '49',
-      description: 'For solo founders & idea-stage startups',
+      name: 'Free',
+      price: '0',
+      description: 'Try our working AI agents today',
       features: [
-        'AI Legal Assistant (contract review, compliance)',
+        '50 AI agent requests per day',
+        'GitHub Automation (repositories, issues, pull requests)',
+        'Project Management (tasks, workflows, progress tracking)',
+        'Calendar Management (meetings, reminders, scheduling)',
+        'Email Automation (drafts, templates, outreach)',
         '1 Platform Integration (Slack, Discord, or OpenChat)',
-        'Basic Financial Tracking & Reporting',
-        'Startup Operations Checklist + Templates',
-        'Simple Project Management',
-        'Basic Hiring Workflows',
-        'Investor Outreach Templates',
-        'Access to Legal Document Templates'
+        'Community support'
       ],
-      buttonText: 'Get Started',
+      buttonText: 'Start Free',
       buttonVariant: 'primary' as const,
-      buttonClassName: 'bg-gray-900 text-white hover:bg-gray-800'
-    },
-    {
-      name: 'Professional',
-      price: '199',
-      description: 'For growing startups handling team, traction & fundraising',
-      features: [
-        'Unlimited AI Co-Founder + Smart Workflows',
-        '3 Platform Integrations (Slack, Discord, OpenChat)',
-        'Advanced Legal Automation (contracts, IP, compliance)',
-        'Comprehensive Financial Management & Reporting',
-        'Investor Relations & Deal Room Creation',
-        'Advanced Hiring & HR Workflows',
-        'Market Research & Strategic Insights',
-        'Tax Compliance & Bookkeeping Automation',
-        'Business Decision Simulation',
-        'Advanced Project Management',
-        'Custom Workflow Automation'
-      ],
-      buttonText: 'Get Started',
-      buttonVariant: 'primary' as const,
+      buttonClassName: 'bg-purple-600 text-white hover:bg-purple-700 hover:shadow-lg transition-all duration-200',
       featured: true
     },
     {
-      name: 'Enterprise',
-      price: '899',
-      priceLabel: 'from',
-      description: 'For accelerators, venture studios, or scaleups needing full-stack automation',
+      name: 'Pro',
+      price: '20',
+      description: 'Unlimited access to all AI agents',
       features: [
-        'Everything in Professional, plus:',
-        'Enterprise Legal Automation & Compliance',
-        'Advanced Financial Operations & Reporting',
-        'Custom AI Workflows & Automation',
-        'White-labeled Deal Rooms + NDA Automation',
-        'Advanced Document Management (SAFE, SAFT, SHA)',
-        'Real-time Financial Dashboards & Analytics',
-        'Multi-jurisdiction Tax & Compliance',
-        'Full HR Automation (sourcing, contracts, onboarding)',
-        'Dedicated Legal AI + Compliance Tracking',
-        'Dedicated Success Manager + Strategy Reviews'
+        'Unlimited AI agent requests',
+        'All current agents (GitHub, Project Management, Calendar, Email)',
+        'Contract Review & Legal (Coming Soon)',
+        'Financial Reporting & Bookkeeping (Coming Soon)',
+        'Investor Relations & Deal Rooms (Coming Soon)',
+        'Hiring & HR Workflows (Coming Soon)',
+        'All platform integrations (Slack, Discord, OpenChat)',
+        'Priority support & faster response times',
+        'Advanced analytics & insights dashboard'
       ],
-      buttonText: 'Contact Sales',
-      buttonVariant: 'primary' as const,
-      buttonClassName: 'bg-gray-900 text-white hover:bg-gray-800'
+      buttonText: 'Coming Soon',
+      buttonVariant: 'secondary' as const,
+      buttonClassName: 'bg-gray-300 text-gray-500 cursor-not-allowed',
+      featured: false
     }
   ];
 
-  const handleButtonClick = (planName: string) => {
-    // Open the waitlist modal for all plans
-    onGetStartedClick();
+  const handleButtonClick = (planName: string, buttonText: string) => {
+    // Redirect to documentation for Start Free button
+    if (buttonText === 'Start Free') {
+      window.location.href = '/documentation';
+    }
+    // Coming Soon button does nothing
   };
 
   return (
     <section id="pricing" className="py-12 sm:py-16 bg-[#E5E7EB]">
       <div className="container mx-auto max-w-7xl px-4 sm:px-6">
         <h2 className="text-center text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">
-          AI Co-Founder Plans
+          Simple, Transparent Pricing
         </h2>
         <p className="text-center text-gray-600 text-base sm:text-lg mb-8 sm:mb-12">
-          Choose the level of AI co-founder support that matches your startup stage
+          Start free with our working AI agents, Pro tier coming soon with unlimited access
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto">
           {plans.map((plan) => (
             <div 
               key={plan.name} 
               className={`border rounded-3xl p-6 sm:p-8 bg-white 
                 transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-lg cursor-pointer
-                ${plan.featured ? 'border-purple-600 border-2 relative' : ''}`}
+                ${plan.featured ? 'border-purple-600 border-2 relative' : ''} ${plan.name === 'Pro' ? 'relative' : ''}`}
             >
               {plan.featured && (
                 <span className="absolute top-0 right-8 -translate-y-1/2 bg-purple-600 text-white px-3 py-1 rounded-full text-sm">
                   Most Popular
                 </span>
               )}
+              {plan.name === 'Pro' && (
+                <div className="absolute inset-0 bg-black bg-opacity-20 rounded-3xl flex items-center justify-center z-10">
+                  <span className="bg-purple-600 text-white px-6 py-3 rounded-full text-lg font-semibold shadow-lg">
+                    Coming Soon
+                  </span>
+                </div>
+              )}
               <h3 className="text-xl sm:text-2xl font-bold mb-2">{plan.name}</h3>
               <p className="text-sm text-gray-600 mb-4">{plan.description}</p>
               <div className="text-2xl sm:text-3xl font-bold mb-6">
-                {plan.priceLabel && <span className="text-base font-normal mr-1">{plan.priceLabel}</span>}
                 ${plan.price}<span className="text-base font-normal">/mo</span>
               </div>
               <ul className="mb-8 space-y-3">
@@ -120,7 +106,7 @@ const Pricing: React.FC<PricingProps> = ({ onGetStartedClick }) => {
                     ? 'bg-purple-600 text-white hover:bg-purple-700' 
                     : (plan.buttonClassName || 'bg-gray-900 text-white hover:bg-gray-800')
                 }`}
-                onClick={() => handleButtonClick(plan.name)}
+                onClick={() => handleButtonClick(plan.name, plan.buttonText)}
               >
                 {plan.buttonText}
               </Button>

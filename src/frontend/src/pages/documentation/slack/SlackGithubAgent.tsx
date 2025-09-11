@@ -24,13 +24,13 @@ const SlackGithubAgent: React.FC = () => {
             <h4 className="text-lg font-semibold text-gray-800 mb-4">Example Interactions</h4>
             <div className="space-y-3">
               <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-gray-700 text-sm">"/github create issue login bug"</p>
+                <p className="text-gray-700 text-sm">"create issue login bug"</p>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-gray-700 text-sm">"/github list open pull requests"</p>
+                <p className="text-gray-700 text-sm">"list open pull requests"</p>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-gray-700 text-sm">"/github show unresolved issues"</p>
+                <p className="text-gray-700 text-sm">"show unresolved issues"</p>
               </div>
             </div>
           </div>

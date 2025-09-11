@@ -29,17 +29,17 @@ const SlackEmailAgent: React.FC = () => {
             <div className="space-y-3">
               <div className="bg-gray-50 p-4 rounded-lg">
                 <p className="text-gray-700 text-sm">
-                  "/email draft an email to investors about our latest milestone"
+                  "draft an email to investors about our latest milestone"
                 </p>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <p className="text-gray-700 text-sm">
-                  "/email create a follow-up email template for customer outreach"
+                  "create a follow-up email template for customer outreach"
                 </p>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <p className="text-gray-700 text-sm">
-                  "/email send a reminder email to the team about tomorrow's meeting"
+                  "send a reminder email to the team about tomorrow's meeting"
                 </p>
               </div>
             </div>
