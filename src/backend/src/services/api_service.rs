@@ -5,7 +5,12 @@ use crate::services::slack_service::ensure_slack_user;
 use crate::services::discord_service::ensure_discord_user;
 use crate::storage::memory::{API_MESSAGES, OPENCHAT_USERS, SLACK_USERS, DISCORD_USERS};
 use candid::Principal;
-use ic_cdk::update;
+use ic_cdk::{query, update};
+use crate::services::pricing_services::{
+    get_usage_stats, get_user_tier, can_make_request, increment_user_requests, upgrade_user_tier, get_user_subscription,
+};
+use crate::models::usage_service::{UsageStats,UserTier,UserSubscription};
+
 
 // API Message Storage Management
 #[update]
@@ -86,6 +91,21 @@ pub fn store_api_message(
         UserIdentifier::SlackId(slack_id) => slack_id.clone(),
         UserIdentifier::DiscordId(discord_id) => discord_id.clone(),
     };
+    
+    
+        // ✅ Usage validation before storing the request
+    if !can_make_request(&user_id) {
+        ic_cdk::trap(&format!(
+            "Daily limit reached. Upgrade to Pro for unlimited access. \
+             Usage: {:?}",
+            get_usage_stats(&user_id)
+        ));
+    }
+
+    if let Err(err) = increment_user_requests(&user_id) {
+        ic_cdk::trap(&err);
+    }
+
 
     // Create unique message ID
     let message_id = format!("{}_{}", user_id, timestamp);
@@ -106,12 +126,14 @@ pub fn store_api_message(
         messages.insert((StableString::from(message_id), timestamp), api_message.clone());
     });
 
+
     // Add debug logging
     // ic_cdk::println!("Stored API message with ID {} for principal {:?}", message_id, store_principal);
 }
 
 // Get API message history for a user
-// #[query]
+
+#[query]
 pub fn get_api_message_history(identifier: UserIdentifier) -> Vec<ApiMessage> {
     let principals_to_check = match &identifier {
         UserIdentifier::Principal(principal) => {
@@ -298,7 +320,8 @@ pub fn get_api_message_history(identifier: UserIdentifier) -> Vec<ApiMessage> {
 }
 
 // Get API messages by bot name
-// #[query]
+
+#[query]
 pub fn get_api_messages_by_bot(identifier: UserIdentifier, bot_name: String) -> Vec<ApiMessage> {
     let all_messages = get_api_message_history(identifier);
     all_messages
@@ -308,10 +331,10 @@ pub fn get_api_messages_by_bot(identifier: UserIdentifier, bot_name: String) -> 
 }
 
 // Get recent API messages (last N messages)
-// #[query]    
+#[query]    
 pub fn get_recent_api_messages(identifier: UserIdentifier, limit: u32) -> Vec<ApiMessage> {
     let mut all_messages = get_api_message_history(identifier);
-    all_messages.truncate(limit as usize);
+    all_messages.truncate(limit.min(all_messages.len() as u32)as usize);
     all_messages
 }
 
@@ -323,3 +346,42 @@ pub enum UserIdentifier {
     SlackId(String),
     DiscordId(String),
 } 
+
+// -------------------- USAGE & PRICING API --------------------
+
+// Get current usage stats for a user
+#[query]
+pub fn api_get_usage_stats(user_id: String) -> UsageStats {
+    get_usage_stats(&user_id)
+}
+
+// Get current tier for a user
+#[query]
+pub fn api_get_user_tier(user_id: String) -> UserTier {
+    get_user_tier(&user_id)
+}
+
+// Check if user can make a request
+#[query]
+pub fn api_can_make_request(user_id: String) -> bool {
+    can_make_request(&user_id)
+}
+
+// Increment requests counter for a user
+#[update]
+pub fn api_increment_user_requests(user_id: String) -> Result<(), String> {
+    increment_user_requests(&user_id)
+}
+
+// Upgrade user tier (Free -> Pro)
+#[update]
+pub fn api_upgrade_user_tier(user_id: String, tier: UserTier, expires_at_ns: Option<u64>) -> Result<(), String> {
+    upgrade_user_tier(&user_id, tier, expires_at_ns)
+}
+
+// Get full subscription details (tier, expiry, active status, etc.)
+#[query]
+pub fn api_get_user_subscription(user_id: String) -> Option<UserSubscription> {
+    get_user_subscription(&user_id)
+}
+
