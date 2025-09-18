@@ -8,6 +8,7 @@ import DiscordIntegration from './components/home/DiscordIntegration';
 import Pricing from './components/home/Pricing';
 import Footer from './components/layout/Footer';
 import WaitlistModal from './components/common/WaitlistModal';
+import GetStartedModal from './components/common/GetStartedModal';
 import PlaygroundChatModal from './components/common/PlaygroundChatModal';
 import PlaygroundChatButton from './components/common/PlaygroundChatButton';
 import { checkIsAuthenticated } from './services/auth';
@@ -65,6 +66,7 @@ import EmailAgent from './pages/documentation/discord/EmailAgent';
 
 const App: React.FC = () => {
   const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
+  const [isGetStartedModalOpen, setIsGetStartedModalOpen] = useState(false);
   const [isPlaygroundModalOpen, setIsPlaygroundModalOpen] = useState(false);
   const [isUserAuthenticated, setIsUserAuthenticated] = useState(false);
   const [actor, setActor] = useState<Actor | null>(null);
@@ -82,6 +84,21 @@ const App: React.FC = () => {
     setIsUserAuthenticated(status);
   };
 
+  const handleGetStartedClick = () => {
+    setIsGetStartedModalOpen(true);
+  };
+
+  const handleTryPlayground = () => {
+    setIsGetStartedModalOpen(false);
+    setIsPlaygroundModalOpen(true);
+  };
+
+  const handleViewDocumentation = () => {
+    setIsGetStartedModalOpen(false);
+    // Navigate to documentation page
+    window.location.href = '/documentation';
+  };
+
   return (
     <BrowserRouter>
       <div className="relative">
@@ -91,17 +108,17 @@ const App: React.FC = () => {
           <Route path="/" element={
             <>
               <NavBar 
-                onGetStartedClick={() => setIsWaitlistModalOpen(true)} 
+                onGetStartedClick={handleGetStartedClick} 
                 isAuthenticated={isUserAuthenticated}
                 onAuthChange={handleAuthenticationChange}
               />
               <main>
-                <Hero onGetStartedClick={() => setIsWaitlistModalOpen(true)} />
+                <Hero onGetStartedClick={handleGetStartedClick} />
                 <Features />
                 <SlackIntegration />
                 <DiscordIntegration />
                 {/* <AIAssistants /> */}
-                <Pricing onGetStartedClick={() => setIsWaitlistModalOpen(true)} />
+                <Pricing onGetStartedClick={handleGetStartedClick} />
               </main>
               <Footer />
             </>
@@ -201,6 +218,13 @@ const App: React.FC = () => {
           isOpen={isWaitlistModalOpen}
           onClose={() => setIsWaitlistModalOpen(false)}
           onAuthSuccess={() => setIsUserAuthenticated(true)}
+        />
+        
+        <GetStartedModal 
+          isOpen={isGetStartedModalOpen}
+          onClose={() => setIsGetStartedModalOpen(false)}
+          onTryPlayground={handleTryPlayground}
+          onViewDocumentation={handleViewDocumentation}
         />
         
         {/* Playground Chat Components */}
