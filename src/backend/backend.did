@@ -129,6 +129,11 @@ type OpenChatUser = record {
   openchat_id : text;
   first_interaction : nat64;
 };
+type PlaygroundStats = record {
+  total_messages : nat32;
+  unique_users : nat32;
+  bot_usage : vec record { text; nat32 };
+};
 type RemoveTeamMember = record { email : text };
 type Result = variant { Ok; Err : text };
 type Result_1 = variant { Ok : ChatMessage; Err : text };
@@ -152,6 +157,7 @@ type Result_25 = variant { Ok : vec Startup; Err : text };
 type Result_26 = variant { Ok : vec TeamMember; Err : text };
 type Result_27 = variant { Ok : User; Err : text };
 type Result_28 = variant { Ok; Err : vec text };
+type Result_29 = variant { Ok : PlaygroundStats; Err : text };
 type Result_3 = variant { Ok : nat32; Err : text };
 type Result_4 = variant { Ok : Startup; Err : text };
 type Result_5 = variant { Ok : StartupCohort; Err : text };
@@ -364,6 +370,12 @@ service : {
   admin_get_recent_api_messages_for_user : (UserIdentifier, nat32) -> (
       Result_2,
     ) query;
+  admin_get_playground_messages : () -> (Result_2) query;
+  admin_get_playground_messages_by_bot : (text) -> (Result_2) query;
+  admin_get_playground_stats : () -> (Result_29) query;
+  admin_get_playground_user_activity : (text) -> (Result_19) query;
+  admin_get_playground_users : () -> (Result_21) query;
+  admin_get_recent_playground_messages : (nat32) -> (Result_2) query;
   admin_update_accelerator : (principal, AcceleratorUpdate) -> (Result);
   calculate_engagement_score : (text) -> (Result_3) query;
   check_auth : () -> (bool) query;

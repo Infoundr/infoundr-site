@@ -8,6 +8,13 @@ pub struct Admin {
     pub created_at: u64,
 }
 
+#[derive(CandidType, Deserialize, Clone, Debug)]
+pub struct PlaygroundStats {
+    pub total_messages: u32,
+    pub unique_users: u32,
+    pub bot_usage: std::collections::HashMap<String, u32>,
+}
+
 impl Storable for Admin {
     fn to_bytes(&self) -> std::borrow::Cow<[u8]> {
         let mut bytes = vec![];
