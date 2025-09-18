@@ -12,9 +12,9 @@ const PlaygroundChatModal: React.FC<PlaygroundChatModalProps> = ({ isOpen, onClo
     {
       id: '1',
       role: 'assistant',
-      content: 'Hello! I\'m your AI assistant. I can help you with startup advice, business strategy, and more. What would you like to know?',
+      content: 'Welcome to the InFoundr Playground! 🎉 This is a demo of our AI Assistant that helps startups with business strategy, fundraising, and growth. Try asking me about startup challenges, business planning, or anything else you\'d like to explore!',
       timestamp: BigInt(Date.now() * 1_000_000),
-      bot_name: 'AI Assistant'
+      bot_name: 'InFoundr AI'
     }
   ]);
   const [inputMessage, setInputMessage] = useState('');
@@ -57,11 +57,11 @@ const PlaygroundChatModal: React.FC<PlaygroundChatModalProps> = ({ isOpen, onClo
     // Simulate AI response (replace with actual API call later)
     setTimeout(() => {
       const responses = [
-        "That's a great question! Let me help you with that. Based on my knowledge, here are some key insights...",
-        "I understand your concern. Here's what I recommend based on best practices in the industry...",
-        "Excellent point! Let me break this down for you with some actionable advice...",
-        "I'd be happy to help you with that. Here are some strategies that have worked well for other startups...",
-        "That's a common challenge many startups face. Here's how you can approach this effectively..."
+        "Great question! In our full platform, I'd analyze your specific startup data and provide personalized insights. For this demo, here are some general best practices...",
+        "That's a common startup challenge! Our AI assistant can help with detailed analysis, but for this playground demo, here's what I'd typically recommend...",
+        "Excellent! In the full InFoundr platform, I'd have access to your business metrics and provide data-driven advice. For now, here are some key strategies...",
+        "I'd love to dive deeper into this! In our full system, I can analyze your startup's specific situation. For this demo, here are some proven approaches...",
+        "That's a critical area for startups! Our platform provides detailed analysis and tracking. For this playground, here's how we typically approach this..."
       ];
       
       const randomResponse = responses[Math.floor(Math.random() * responses.length)];
@@ -71,7 +71,7 @@ const PlaygroundChatModal: React.FC<PlaygroundChatModalProps> = ({ isOpen, onClo
         role: 'assistant',
         content: randomResponse,
         timestamp: BigInt(Date.now() * 1_000_000),
-        bot_name: 'AI Assistant'
+        bot_name: 'InFoundr AI'
       };
 
       setMessages(prev => [...prev, aiMessage]);
@@ -102,7 +102,10 @@ const PlaygroundChatModal: React.FC<PlaygroundChatModalProps> = ({ isOpen, onClo
         <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-t-2xl">
           <div className="flex items-center space-x-3">
             <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-            <h2 className="text-xl font-semibold">AI Assistant Playground</h2>
+            <div>
+              <h2 className="text-xl font-semibold">🚀 Playground Demo</h2>
+              <p className="text-sm text-purple-100">Test our AI Assistant without installation</p>
+            </div>
           </div>
           <button
             onClick={onClose}
@@ -182,7 +185,7 @@ const PlaygroundChatModal: React.FC<PlaygroundChatModalProps> = ({ isOpen, onClo
               disabled={isTyping}
             />
             <Button
-              type="submit"
+              onClick={handleSendMessage}
               variant="primary"
               disabled={!inputMessage.trim() || isTyping}
               className="px-6 py-3"
@@ -199,9 +202,14 @@ const PlaygroundChatModal: React.FC<PlaygroundChatModalProps> = ({ isOpen, onClo
           
           {/* Playground Notice */}
           <div className="mt-3 text-center">
-            <p className="text-xs text-gray-500">
-              🚀 This is a playground demo. Responses are simulated for testing purposes.
-            </p>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <p className="text-sm text-blue-800 font-medium">
+                🚀 <strong>Playground Demo</strong> - This is a preview of our AI Assistant
+              </p>
+              <p className="text-xs text-blue-600 mt-1">
+                Get the full experience with real data analysis and personalized insights
+              </p>
+            </div>
           </div>
         </div>
       </div>
