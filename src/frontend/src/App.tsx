@@ -8,6 +8,8 @@ import DiscordIntegration from './components/home/DiscordIntegration';
 import Pricing from './components/home/Pricing';
 import Footer from './components/layout/Footer';
 import WaitlistModal from './components/common/WaitlistModal';
+import PlaygroundChatModal from './components/common/PlaygroundChatModal';
+import PlaygroundChatButton from './components/common/PlaygroundChatButton';
 import { checkIsAuthenticated } from './services/auth';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
@@ -63,6 +65,7 @@ import EmailAgent from './pages/documentation/discord/EmailAgent';
 
 const App: React.FC = () => {
   const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
+  const [isPlaygroundModalOpen, setIsPlaygroundModalOpen] = useState(false);
   const [isUserAuthenticated, setIsUserAuthenticated] = useState(false);
   const [actor, setActor] = useState<Actor | null>(null);
 
@@ -198,6 +201,13 @@ const App: React.FC = () => {
           isOpen={isWaitlistModalOpen}
           onClose={() => setIsWaitlistModalOpen(false)}
           onAuthSuccess={() => setIsUserAuthenticated(true)}
+        />
+        
+        {/* Playground Chat Components */}
+        <PlaygroundChatButton onClick={() => setIsPlaygroundModalOpen(true)} />
+        <PlaygroundChatModal 
+          isOpen={isPlaygroundModalOpen}
+          onClose={() => setIsPlaygroundModalOpen(false)}
         />
       </div>
     </BrowserRouter>
