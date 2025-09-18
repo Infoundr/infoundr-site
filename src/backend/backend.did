@@ -340,6 +340,7 @@ type UserIdentifier = variant {
   SlackId : text;
   DiscordId : text;
   OpenChatId : text;
+  PlaygroundId : text;
 };
 type WaitlistEntry = record {
   status : WaitlistStatus;

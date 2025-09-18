@@ -424,6 +424,7 @@ pub fn admin_get_api_messages_for_user(identifier: AccountUserIdentifier) -> Res
         AccountUserIdentifier::OpenChatId(openchat_id) => ApiUserIdentifier::OpenChatId(openchat_id),
         AccountUserIdentifier::SlackId(slack_id) => ApiUserIdentifier::SlackId(slack_id),
         AccountUserIdentifier::DiscordId(discord_id) => ApiUserIdentifier::DiscordId(discord_id),
+        AccountUserIdentifier::PlaygroundId(playground_id) => ApiUserIdentifier::PlaygroundId(playground_id),
     };
     
     let messages = get_api_message_history(api_identifier);
@@ -442,6 +443,7 @@ pub fn admin_get_api_messages_for_user_by_bot(identifier: AccountUserIdentifier,
         AccountUserIdentifier::OpenChatId(openchat_id) => ApiUserIdentifier::OpenChatId(openchat_id),
         AccountUserIdentifier::SlackId(slack_id) => ApiUserIdentifier::SlackId(slack_id),
         AccountUserIdentifier::DiscordId(discord_id) => ApiUserIdentifier::DiscordId(discord_id),
+        AccountUserIdentifier::PlaygroundId(playground_id) => ApiUserIdentifier::PlaygroundId(playground_id),
     };
     
     let messages = get_api_messages_by_bot(api_identifier, bot_name);
@@ -460,6 +462,7 @@ pub fn admin_get_recent_api_messages_for_user(identifier: AccountUserIdentifier,
         AccountUserIdentifier::OpenChatId(openchat_id) => ApiUserIdentifier::OpenChatId(openchat_id),
         AccountUserIdentifier::SlackId(slack_id) => ApiUserIdentifier::SlackId(slack_id),
         AccountUserIdentifier::DiscordId(discord_id) => ApiUserIdentifier::DiscordId(discord_id),
+        AccountUserIdentifier::PlaygroundId(playground_id) => ApiUserIdentifier::PlaygroundId(playground_id),
     };
     
     let messages = get_recent_api_messages(api_identifier, limit);
