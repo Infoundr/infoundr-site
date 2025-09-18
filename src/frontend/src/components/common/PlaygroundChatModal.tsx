@@ -12,9 +12,9 @@ const PlaygroundChatModal: React.FC<PlaygroundChatModalProps> = ({ isOpen, onClo
     {
       id: '1',
       role: 'assistant',
-      content: 'Welcome to the InFoundr Playground! 🎉 This is a demo of our AI Assistant that helps startups with business strategy, fundraising, and growth. Try asking me about startup challenges, business planning, or anything else you\'d like to explore!',
+      content: 'Welcome to the InFoundr Playground! 🎉 I\'m your live AI Co-founder, connected to our real platform. I can help you with startup advice, business strategy, and even manage your GitHub, emails, calendar, and project tasks. Try asking me anything about your startup journey!',
       timestamp: BigInt(Date.now() * 1_000_000),
-      bot_name: 'InFoundr AI'
+      bot_name: 'InFoundr AI Co-founder'
     }
   ]);
   const [inputMessage, setInputMessage] = useState('');
@@ -54,29 +54,64 @@ const PlaygroundChatModal: React.FC<PlaygroundChatModalProps> = ({ isOpen, onClo
     setInputMessage('');
     setIsTyping(true);
 
-    // Simulate AI response (replace with actual API call later)
-    setTimeout(() => {
-      const responses = [
-        "Great question! In our full platform, I'd analyze your specific startup data and provide personalized insights. For this demo, here are some general best practices...",
-        "That's a common startup challenge! Our AI assistant can help with detailed analysis, but for this playground demo, here's what I'd typically recommend...",
-        "Excellent! In the full InFoundr platform, I'd have access to your business metrics and provide data-driven advice. For now, here are some key strategies...",
-        "I'd love to dive deeper into this! In our full system, I can analyze your startup's specific situation. For this demo, here are some proven approaches...",
-        "That's a critical area for startups! Our platform provides detailed analysis and tracking. For this playground, here's how we typically approach this..."
-      ];
+    try {
+      // Get API configuration from environment variables
+      const apiUrl = import.meta.env.VITE_INFOUNDR_AI_URL || 'http://localhost:5005';
+      const apiKey = import.meta.env.VITE_INFOUNDR_AI_KEY;
       
-      const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+      // Call the real InFoundr API
+      const response = await fetch(`${apiUrl}/api/infoundr_agent`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': apiKey
+        },
+        body: JSON.stringify({
+          message: inputMessage,
+          user_id: 'playground_user_' + Date.now(), // Generate unique user ID for playground
+          channel: 'openchat'
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.status}`);
+      }
+
+      const data = await response.json();
       
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: randomResponse,
+        content: data.text || 'I apologize, but I encountered an issue processing your request. Please try again.',
+        timestamp: BigInt(Date.now() * 1_000_000),
+        bot_name: data.bot_name || 'InFoundr AI'
+      };
+
+      setMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      console.error('API Error:', error);
+      
+      // Fallback to demo responses if API fails
+      const fallbackResponses = [
+        "I'm experiencing some technical difficulties right now, but I'd love to help! In our full platform, I can provide personalized startup advice and integrate with your tools. For now, here are some general insights...",
+        "I'm having trouble connecting to our servers at the moment. In the full InFoundr platform, I can analyze your specific situation and provide data-driven recommendations. Here's what I'd typically suggest...",
+        "I'm temporarily unable to access our full capabilities, but I'm still here to help! In our complete system, I can manage your GitHub, emails, calendar, and project tasks. For this demo, here are some key strategies..."
+      ];
+      
+      const fallbackResponse = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+      
+      const aiMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: fallbackResponse,
         timestamp: BigInt(Date.now() * 1_000_000),
         bot_name: 'InFoundr AI'
       };
 
       setMessages(prev => [...prev, aiMessage]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -202,12 +237,12 @@ const PlaygroundChatModal: React.FC<PlaygroundChatModalProps> = ({ isOpen, onClo
           
           {/* Playground Notice */}
           <div className="mt-3 text-center">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <p className="text-sm text-blue-800 font-medium">
-                🚀 <strong>Playground Demo</strong> - This is a preview of our AI Assistant
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+              <p className="text-sm text-green-800 font-medium">
+                🚀 <strong>Live Playground</strong> - Connected to real InFoundr AI
               </p>
-              <p className="text-xs text-blue-600 mt-1">
-                Get the full experience with real data analysis and personalized insights
+              <p className="text-xs text-green-600 mt-1">
+                This is our actual AI Assistant! Try asking about startup advice, GitHub tasks, or scheduling meetings
               </p>
             </div>
           </div>
