@@ -23,6 +23,7 @@ import AdminAdmins from './pages/Admin/Admins';
 import AdminAccelerators from './pages/Admin/Accelerators';
 import AdminPlatformUsers from './pages/Admin/PlatformUsers';
 import AdminApiMessages from './pages/Admin/ApiMessages';
+import AdminPlaygroundMonitoring from './pages/Admin/PlaygroundMonitoring';
 import Auth from './pages/Dashboard/Auth';
 import DashboardLayout from './pages/Dashboard/layouts/DashboardLayout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -194,6 +195,7 @@ const App: React.FC = () => {
             <Route path="accelerators" element={<AdminAccelerators />} />
             <Route path="platform-users" element={<AdminPlatformUsers />} />
             <Route path="api-messages" element={<AdminApiMessages />} />
+            <Route path="playground" element={<AdminPlaygroundMonitoring />} />
           </Route>
           
           {/* Documentation Routes */}

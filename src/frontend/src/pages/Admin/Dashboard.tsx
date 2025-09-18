@@ -22,7 +22,11 @@ const AdminDashboard: React.FC = () => {
         totalSlackUsers: 0,
         totalDiscordUsers: 0,
         totalOpenchatUsers: 0,
-        totalApiMessages: 0
+        totalApiMessages: 0,
+        playgroundStats: {
+            totalMessages: 0,
+            uniqueUsers: 0
+        }
     });
 
     useEffect(() => {
@@ -44,7 +48,8 @@ const AdminDashboard: React.FC = () => {
                 acceleratorsResult,
                 slackResult,
                 discordResult,
-                openchatResult
+                openchatResult,
+                playgroundStatsResult
             ] = await Promise.all([
                 authenticatedActor.get_users(),
                 authenticatedActor.get_waitlist(),
@@ -52,7 +57,8 @@ const AdminDashboard: React.FC = () => {
                 authenticatedActor.get_all_accelerators(),
                 authenticatedActor.get_registered_slack_users_admin(),
                 authenticatedActor.get_registered_discord_users_admin(),
-                authenticatedActor.get_registered_openchat_users_admin()
+                authenticatedActor.get_registered_openchat_users_admin(),
+                authenticatedActor.admin_get_playground_stats()
             ]);
 
             console.log(usersResult);
@@ -65,7 +71,11 @@ const AdminDashboard: React.FC = () => {
                 totalSlackUsers: 'Ok' in slackResult ? slackResult.Ok.length : 0,
                 totalDiscordUsers: 'Ok' in discordResult ? discordResult.Ok.length : 0,
                 totalOpenchatUsers: 'Ok' in openchatResult ? openchatResult.Ok.length : 0,
-                totalApiMessages: 0 // We'll need to implement this endpoint
+                totalApiMessages: 0, // We'll need to implement this endpoint
+                playgroundStats: 'Ok' in playgroundStatsResult ? {
+                    totalMessages: playgroundStatsResult.Ok.total_messages,
+                    uniqueUsers: playgroundStatsResult.Ok.unique_users
+                } : { totalMessages: 0, uniqueUsers: 0 }
             });
         } catch (error) {
             console.error('Error fetching dashboard stats:', error);
@@ -131,6 +141,20 @@ const AdminDashboard: React.FC = () => {
             icon: '📱',
             color: 'bg-pink-500',
             path: '/admin/platform-users'
+        },
+        {
+            title: 'Playground Messages',
+            value: stats.playgroundStats.totalMessages,
+            icon: '🚀',
+            color: 'bg-orange-500',
+            path: '/admin/playground'
+        },
+        {
+            title: 'Playground Users',
+            value: stats.playgroundStats.uniqueUsers,
+            icon: '👥',
+            color: 'bg-teal-500',
+            path: '/admin/playground'
         }
     ];
 
