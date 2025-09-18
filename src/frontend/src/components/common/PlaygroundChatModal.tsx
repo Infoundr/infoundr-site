@@ -69,7 +69,7 @@ const PlaygroundChatModal: React.FC<PlaygroundChatModalProps> = ({ isOpen, onClo
         body: JSON.stringify({
           message: inputMessage,
           user_id: 'playground_user_' + Date.now(), // Generate unique user ID for playground
-          channel: 'openchat'
+          channel: 'playground'
         })
       });
 

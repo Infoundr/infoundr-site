@@ -336,11 +336,11 @@ type UserActivity = record {
   chat_history : vec ChatMessage;
 };
 type UserIdentifier = variant {
+  PlaygroundId : text;
   Principal : principal;
   SlackId : text;
   DiscordId : text;
   OpenChatId : text;
-  PlaygroundId : text;
 };
 type WaitlistEntry = record {
   status : WaitlistStatus;
