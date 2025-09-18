@@ -55,14 +55,12 @@ const PlaygroundChatModal: React.FC<PlaygroundChatModalProps> = ({ isOpen, onClo
     setIsTyping(true);
 
     try {
-      // Determine API configuration based on environment
       const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
       const apiUrl = isLocal 
         ? 'http://localhost:5005' 
         : (import.meta.env.VITE_INFOUNDR_AI_URL);
-      const apiKey = import.meta.env.VITE_INFOUNDR_AI_KEY;
+      const apiKey = import.meta.env.VITE_INFOUNDR_AI_API_KEY;
       
-      // Call the real InFoundr API
       const response = await fetch(`${apiUrl}/api/infoundr_agent`, {
         method: 'POST',
         headers: {
