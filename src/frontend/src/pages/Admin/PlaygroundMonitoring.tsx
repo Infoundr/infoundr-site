@@ -557,14 +557,44 @@ const AdminPlaygroundMonitoring: React.FC = () => {
                                         </td>
                                         <td className="px-6 py-4 text-sm text-gray-700 max-w-xs">
                                             <div className="max-h-20 overflow-y-auto prose prose-sm max-w-none">
-                                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                                <ReactMarkdown 
+                                                    remarkPlugins={[remarkGfm]}
+                                                    components={{
+                                                        a: ({ href, children, ...props }) => (
+                                                            <a 
+                                                                href={href} 
+                                                                target="_blank" 
+                                                                rel="noopener noreferrer"
+                                                                className="text-blue-600 hover:text-blue-800 underline"
+                                                                {...props}
+                                                            >
+                                                                {children}
+                                                            </a>
+                                                        )
+                                                    }}
+                                                >
                                                     {truncateText(message.message || 'No message', 150)}
                                                 </ReactMarkdown>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-sm text-gray-700 max-w-xs">
                                             <div className="max-h-20 overflow-y-auto prose prose-sm max-w-none">
-                                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                                <ReactMarkdown 
+                                                    remarkPlugins={[remarkGfm]}
+                                                    components={{
+                                                        a: ({ href, children, ...props }) => (
+                                                            <a 
+                                                                href={href} 
+                                                                target="_blank" 
+                                                                rel="noopener noreferrer"
+                                                                className="text-blue-600 hover:text-blue-800 underline"
+                                                                {...props}
+                                                            >
+                                                                {children}
+                                                            </a>
+                                                        )
+                                                    }}
+                                                >
                                                     {truncateText(message.response || 'No response', 150)}
                                                 </ReactMarkdown>
                                             </div>
