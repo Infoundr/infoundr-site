@@ -2,6 +2,7 @@ pub mod models;
 pub mod services;
 pub mod storage;
 
+
 // Custom getrandom implementation - for pocket ic testing only
 use getrandom::register_custom_getrandom;
 
@@ -44,8 +45,7 @@ use crate::models::accelerator::{Accelerator, TeamMember};
 use crate::models::startup_invite::StartupInvite;
 use crate::services::accelerator_service::TeamInvite;
 use crate::services::accelerator_service::{GenerateStartupInviteInput, StartupRegistrationInput};
-use crate::models::usage_service::{UsageStats, UserTier, UserSubscription};
-
+pub use crate::models::usage_service::{UsageStats, UserTier, UserSubscription};
 
 #[derive(candid::CandidType, candid::Deserialize)]
 struct StableState {
@@ -311,7 +311,5 @@ fn post_upgrade() {
     });
 
 }
-
-
 
 ic_cdk::export_candid!();

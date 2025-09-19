@@ -33,11 +33,12 @@ fn reset_daily_usage_if_needed(user_id: &str) {
     let today = get_current_day_timestamp();
     USER_DAILY_USAGE.with(|usage| {
         let mut map = usage.borrow_mut();
+        let uid = StableString::from(user_id.to_string());
 
-        // Remove old entries for this user (⚠️ deletes history)
+        // remove outdated entries
         let keys_to_remove: Vec<_> = map
             .iter()
-            .filter(|((uid, _), _)| uid == &StableString::from(user_id.to_string()))
+            .filter(|((uid_ref, _), _)| uid_ref == &uid)
             .map(|(key, _)| key)
             .filter(|(_, day)| !is_same_day(*day, today))
             .collect();
@@ -45,8 +46,14 @@ fn reset_daily_usage_if_needed(user_id: &str) {
         for key in keys_to_remove {
             map.remove(&key);
         }
+
+        // ✅ manually initialize today’s bucket if missing
+        if !map.contains_key(&(uid.clone(), today)) {
+            map.insert((uid, today), 0);
+        }
     });
 }
+
 
 /// Check user subscription tier
 pub fn check_user_tier(user_id: &str) -> UserTier {
@@ -89,18 +96,21 @@ pub fn can_make_request(user_id: &str) -> bool {
 
 /// Increment user daily request counter
 pub fn increment_user_requests(user_id: &str) -> Result<(), String> {
-    // Check if user can make request before incrementing
-    if !can_make_request(user_id) {
-        return Err(
-            "Daily limit reached. Upgrade to Pro for unlimited access.".to_string()
-        );
+    // ✅ Pro users are unlimited
+    if matches!(check_user_tier(user_id), UserTier::Pro) {
+        return Ok(());
     }
+
+    if !can_make_request(user_id) {
+        return Err("Daily limit reached. Upgrade to Pro for unlimited access.".to_string());
+    }
+
     reset_daily_usage_if_needed(user_id);
     let day = get_current_day_timestamp();
     let tier = check_user_tier(user_id);
     let limit = get_daily_limit(&tier);
 
-    let result = USER_DAILY_USAGE.with(|usage| {
+    USER_DAILY_USAGE.with(|usage| {
         let mut map = usage.borrow_mut();
         let key = (StableString::from(user_id.to_string()), day);
         let current = map.get(&key).unwrap_or(0);
@@ -113,8 +123,7 @@ pub fn increment_user_requests(user_id: &str) -> Result<(), String> {
 
         map.insert(key, current + 1);
         Ok(())
-    });
-    result
+    })
 }
 
 /// Calculate reset time in RFC3339 format
