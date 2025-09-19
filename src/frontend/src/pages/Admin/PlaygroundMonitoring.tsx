@@ -275,7 +275,7 @@ const AdminPlaygroundMonitoring: React.FC = () => {
     };
 
     const isPlaygroundUser = (userId: string) => {
-        return userId.startsWith('playground_user_');
+        return userId.startsWith('playground_');
     };
 
     return (
