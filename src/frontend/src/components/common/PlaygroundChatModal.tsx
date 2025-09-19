@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Button from './Button';
 import { ChatMessage } from '../../types/chat';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface PlaygroundChatModalProps {
   isOpen: boolean;
@@ -183,7 +185,11 @@ const PlaygroundChatModal: React.FC<PlaygroundChatModalProps> = ({ isOpen, onClo
                     {message.bot_name}
                   </div>
                 )}
-                <p className="text-sm leading-relaxed">{message.content}</p>
+                <div className="text-sm leading-relaxed prose prose-sm max-w-none">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {message.content}
+                  </ReactMarkdown>
+                </div>
                 <div className={`text-xs mt-1 ${
                   message.role === 'user' ? 'text-purple-200' : 'text-gray-500'
                 }`}>
