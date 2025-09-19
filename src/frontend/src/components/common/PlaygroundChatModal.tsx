@@ -62,6 +62,8 @@ const PlaygroundChatModal: React.FC<PlaygroundChatModalProps> = ({ isOpen, onClo
         ? 'http://localhost:5005' 
         : (import.meta.env.VITE_INFOUNDR_AI_URL);
       const apiKey = import.meta.env.VITE_INFOUNDR_AI_API_KEY;
+      console.log('apiUrl', apiUrl);
+      console.log('apiKey', apiKey);
       
       const response = await fetch(`${apiUrl}/api/infoundr_agent`, {
         method: 'POST',
@@ -75,6 +77,7 @@ const PlaygroundChatModal: React.FC<PlaygroundChatModalProps> = ({ isOpen, onClo
           channel: 'playground'
         })
       });
+      console.log('response', response);
 
       if (!response.ok) {
         throw new Error(`API request failed: ${response.status}`);
