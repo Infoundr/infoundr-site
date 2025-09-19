@@ -64,6 +64,10 @@ const AdminPlaygroundMonitoring: React.FC = () => {
                 actor.admin_get_playground_messages(),
                 actor.admin_get_recent_playground_messages(50)
             ]);
+            console.log('Playground stats result:', statsResult);
+            console.log('Playground users result:', usersResult);
+            console.log('Playground messages result:', messagesResult);
+            console.log('Recent playground messages result:', recentMessagesResult);
 
             // Process stats
             if ('Ok' in statsResult) {
@@ -279,7 +283,7 @@ const AdminPlaygroundMonitoring: React.FC = () => {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">🚀 Playground Monitoring</h1>
+                    <h1 className="text-2xl font-bold text-gray-900">Playground Monitoring</h1>
                     <p className="text-gray-600">Monitor playground user activities, conversations, and engagement metrics</p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -543,7 +547,7 @@ const AdminPlaygroundMonitoring: React.FC = () => {
                                             <div className="font-mono text-xs">
                                                 {isPlaygroundUser(message.user_id) ? (
                                                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                        🚀 {message.user_id}
+                                                        {message.user_id}
                                                     </span>
                                                 ) : (
                                                     message.user_id || 'Unknown'
