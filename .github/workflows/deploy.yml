@@ -131,6 +131,9 @@ jobs:
           VITE_INFOUNDR_API_KEY=${{ secrets.INFOUNDR_API_KEY }}
           VITE_USE_MOCK_DATA=false
           EOL
+          # Verify environment file was created
+          echo "Environment file contents:"
+          cat .env
           # Build the frontend assets
           npm run build
           # Create the frontend canister
