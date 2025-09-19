@@ -485,8 +485,8 @@ pub fn admin_get_playground_users() -> Result<Vec<String>, String> {
         let mut playground_user_ids = std::collections::HashSet::new();
         
         for (_, api_message) in messages.iter() {
-            // Check if this is a playground user (user_id starts with "playground_user_")
-            if api_message.user_id.starts_with("playground_user_") {
+            // Check if this is a playground user (user_id starts with "playground_")
+            if api_message.user_id.starts_with("playground_") {
                 playground_user_ids.insert(api_message.user_id.clone());
             }
         }
@@ -509,7 +509,7 @@ pub fn admin_get_playground_messages() -> Result<Vec<ApiMessage>, String> {
         let messages = messages.borrow();
         messages
             .iter()
-            .filter(|(_, api_message)| api_message.user_id.starts_with("playground_user_"))
+            .filter(|(_, api_message)| api_message.user_id.starts_with("playground_"))
             .map(|(_, message)| message.clone())
             .collect::<Vec<ApiMessage>>()
     });
@@ -530,7 +530,7 @@ pub fn admin_get_playground_messages_by_bot(bot_name: String) -> Result<Vec<ApiM
         messages
             .iter()
             .filter(|(_, api_message)| 
-                api_message.user_id.starts_with("playground_user_") && 
+                api_message.user_id.starts_with("playground_") && 
                 api_message.bot_name == bot_name
             )
             .map(|(_, message)| message.clone())
@@ -552,7 +552,7 @@ pub fn admin_get_recent_playground_messages(limit: u32) -> Result<Vec<ApiMessage
         let messages = messages.borrow();
         messages
             .iter()
-            .filter(|(_, api_message)| api_message.user_id.starts_with("playground_user_"))
+            .filter(|(_, api_message)| api_message.user_id.starts_with("playground_"))
             .map(|(_, message)| message.clone())
             .collect::<Vec<ApiMessage>>()
     });
@@ -590,7 +590,7 @@ pub fn admin_get_playground_stats() -> Result<PlaygroundStats, String> {
         let mut bot_usage = std::collections::HashMap::new();
         
         for (_, api_message) in messages.iter() {
-            if api_message.user_id.starts_with("playground_user_") {
+            if api_message.user_id.starts_with("playground_") {
                 total_messages += 1;
                 unique_users.insert(api_message.user_id.clone());
                 
