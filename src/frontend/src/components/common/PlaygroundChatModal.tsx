@@ -10,6 +10,8 @@ interface PlaygroundChatModalProps {
 }
 
 const PlaygroundChatModal: React.FC<PlaygroundChatModalProps> = ({ isOpen, onClose }) => {
+  const [playgroundUserId, setPlaygroundUserId] = useState<string | null>(null);
+  
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '1',
@@ -21,14 +23,40 @@ const PlaygroundChatModal: React.FC<PlaygroundChatModalProps> = ({ isOpen, onClo
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [isLoadingUserId, setIsLoadingUserId] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    const storedIP = localStorage.getItem('infoundr_playground_user_ip');
+    if (storedIP) {
+      setPlaygroundUserId(`playground_${storedIP}`);
+      setIsLoadingUserId(false);
+      return;
+    }
+
+    fetch('https://api.ipify.org?format=json')
+      .then(response => response.json())
+      .then(data => {
+        const ip = data.ip;
+        const userId = `playground_${ip}`;
+        setPlaygroundUserId(userId);
+        localStorage.setItem('infoundr_playground_user_ip', ip);
+        setIsLoadingUserId(false);
+        console.log('Generated user ID from IP:', userId);
+      })
+      .catch(error => {
+        console.log('Could not fetch IP address:', error);
+        const fallbackId = `playground_fallback_${Date.now()}`;
+        setPlaygroundUserId(fallbackId);
+        setIsLoadingUserId(false);
+        console.log('Using fallback user ID:', fallbackId);
+      });
+  }, []);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Handle body scroll lock
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -44,6 +72,12 @@ const PlaygroundChatModal: React.FC<PlaygroundChatModalProps> = ({ isOpen, onClo
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputMessage.trim()) return;
+    
+    // Don't send message if we don't have a user ID yet
+    if (!playgroundUserId) {
+      console.log('Waiting for user ID to be generated...');
+      return;
+    }
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
@@ -71,7 +105,7 @@ const PlaygroundChatModal: React.FC<PlaygroundChatModalProps> = ({ isOpen, onClo
         },
         body: JSON.stringify({
           message: inputMessage,
-          user_id: 'playground_user_' + Date.now(), // Generate unique user ID for playground
+          user_id: playgroundUserId, 
           channel: 'playground'
         })
       });
@@ -238,14 +272,14 @@ const PlaygroundChatModal: React.FC<PlaygroundChatModalProps> = ({ isOpen, onClo
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Type your message here..."
+              placeholder={isLoadingUserId ? "Initializing playground..." : "Type your message here..."}
               className="flex-1 px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              disabled={isTyping}
+              disabled={isTyping || isLoadingUserId}
             />
             <Button
               onClick={handleSendMessage}
               variant="primary"
-              disabled={!inputMessage.trim() || isTyping}
+              disabled={!inputMessage.trim() || isTyping || isLoadingUserId}
               className="px-6 py-3"
             >
               {isTyping ? (
