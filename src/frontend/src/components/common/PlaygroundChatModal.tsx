@@ -60,10 +60,17 @@ const PlaygroundChatModal: React.FC<PlaygroundChatModalProps> = ({ isOpen, onClo
       const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
       const apiUrl = isLocal 
         ? 'http://localhost:5005' 
-        : (import.meta.env.VITE_INFOUNDR_AI_URL);
-      const apiKey = import.meta.env.VITE_INFOUNDR_AI_API_KEY;
-      console.log('apiUrl', apiUrl);
-      console.log('apiKey', apiKey);
+        : (import.meta.env.VITE_INFOUNDR_API_URL);
+      const apiKey = import.meta.env.VITE_INFOUNDR_API_KEY;
+      
+      // Debug logging
+      console.log('Environment check:');
+      console.log('isLocal:', isLocal);
+      console.log('VITE_INFOUNDR_API_URL:', import.meta.env.VITE_INFOUNDR_API_URL);
+      console.log('VITE_INFOUNDR_API_KEY:', import.meta.env.VITE_INFOUNDR_API_KEY);
+      console.log('apiUrl:', apiUrl);
+      console.log('apiKey:', apiKey);
+      console.log('All env vars:', import.meta.env);
       
       const response = await fetch(`${apiUrl}/api/infoundr_agent`, {
         method: 'POST',
