@@ -176,7 +176,7 @@ const PlaygroundChatModal: React.FC<PlaygroundChatModalProps> = ({ isOpen, onClo
           <div className="flex items-center space-x-3">
             <div className="w-3 h-3 bg-green-400 rounded-full"></div>
             <div>
-              <h2 className="text-xl font-semibold">🚀 Playground Demo</h2>
+              <h2 className="text-xl font-semibold">Playground Demo</h2>
               <p className="text-sm text-purple-100">Test our AI Assistant without installation</p>
             </div>
           </div>
@@ -296,7 +296,7 @@ const PlaygroundChatModal: React.FC<PlaygroundChatModalProps> = ({ isOpen, onClo
           <div className="mt-3 text-center">
             <div className="bg-green-50 border border-green-200 rounded-lg p-3">
               <p className="text-sm text-green-800 font-medium">
-                🚀 <strong>Live Playground</strong> - Connected to real InFoundr AI
+                <strong>Live Playground</strong> - Connected to real InFoundr AI
               </p>
               <p className="text-xs text-green-600 mt-1">
                 This is our actual AI Assistant! Try asking about startup advice, GitHub tasks, or scheduling meetings

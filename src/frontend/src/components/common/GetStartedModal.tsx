@@ -80,7 +80,7 @@ const GetStartedModal: React.FC<GetStartedModalProps> = ({
           >
             <div className="flex items-start space-x-4">
               <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-lg flex items-center justify-center group-hover:from-purple-600 group-hover:to-indigo-600 transition-colors duration-200">
-                <span className="text-2xl">🚀</span>
+                <span className="text-xs font-bold text-white">PG</span>
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
