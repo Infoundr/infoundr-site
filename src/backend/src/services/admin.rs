@@ -10,6 +10,7 @@ use crate::services::api_service::{get_api_message_history, get_api_messages_by_
 use crate::storage::memory::{USERS, WAITLIST, ACCELERATORS, ADMINS, SLACK_USERS, DISCORD_USERS, OPENCHAT_USERS};
 use candid::Principal;
 use ic_cdk::{caller, query, update};
+use crate::models::admin::PlaygroundStats;
 
 // Admin callers
 #[query]
@@ -424,6 +425,7 @@ pub fn admin_get_api_messages_for_user(identifier: AccountUserIdentifier) -> Res
         AccountUserIdentifier::OpenChatId(openchat_id) => ApiUserIdentifier::OpenChatId(openchat_id),
         AccountUserIdentifier::SlackId(slack_id) => ApiUserIdentifier::SlackId(slack_id),
         AccountUserIdentifier::DiscordId(discord_id) => ApiUserIdentifier::DiscordId(discord_id),
+        AccountUserIdentifier::PlaygroundId(playground_id) => ApiUserIdentifier::PlaygroundId(playground_id),
     };
     
     let messages = get_api_message_history(api_identifier);
@@ -442,6 +444,7 @@ pub fn admin_get_api_messages_for_user_by_bot(identifier: AccountUserIdentifier,
         AccountUserIdentifier::OpenChatId(openchat_id) => ApiUserIdentifier::OpenChatId(openchat_id),
         AccountUserIdentifier::SlackId(slack_id) => ApiUserIdentifier::SlackId(slack_id),
         AccountUserIdentifier::DiscordId(discord_id) => ApiUserIdentifier::DiscordId(discord_id),
+        AccountUserIdentifier::PlaygroundId(playground_id) => ApiUserIdentifier::PlaygroundId(playground_id),
     };
     
     let messages = get_api_messages_by_bot(api_identifier, bot_name);
@@ -460,8 +463,149 @@ pub fn admin_get_recent_api_messages_for_user(identifier: AccountUserIdentifier,
         AccountUserIdentifier::OpenChatId(openchat_id) => ApiUserIdentifier::OpenChatId(openchat_id),
         AccountUserIdentifier::SlackId(slack_id) => ApiUserIdentifier::SlackId(slack_id),
         AccountUserIdentifier::DiscordId(discord_id) => ApiUserIdentifier::DiscordId(discord_id),
+        AccountUserIdentifier::PlaygroundId(playground_id) => ApiUserIdentifier::PlaygroundId(playground_id),
     };
     
     let messages = get_recent_api_messages(api_identifier, limit);
     Ok(messages)
+}
+
+// Playground-specific admin functions
+
+// Get all playground users and their activity
+#[query]
+pub fn admin_get_playground_users() -> Result<Vec<String>, String> {
+    if !is_allowed_principal() {
+        return Err("Unauthorized: Caller is not an admin".to_string());
+    }
+
+    // Get all playground user IDs from API messages
+    let playground_users = crate::storage::memory::API_MESSAGES.with(|messages| {
+        let messages = messages.borrow();
+        let mut playground_user_ids = std::collections::HashSet::new();
+        
+        for (_, api_message) in messages.iter() {
+            // Check if this is a playground user (user_id starts with "playground_user_")
+            if api_message.user_id.starts_with("playground_user_") {
+                playground_user_ids.insert(api_message.user_id.clone());
+            }
+        }
+        
+        playground_user_ids.into_iter().collect::<Vec<String>>()
+    });
+
+    Ok(playground_users)
+}
+
+// Get all playground API messages
+#[query]
+pub fn admin_get_playground_messages() -> Result<Vec<ApiMessage>, String> {
+    if !is_allowed_principal() {
+        return Err("Unauthorized: Caller is not an admin".to_string());
+    }
+
+    // Get all API messages from playground users
+    let playground_messages = crate::storage::memory::API_MESSAGES.with(|messages| {
+        let messages = messages.borrow();
+        messages
+            .iter()
+            .filter(|(_, api_message)| api_message.user_id.starts_with("playground_user_"))
+            .map(|(_, message)| message.clone())
+            .collect::<Vec<ApiMessage>>()
+    });
+
+    Ok(playground_messages)
+}
+
+// Get playground messages by bot
+#[query]
+pub fn admin_get_playground_messages_by_bot(bot_name: String) -> Result<Vec<ApiMessage>, String> {
+    if !is_allowed_principal() {
+        return Err("Unauthorized: Caller is not an admin".to_string());
+    }
+
+    // Get all API messages from playground users for a specific bot
+    let playground_messages = crate::storage::memory::API_MESSAGES.with(|messages| {
+        let messages = messages.borrow();
+        messages
+            .iter()
+            .filter(|(_, api_message)| 
+                api_message.user_id.starts_with("playground_user_") && 
+                api_message.bot_name == bot_name
+            )
+            .map(|(_, message)| message.clone())
+            .collect::<Vec<ApiMessage>>()
+    });
+
+    Ok(playground_messages)
+}
+
+// Get recent playground messages
+#[query]
+pub fn admin_get_recent_playground_messages(limit: u32) -> Result<Vec<ApiMessage>, String> {
+    if !is_allowed_principal() {
+        return Err("Unauthorized: Caller is not an admin".to_string());
+    }
+
+    // Get recent API messages from playground users
+    let mut playground_messages = crate::storage::memory::API_MESSAGES.with(|messages| {
+        let messages = messages.borrow();
+        messages
+            .iter()
+            .filter(|(_, api_message)| api_message.user_id.starts_with("playground_user_"))
+            .map(|(_, message)| message.clone())
+            .collect::<Vec<ApiMessage>>()
+    });
+
+    // Sort by timestamp (newest first) and limit
+    playground_messages.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+    playground_messages.truncate(limit as usize);
+
+    Ok(playground_messages)
+}
+
+// Get playground activity for a specific user
+#[query]
+pub fn admin_get_playground_user_activity(playground_id: String) -> Result<crate::services::account_service::UserActivity, String> {
+    if !is_allowed_principal() {
+        return Err("Unauthorized: Caller is not an admin".to_string());
+    }
+
+    let identifier = AccountUserIdentifier::PlaygroundId(playground_id);
+    let activity = crate::services::account_service::get_user_activity(identifier);
+    Ok(activity)
+}
+
+// Get playground statistics
+#[query]
+pub fn admin_get_playground_stats() -> Result<PlaygroundStats, String> {
+    if !is_allowed_principal() {
+        return Err("Unauthorized: Caller is not an admin".to_string());
+    }
+
+    let stats = crate::storage::memory::API_MESSAGES.with(|messages| {
+        let messages = messages.borrow();
+        let mut total_messages = 0;
+        let mut unique_users = std::collections::HashSet::new();
+        let mut bot_usage = std::collections::HashMap::new();
+        
+        for (_, api_message) in messages.iter() {
+            if api_message.user_id.starts_with("playground_user_") {
+                total_messages += 1;
+                unique_users.insert(api_message.user_id.clone());
+                
+                // Count bot usage
+                let count = bot_usage.entry(api_message.bot_name.clone()).or_insert(0);
+                *count += 1;
+            }
+        }
+
+        PlaygroundStats {
+            total_messages,
+            unique_users: unique_users.len() as u32,
+            bot_usage,
+        }
+    });
+
+    Ok(stats)
 }

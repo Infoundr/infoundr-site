@@ -11,19 +11,27 @@ interface AdminContext {
     currentPrincipal: string;
 }
 
-const AdminApiMessages: React.FC = () => {
+interface PlaygroundStats {
+    total_messages: number;
+    unique_users: number;
+    bot_usage: Array<[string, number]>;
+}
+
+const AdminPlaygroundMonitoring: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
     const { actor, currentPrincipal } = useOutletContext<AdminContext>();
     
-    // API message management state
-    const [allApiMessages, setAllApiMessages] = useState<any[]>([]);
-    const [apiMessagesByBot, setApiMessagesByBot] = useState<any[]>([]);
-    const [recentApiMessages, setRecentApiMessages] = useState<any[]>([]);
+    // Playground monitoring state
+    const [playgroundStats, setPlaygroundStats] = useState<PlaygroundStats | null>(null);
+    const [playgroundUsers, setPlaygroundUsers] = useState<string[]>([]);
+    const [playgroundMessages, setPlaygroundMessages] = useState<any[]>([]);
+    const [playgroundMessagesByBot, setPlaygroundMessagesByBot] = useState<any[]>([]);
+    const [recentPlaygroundMessages, setRecentPlaygroundMessages] = useState<any[]>([]);
     const [selectedBotName, setSelectedBotName] = useState<string>("");
     const [recentMessageLimit, setRecentMessageLimit] = useState<number>(50);
-    const [showApiMessages, setShowApiMessages] = useState<boolean>(false);
-    const [apiMessageFilter, setApiMessageFilter] = useState<'all' | 'byBot' | 'recent'>('all');
+    const [selectedUserId, setSelectedUserId] = useState<string>("");
+    const [playgroundMessageFilter, setPlaygroundMessageFilter] = useState<'all' | 'byBot' | 'recent' | 'byUser'>('recent');
     
     // Search and filter state
     const [searchTerm, setSearchTerm] = useState('');
@@ -32,88 +40,130 @@ const AdminApiMessages: React.FC = () => {
 
     useEffect(() => {
         if (actor) {
-            // Initialize with recent messages by default
-            fetchRecentApiMessages(recentMessageLimit);
+            fetchPlaygroundData();
         }
     }, [actor]);
 
-    const fetchApiMessagesByBot = async (botName: string) => {
+    const fetchPlaygroundData = async () => {
         if (!actor) return;
         
         try {
-            console.log('Fetching API messages for bot:', botName);
+            setLoading(true);
+            console.log('Fetching playground data');
             console.log('Current Principal:', currentPrincipal);
             
-            const result = await actor.admin_get_api_messages_by_bot(botName);
-            console.log('API messages by bot result:', result);
-            
-            if ('Ok' in result) {
-                setApiMessagesByBot(result.Ok);
-                setApiMessageFilter('byBot');
-            } else {
-                alert(`Error fetching API messages by bot: ${result.Err}`);
-            }
-        } catch (error) {
-            console.error('Error fetching API messages by bot:', error);
-            alert('Error fetching API messages by bot');
-        }
-    };
+            // Fetch all playground data in parallel
+            const [
+                statsResult,
+                usersResult,
+                messagesResult,
+                recentMessagesResult
+            ] = await Promise.all([
+                actor.admin_get_playground_stats(),
+                actor.admin_get_playground_users(),
+                actor.admin_get_playground_messages(),
+                actor.admin_get_recent_playground_messages(50)
+            ]);
 
-    const fetchAllApiMessages = async () => {
-        if (!actor) return;
-        
-        try {
-            console.log('Fetching all API messages');
-            console.log('Current Principal:', currentPrincipal);
-            
-            const result = await actor.admin_get_all_api_messages();
-            console.log('All API messages result:', result);
-            
-            if ('Ok' in result) {
-                setAllApiMessages(result.Ok);
-                setApiMessageFilter('all');
+            // Process stats
+            if ('Ok' in statsResult) {
+                setPlaygroundStats(statsResult.Ok);
             } else {
-                alert(`Error fetching all API messages: ${result.Err}`);
+                console.error('Error fetching playground stats:', statsResult.Err);
             }
-        } catch (error) {
-            console.error('Error fetching all API messages:', error);
-            alert('Error fetching all API messages');
-        }
-    };
 
-    const fetchRecentApiMessages = async (limit: number) => {
-        if (!actor) return;
-        
-        try {
-            console.log('Fetching recent API messages with limit:', limit);
-            console.log('Current Principal:', currentPrincipal);
-            
-            const result = await actor.admin_get_recent_api_messages(limit);
-            console.log('Recent API messages result:', result);
-            
-            if ('Ok' in result) {
-                setRecentApiMessages(result.Ok);
-                setApiMessageFilter('recent');
+            // Process users
+            if ('Ok' in usersResult) {
+                setPlaygroundUsers(usersResult.Ok);
             } else {
-                alert(`Error fetching recent API messages: ${result.Err}`);
+                console.error('Error fetching playground users:', usersResult.Err);
             }
+
+            // Process messages
+            if ('Ok' in messagesResult) {
+                setPlaygroundMessages(messagesResult.Ok);
+            } else {
+                console.error('Error fetching playground messages:', messagesResult.Err);
+            }
+
+            // Process recent messages
+            if ('Ok' in recentMessagesResult) {
+                setRecentPlaygroundMessages(recentMessagesResult.Ok);
+                setPlaygroundMessageFilter('recent');
+            } else {
+                console.error('Error fetching recent playground messages:', recentMessagesResult.Err);
+            }
+
         } catch (error) {
-            console.error('Error fetching recent API messages:', error);
-            alert('Error fetching recent API messages');
+            console.error('Error fetching playground data:', error);
+            alert('Error fetching playground data');
         } finally {
             setLoading(false);
         }
     };
 
-    const handleApiMessageFilter = (filter: 'all' | 'byBot' | 'recent') => {
-        setApiMessageFilter(filter);
+    const fetchPlaygroundMessagesByBot = async (botName: string) => {
+        if (!actor) return;
+        
+        try {
+            console.log('Fetching playground messages for bot:', botName);
+            
+            const result = await actor.admin_get_playground_messages_by_bot(botName);
+            console.log('Playground messages by bot result:', result);
+            
+            if ('Ok' in result) {
+                setPlaygroundMessagesByBot(result.Ok);
+                setPlaygroundMessageFilter('byBot');
+            } else {
+                alert(`Error fetching playground messages by bot: ${result.Err}`);
+            }
+        } catch (error) {
+            console.error('Error fetching playground messages by bot:', error);
+            alert('Error fetching playground messages by bot');
+        }
+    };
+
+    const fetchPlaygroundUserActivity = async (userId: string) => {
+        if (!actor) return;
+        
+        try {
+            console.log('Fetching playground user activity for:', userId);
+            
+            const result = await actor.admin_get_playground_user_activity(userId);
+            console.log('Playground user activity result:', result);
+            
+            if ('Ok' in result) {
+                // Convert user activity to messages format for display
+                const messages = result.Ok.chat_history.map((chat: any) => ({
+                    id: chat.id || `chat_${Date.now()}`,
+                    user_id: userId,
+                    bot_name: 'Playground Chat',
+                    message: chat.message || 'No message',
+                    response: chat.response || 'No response',
+                    timestamp: chat.timestamp || BigInt(Date.now() * 1000000)
+                }));
+                setRecentPlaygroundMessages(messages);
+                setPlaygroundMessageFilter('byUser');
+            } else {
+                alert(`Error fetching playground user activity: ${result.Err}`);
+            }
+        } catch (error) {
+            console.error('Error fetching playground user activity:', error);
+            alert('Error fetching playground user activity');
+        }
+    };
+
+    const handlePlaygroundMessageFilter = (filter: 'all' | 'byBot' | 'recent' | 'byUser') => {
+        setPlaygroundMessageFilter(filter);
         
         if (filter === 'all') {
-            fetchAllApiMessages();
+            // Already have all messages loaded
         } else if (filter === 'byBot' && selectedBotName) {
-            fetchApiMessagesByBot(selectedBotName);
+            fetchPlaygroundMessagesByBot(selectedBotName);
         } else if (filter === 'recent') {
-            fetchRecentApiMessages(recentMessageLimit);
+            // Already have recent messages loaded
+        } else if (filter === 'byUser' && selectedUserId) {
+            fetchPlaygroundUserActivity(selectedUserId);
         }
     };
 
@@ -125,7 +175,6 @@ const AdminApiMessages: React.FC = () => {
         );
     }
 
-    // Authentication is now handled by AdminLayout
     if (!actor) {
         return (
             <div className="flex justify-center items-center h-64">
@@ -136,11 +185,12 @@ const AdminApiMessages: React.FC = () => {
 
     // Get current messages based on filter
     const getCurrentMessages = () => {
-        switch (apiMessageFilter) {
-            case 'all': return allApiMessages;
-            case 'byBot': return apiMessagesByBot;
-            case 'recent': return recentApiMessages;
-            default: return recentApiMessages;
+        switch (playgroundMessageFilter) {
+            case 'all': return playgroundMessages;
+            case 'byBot': return playgroundMessagesByBot;
+            case 'recent': return recentPlaygroundMessages;
+            case 'byUser': return recentPlaygroundMessages; // User activity is loaded into recent messages
+            default: return recentPlaygroundMessages;
         }
     };
 
@@ -211,12 +261,17 @@ const AdminApiMessages: React.FC = () => {
     };
 
     const getTotalMessages = () => {
-        switch (apiMessageFilter) {
-            case 'all': return allApiMessages.length;
-            case 'byBot': return apiMessagesByBot.length;
-            case 'recent': return recentApiMessages.length;
+        switch (playgroundMessageFilter) {
+            case 'all': return playgroundMessages.length;
+            case 'byBot': return playgroundMessagesByBot.length;
+            case 'recent': return recentPlaygroundMessages.length;
+            case 'byUser': return recentPlaygroundMessages.length;
             default: return 0;
         }
+    };
+
+    const isPlaygroundUser = (userId: string) => {
+        return userId.startsWith('playground_user_');
     };
 
     return (
@@ -224,38 +279,101 @@ const AdminApiMessages: React.FC = () => {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">API Message Management</h1>
-                    <p className="text-gray-600">Monitor and analyze bot conversations and API interactions</p>
+                    <h1 className="text-2xl font-bold text-gray-900">🚀 Playground Monitoring</h1>
+                    <p className="text-gray-600">Monitor playground user activities, conversations, and engagement metrics</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">
                         {getTotalMessages()} Messages
                     </div>
+                    <Button
+                        variant="secondary"
+                        onClick={fetchPlaygroundData}
+                        className="!bg-purple-600 !text-white hover:!bg-purple-700"
+                    >
+                        🔄 Refresh Data
+                    </Button>
                 </div>
             </div>
 
-            {/* API Message Controls */}
+            {/* Playground Statistics */}
+            {playgroundStats && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="bg-white rounded-lg shadow-sm p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm font-medium text-gray-600">Total Messages</p>
+                                <p className="text-3xl font-bold text-purple-600">{playgroundStats.total_messages}</p>
+                            </div>
+                            <div className="bg-purple-100 rounded-full p-3">
+                                <span className="text-2xl text-purple-600">💬</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className="bg-white rounded-lg shadow-sm p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm font-medium text-gray-600">Unique Users</p>
+                                <p className="text-3xl font-bold text-blue-600">{playgroundStats.unique_users}</p>
+                            </div>
+                            <div className="bg-blue-100 rounded-full p-3">
+                                <span className="text-2xl text-blue-600">👥</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className="bg-white rounded-lg shadow-sm p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm font-medium text-gray-600">Bot Usage</p>
+                                <p className="text-3xl font-bold text-green-600">{playgroundStats.bot_usage.length}</p>
+                            </div>
+                            <div className="bg-green-100 rounded-full p-3">
+                                <span className="text-2xl text-green-600">🤖</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Bot Usage Breakdown */}
+            {playgroundStats && playgroundStats.bot_usage.length > 0 && (
+                <div className="bg-white rounded-lg shadow-sm p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">🤖 Bot Usage Statistics</h3>
+                    <div className="space-y-3">
+                        {playgroundStats.bot_usage.map(([botName, usageCount], index) => (
+                            <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <span className="font-medium text-gray-700">{botName}</span>
+                                <span className="text-sm text-gray-500">{usageCount} messages</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Playground Controls */}
             <div className="bg-white rounded-lg shadow-sm p-6">
                 <div className="flex flex-wrap gap-4 items-center">
                     <Button
                         variant="primary"
                         className="!bg-[#8B5CF6] hover:!bg-[#7C3AED]"
-                        onClick={() => handleApiMessageFilter('all')}
+                        onClick={() => handlePlaygroundMessageFilter('all')}
                     >
-                        View All API Messages ({allApiMessages.length})
+                        View All Playground Messages ({playgroundMessages.length})
                     </Button>
                     
                     <div className="flex items-center gap-2">
                         <input
                             type="text"
-                            placeholder="Enter bot name (e.g., Benny, Uncle, Dean)"
+                            placeholder="Enter bot name"
                             value={selectedBotName}
                             onChange={(e) => setSelectedBotName(e.target.value)}
                             className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                         />
                         <Button
                             variant="secondary"
-                            onClick={() => handleApiMessageFilter('byBot')}
+                            onClick={() => handlePlaygroundMessageFilter('byBot')}
                             disabled={!selectedBotName.trim()}
                         >
                             Filter by Bot
@@ -274,11 +392,50 @@ const AdminApiMessages: React.FC = () => {
                         />
                         <Button
                             variant="secondary"
-                            onClick={() => handleApiMessageFilter('recent')}
+                            onClick={() => handlePlaygroundMessageFilter('recent')}
                         >
                             Recent Messages
                         </Button>
                     </div>
+
+                    <div className="flex items-center gap-2">
+                        <select
+                            value={selectedUserId}
+                            onChange={(e) => setSelectedUserId(e.target.value)}
+                            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        >
+                            <option value="">Select User</option>
+                            {playgroundUsers.map((userId) => (
+                                <option key={userId} value={userId}>
+                                    {userId}
+                                </option>
+                            ))}
+                        </select>
+                        <Button
+                            variant="secondary"
+                            onClick={() => handlePlaygroundMessageFilter('byUser')}
+                            disabled={!selectedUserId}
+                        >
+                            User Activity
+                        </Button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Playground Users List */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">👥 Playground Users ({playgroundUsers.length})</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {playgroundUsers.map((userId, index) => (
+                        <div key={index} className="p-3 bg-gray-50 rounded-lg">
+                            <div className="font-mono text-sm text-gray-700">
+                                {userId}
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">
+                                Playground User
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </div>
 
@@ -287,7 +444,7 @@ const AdminApiMessages: React.FC = () => {
                 <div className="flex flex-col sm:flex-row gap-4">
                     <div className="flex-1">
                         <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">
-                            Search Messages
+                            Search Playground Messages
                         </label>
                         <div className="relative">
                             <input
@@ -325,14 +482,15 @@ const AdminApiMessages: React.FC = () => {
                 </div>
             </div>
 
-            {/* API Messages Display */}
+            {/* Playground Messages Display */}
             <div className="bg-white rounded-lg shadow-md">
                 <div className="p-6 border-b">
                     <div className="flex justify-between items-center">
                         <h3 className="text-lg font-semibold">
-                            {apiMessageFilter === 'all' && 'All API Messages'}
-                            {apiMessageFilter === 'byBot' && `API Messages from ${selectedBotName}`}
-                            {apiMessageFilter === 'recent' && `Recent API Messages (${recentMessageLimit})`}
+                            {playgroundMessageFilter === 'all' && 'All Playground Messages'}
+                            {playgroundMessageFilter === 'byBot' && `Playground Messages from ${selectedBotName}`}
+                            {playgroundMessageFilter === 'recent' && `Recent Playground Messages (${recentMessageLimit})`}
+                            {playgroundMessageFilter === 'byUser' && `User Activity: ${selectedUserId}`}
                         </h3>
                         <div className="text-sm text-gray-500">
                             {filteredAndSortedMessages.length} of {getTotalMessages()} messages
@@ -383,7 +541,13 @@ const AdminApiMessages: React.FC = () => {
                                     <tr key={message.id || index} className="hover:bg-gray-50">
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             <div className="font-mono text-xs">
-                                                {message.user_id || 'Unknown'}
+                                                {isPlaygroundUser(message.user_id) ? (
+                                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                        🚀 {message.user_id}
+                                                    </span>
+                                                ) : (
+                                                    message.user_id || 'Unknown'
+                                                )}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -414,9 +578,10 @@ const AdminApiMessages: React.FC = () => {
                                 <tr>
                                     <td colSpan={5} className="px-6 py-12 text-center">
                                         <div className="text-gray-500">
-                                            {apiMessageFilter === 'all' && 'No API messages found'}
-                                            {apiMessageFilter === 'byBot' && `No messages found for bot: ${selectedBotName}`}
-                                            {apiMessageFilter === 'recent' && 'No recent messages found'}
+                                            {playgroundMessageFilter === 'all' && 'No playground messages found'}
+                                            {playgroundMessageFilter === 'byBot' && `No messages found for bot: ${selectedBotName}`}
+                                            {playgroundMessageFilter === 'recent' && 'No recent playground messages found'}
+                                            {playgroundMessageFilter === 'byUser' && `No activity found for user: ${selectedUserId}`}
                                             {searchTerm && ` matching "${searchTerm}"`}
                                         </div>
                                     </td>
@@ -431,10 +596,11 @@ const AdminApiMessages: React.FC = () => {
             {filteredAndSortedMessages.length > 0 && (
                 <div className="bg-white rounded-lg shadow-sm p-4">
                     <div className="text-sm text-gray-600 text-center">
-                        Showing {filteredAndSortedMessages.length} of {getTotalMessages()} messages
+                        Showing {filteredAndSortedMessages.length} of {getTotalMessages()} playground messages
                         {searchTerm && ` matching "${searchTerm}"`}
-                        {apiMessageFilter === 'byBot' && ` from bot "${selectedBotName}"`}
-                        {apiMessageFilter === 'recent' && ` (most recent ${recentMessageLimit})`}
+                        {playgroundMessageFilter === 'byBot' && ` from bot "${selectedBotName}"`}
+                        {playgroundMessageFilter === 'recent' && ` (most recent ${recentMessageLimit})`}
+                        {playgroundMessageFilter === 'byUser' && ` for user "${selectedUserId}"`}
                     </div>
                 </div>
             )}
@@ -442,4 +608,4 @@ const AdminApiMessages: React.FC = () => {
     );
 };
 
-export default AdminApiMessages; 
+export default AdminPlaygroundMonitoring;

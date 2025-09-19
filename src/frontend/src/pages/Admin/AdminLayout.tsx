@@ -124,6 +124,7 @@ const AdminLayout: React.FC = () => {
         { path: '/admin/accelerators', label: 'Accelerator Management', icon: '🚀' },
         { path: '/admin/platform-users', label: 'Platform Users', icon: '🔗' },
         { path: '/admin/api-messages', label: 'API Messages', icon: '💬' },
+        { path: '/admin/playground', label: 'Playground Monitoring', icon: '🚀' },
     ];
 
     if (loading) {
