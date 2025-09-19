@@ -187,7 +187,22 @@ const PlaygroundChatModal: React.FC<PlaygroundChatModalProps> = ({ isOpen, onClo
                   </div>
                 )}
                 <div className="text-sm leading-relaxed prose prose-sm max-w-none">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  <ReactMarkdown 
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      a: ({ href, children, ...props }) => (
+                        <a 
+                          href={href} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-400 hover:text-blue-300 underline"
+                          {...props}
+                        >
+                          {children}
+                        </a>
+                      )
+                    }}
+                  >
                     {message.content}
                   </ReactMarkdown>
                 </div>
