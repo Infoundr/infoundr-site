@@ -28,7 +28,7 @@ const PlaygroundChatButton: React.FC<PlaygroundChatButtonProps> = ({ onClick }) 
       
       {/* Playground badge */}
       <div className="absolute -top-1 -right-1 w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center">
-        <span className="text-xs font-bold text-white">🚀</span>
+        <span className="text-xs font-bold text-white"></span>
       </div>
       
       {/* Tooltip */}
