@@ -18,8 +18,10 @@ https://github.com/user-attachments/assets/158c45fc-a20e-4523-a687-f9df03e04ec2
 ### 2. Using Infoundr on Discord
 https://github.com/user-attachments/assets/463b18e9-50f6-4414-81ec-da815225dd24
 
-### 3. Using Infoundr on Slack
-_Coming soon_
+### 3. Testing Infoundr on playground chat (No need for workspace installations)
+https://github.com/user-attachments/assets/f3fecd91-e8e2-4000-a980-63dd95782321
+
+
 
 ## Prerequisites
 
