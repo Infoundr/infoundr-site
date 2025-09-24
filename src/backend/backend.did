@@ -319,6 +319,14 @@ type TeamMember = record {
 type TeamMemberInviteWithId = record { name : text; role : Role; email : text };
 type TokenValidationResult = record { platform_id : text; platform : text };
 type UpdateTeamMemberRole = record { email : text; new_role : Role };
+type UsageStats = record {
+  tier : UserTier;
+  day_bucket : nat64;
+  user_id : text;
+  requests_used : nat32;
+  reset_time_rfc3339 : text;
+  requests_limit : opt nat32;
+};
 type User = record {
   "principal" : principal;
   name : text;
@@ -341,6 +349,15 @@ type UserIdentifier = variant {
   DiscordId : text;
   OpenChatId : text;
 };
+type UserSubscription = record {
+  started_at_ns : opt nat64;
+  renewed_at_ns : opt nat64;
+  tier : UserTier;
+  user_id : text;
+  is_active : bool;
+  expires_at_ns : opt nat64;
+};
+type UserTier = variant { Pro; Free };
 type WaitlistEntry = record {
   status : WaitlistStatus;
   name : text;
@@ -364,6 +381,12 @@ service : {
       Result_2,
     ) query;
   admin_update_accelerator : (principal, AcceleratorUpdate) -> (Result);
+  api_can_make_request : (text) -> (bool) query;
+  api_get_usage_stats : (text) -> (UsageStats) query;
+  api_get_user_subscription : (text) -> (opt UserSubscription) query;
+  api_get_user_tier : (text) -> (UserTier) query;
+  api_increment_user_requests : (text) -> (Result);
+  api_upgrade_user_tier : (text, UserTier, opt nat64) -> (Result);
   calculate_engagement_score : (text) -> (Result_3) query;
   check_auth : () -> (bool) query;
   create_startup : (StartupInput) -> (Result_4);
@@ -384,6 +407,8 @@ service : {
   get_admin_details : () -> (vec record { principal; Admin }) query;
   get_admins : () -> (vec principal) query;
   get_all_accelerators : () -> (Result_9) query;
+  get_api_message_history : (UserIdentifier) -> (vec ApiMessage) query;
+  get_api_messages_by_bot : (UserIdentifier, text) -> (vec ApiMessage) query;
   get_chat_history : (UserIdentifier) -> (vec ChatMessage) query;
   get_connection_status : (UserIdentifier) -> (ConnectionStatus) query;
   get_current_repo : (principal) -> (opt text) query;
@@ -393,6 +418,7 @@ service : {
   get_my_accelerator : () -> (Result_8);
   get_openchat_user : (text) -> (opt OpenChatUser) query;
   get_openchat_user_by_principal : (principal) -> (opt OpenChatUser) query;
+  get_recent_api_messages : (UserIdentifier, nat32) -> (vec ApiMessage) query;
   get_registered_discord_users : () -> (vec DiscordUser) query;
   get_registered_discord_users_admin : () -> (Result_10) query;
   get_registered_openchat_users : () -> (vec OpenChatUser) query;
