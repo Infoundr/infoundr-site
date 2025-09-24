@@ -120,6 +120,7 @@ const AdminLayout: React.FC = () => {
         { path: '/admin/dashboard', label: 'Dashboard', icon: '📊' },
         { path: '/admin/users', label: 'Registered Users', icon: '👥' },
         { path: '/admin/waitlist', label: 'Waitlist Entries', icon: '⏳' },
+        { path: '/admin/user-usage', label: 'User Usage & Requests', icon: '📈' },
         { path: '/admin/admins', label: 'Admin Management', icon: '🔐' },
         { path: '/admin/accelerators', label: 'Accelerator Management', icon: '🚀' },
         { path: '/admin/platform-users', label: 'Platform Users', icon: '🔗' },

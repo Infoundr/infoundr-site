@@ -206,6 +206,17 @@ const AdminDashboard: React.FC = () => {
                     </button>
 
                     <button
+                        onClick={() => navigate('/admin/user-usage')}
+                        className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-colors"
+                    >
+                        <span className="text-2xl">📈</span>
+                        <div className="text-left">
+                            <p className="font-medium text-gray-900">User Usage & Requests</p>
+                            <p className="text-sm text-gray-600">Monitor user activity and limits</p>
+                        </div>
+                    </button>
+
+                    <button
                         onClick={() => navigate('/admin/api-messages')}
                         className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-colors"
                     >
