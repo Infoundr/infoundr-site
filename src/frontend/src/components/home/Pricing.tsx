@@ -40,10 +40,10 @@ const Pricing: React.FC<PricingProps> = ({ onGetStartedClick }) => {
         'Priority support & faster response times',
         'Advanced analytics & insights dashboard'
       ],
-      buttonText: 'Coming Soon',
-      buttonVariant: 'secondary' as const,
-      buttonClassName: 'bg-gray-300 text-gray-500 cursor-not-allowed',
-      featured: false
+      buttonText: 'Get Started',
+      buttonVariant: 'primary' as const,
+      buttonClassName: 'bg-purple-600 text-white hover:bg-purple-700 hover:shadow-lg transition-all duration-200',
+      featured: true
     }
   ];
 
@@ -52,7 +52,10 @@ const Pricing: React.FC<PricingProps> = ({ onGetStartedClick }) => {
     if (buttonText === 'Start Free') {
       window.location.href = '/documentation';
     }
-    // Coming Soon button does nothing
+    // Pro button can also redirect or call your onGetStartedClick
+    if (buttonText === 'Get Started') {
+      onGetStartedClick();
+    }
   };
 
   return (
@@ -77,13 +80,7 @@ const Pricing: React.FC<PricingProps> = ({ onGetStartedClick }) => {
                   Most Popular
                 </span>
               )}
-              {plan.name === 'Pro' && (
-                <div className="absolute inset-0 bg-black bg-opacity-20 rounded-3xl flex items-center justify-center z-10">
-                  <span className="bg-purple-600 text-white px-6 py-3 rounded-full text-lg font-semibold shadow-lg">
-                    Coming Soon
-                  </span>
-                </div>
-              )}
+              
               <h3 className="text-xl sm:text-2xl font-bold mb-2">{plan.name}</h3>
               <p className="text-sm text-gray-600 mb-4">{plan.description}</p>
               <div className="text-2xl sm:text-3xl font-bold mb-6">
