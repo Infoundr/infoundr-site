@@ -8,7 +8,7 @@ use crate::models::stable_string::StableString;
 use crate::models::usage_service::{UsageStats, UserSubscription, UserTier};
 
 const NANOS_PER_DAY: u64 = 86_400 * 1_000_000_000;
-const FREE_DAILY_LIMIT: u32 = 50;
+const FREE_DAILY_LIMIT: u32 = 20;
 
 /// Helper: get daily limit for a tier
 fn get_daily_limit(tier: &UserTier) -> Option<u32> {
