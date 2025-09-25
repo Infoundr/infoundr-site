@@ -23,31 +23,8 @@ const DiscordIntegration: React.FC = () => {
     <section id="discord-integration" className="py-16 sm:py-20 bg-gradient-to-b from-purple-50 to-purple-50">
       <div className="container mx-auto px-4 sm:px-6">
         <div className="flex flex-col lg:flex-row items-center justify-center gap-8 sm:gap-12 max-w-7xl mx-auto">
-          {/* Left Column - Text Content */}
-          <div className="flex-1 w-full lg:w-1/2 text-center lg:text-left">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-6 text-gray-900">
-              Try Your AI Co-Founder in Discord
-            </h2>
-            <div className="space-y-6">
-              {features.map((feature, index) => (
-                <div key={index} className="flex gap-2 sm:gap-4 items-start">
-                  <div className="text-xl sm:text-2xl lg:text-3xl flex-shrink-0 mt-1">
-                    {feature.icon}
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2 text-gray-900">
-                      {feature.title}
-                    </h3>
-                    <p className="text-gray-600 leading-relaxed">
-                      {feature.description}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Right Column - Image */}
+          
+          {/* Left Column - Image */}
           <div className="w-full lg:w-1/2 flex justify-center items-center">
             <div className="relative w-full max-w-[600px] h-[400px] flex items-center justify-center">
               {/* Main image */}
@@ -78,6 +55,30 @@ const DiscordIntegration: React.FC = () => {
               </div>
             </div>
           </div>
+
+          {/* Right Column - Text Content */}
+          <div className="flex-1 w-full lg:w-1/2 text-center lg:text-left">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-6 text-gray-900">
+              Try Your AI Co-Founder in Discord
+            </h2>
+            <div className="space-y-6">
+              {features.map((feature, index) => (
+                <div key={index} className="flex gap-2 sm:gap-4 items-start">
+                  <div className="text-xl sm:text-2xl lg:text-3xl flex-shrink-0 mt-1">
+                    {feature.icon}
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold mb-2 text-gray-900">
+                      {feature.title}
+                    </h3>
+                    <p className="text-gray-600 leading-relaxed">
+                      {feature.description}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Call to Action */}
@@ -97,4 +98,4 @@ const DiscordIntegration: React.FC = () => {
   );
 };
 
-export default DiscordIntegration; 
+export default DiscordIntegration;
