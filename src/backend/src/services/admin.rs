@@ -8,7 +8,7 @@ use crate::services::slack_service::get_registered_slack_users;
 use crate::services::discord_service::get_registered_discord_users;
 use crate::services::account_service::{UserIdentifier as AccountUserIdentifier};
 use crate::services::api_service::{get_api_message_history, get_api_messages_by_bot, get_recent_api_messages, UserIdentifier as ApiUserIdentifier};
-use crate::services::pricing_services::{get_usage_stats, get_user_tier, get_user_subscription, get_user_daily_requests, can_make_request};
+use crate::services::pricing_services::{get_usage_stats, get_user_tier, get_user_subscription, can_make_request};
 use crate::storage::memory::{USERS, WAITLIST, ACCELERATORS, ADMINS, SLACK_USERS, DISCORD_USERS, OPENCHAT_USERS, USER_SUBSCRIPTIONS, USER_DAILY_USAGE};
 use candid::Principal;
 use ic_cdk::{caller, query, update};
@@ -757,24 +757,29 @@ pub fn admin_get_usage_by_tier() -> Result<Vec<(UserTier, u32, u32)>, String> {
     let mut free_requests = 0;
     let mut pro_requests = 0;
     
-    // Count users and requests by tier
-    USER_SUBSCRIPTIONS.with(|subs| {
-        for (user_id_key, subscription) in subs.borrow().iter() {
-            let user_id = user_id_key.to_string();
-            let requests_made = get_user_daily_requests(&user_id);
-            
-            match subscription.tier {
-                UserTier::Free => {
-                    free_users += 1;
-                    free_requests += requests_made;
-                },
-                UserTier::Pro => {
-                    pro_users += 1;
-                    pro_requests += requests_made;
-                },
-            }
-        }
+    // Get all users with daily usage data (regardless of subscription status)
+    let daily_usage_data: Vec<(String, u32)> = USER_DAILY_USAGE.with(|usage| {
+        usage.borrow()
+            .iter()
+            .map(|((user_id_key, _), requests_count)| (user_id_key.to_string(), requests_count))
+            .collect()
     });
+    
+    // Count users and requests by tier
+    for (user_id, requests_made) in daily_usage_data {
+        let tier = get_user_tier(&user_id);
+        
+        match tier {
+            UserTier::Free => {
+                free_users += 1;
+                free_requests += requests_made;
+            },
+            UserTier::Pro => {
+                pro_users += 1;
+                pro_requests += requests_made;
+            },
+        }
+    }
 
     let mut result = Vec::new();
     result.push((UserTier::Free, free_users, free_requests));
