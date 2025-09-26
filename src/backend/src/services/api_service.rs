@@ -20,7 +20,7 @@ pub fn store_api_message(
     response: String,
     bot_name: String,
     metadata: Option<ApiMetadata>,
-) {
+)  -> Result<ApiMessage, String>{
     let _store_principal = match &identifier {
         UserIdentifier::Principal(principal) => *principal,
         UserIdentifier::OpenChatId(openchat_id) => {
@@ -95,7 +95,7 @@ pub fn store_api_message(
     
         // ✅ Usage validation before storing the request
     if !can_make_request(&user_id) {
-        ic_cdk::trap(&format!(
+        return Err(format!(
             "Daily limit reached. Upgrade to Pro for unlimited access. \
              Usage: {:?}",
             get_usage_stats(&user_id)
@@ -103,7 +103,7 @@ pub fn store_api_message(
     }
 
     if let Err(err) = increment_user_requests(&user_id) {
-        ic_cdk::trap(&err);
+        return Err(err);
     }
 
 
@@ -126,6 +126,7 @@ pub fn store_api_message(
         messages.insert((StableString::from(message_id), timestamp), api_message.clone());
     });
 
+    Ok(api_message)
 
     // Add debug logging
     // ic_cdk::println!("Stored API message with ID {} for principal {:?}", message_id, store_principal);
