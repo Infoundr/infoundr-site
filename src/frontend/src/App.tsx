@@ -19,6 +19,7 @@ import AdminLayout from './pages/Admin/AdminLayout';
 import AdminDashboard from './pages/Admin/Dashboard';
 import AdminUsers from './pages/Admin/Users';
 import AdminWaitlist from './pages/Admin/Waitlist';
+import UserUsage from './pages/Admin/UserUsage';
 import AdminAdmins from './pages/Admin/Admins';
 import AdminAccelerators from './pages/Admin/Accelerators';
 import AdminPlatformUsers from './pages/Admin/PlatformUsers';
@@ -191,6 +192,7 @@ const App: React.FC = () => {
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="users" element={<AdminUsers />} />
             <Route path="waitlist" element={<AdminWaitlist />} />
+            <Route path="user-usage" element={<UserUsage />} />
             <Route path="admins" element={<AdminAdmins />} />
             <Route path="accelerators" element={<AdminAccelerators />} />
             <Route path="platform-users" element={<AdminPlatformUsers />} />

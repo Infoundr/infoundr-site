@@ -245,7 +245,7 @@ const AdminAccelerators: React.FC = () => {
                                             <div className="flex items-center">
                                                 <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
                                                     <span className="text-sm font-medium text-green-600">
-                                                        🚀
+                                                        🔧
                                                     </span>
                                                 </div>
                                                 <div className="ml-4">
