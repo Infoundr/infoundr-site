@@ -47,6 +47,7 @@ const UserUsage: React.FC = () => {
     const [usersAtLimit, setUsersAtLimit] = useState<[string, number, { Free: null } | { Pro: null }][]>([]);
     const [usageByTier, setUsageByTier] = useState<[{ Free: null } | { Pro: null }, number, number][]>([]);
     const [topUsers, setTopUsers] = useState<[string, number, { Free: null } | { Pro: null }][]>([]);
+    const [totalUsersCount, setTotalUsersCount] = useState<number>(0);
     
     // Search and filter states
     const [searchUserId, setSearchUserId] = useState('');
@@ -72,14 +73,16 @@ const UserUsage: React.FC = () => {
                 dailyUsageResult,
                 usersAtLimitResult,
                 usageByTierResult,
-                topUsersResult
+                topUsersResult,
+                totalUsersCountResult
             ] = await Promise.all([
                 actor.admin_get_all_user_usage_stats(),
                 actor.admin_get_all_user_subscriptions(),
                 actor.admin_get_daily_usage_summary(),
                 actor.admin_get_users_at_limit(),
                 actor.admin_get_usage_by_tier(),
-                actor.admin_get_top_users_by_requests(10)
+                actor.admin_get_top_users_by_requests(10),
+                actor.admin_get_total_users_count()
             ]);
 
             if ('Ok' in usageStatsResult) setAllUsageStats(usageStatsResult.Ok);
@@ -88,6 +91,7 @@ const UserUsage: React.FC = () => {
             if ('Ok' in usersAtLimitResult) setUsersAtLimit(usersAtLimitResult.Ok);
             if ('Ok' in usageByTierResult) setUsageByTier(usageByTierResult.Ok);
             if ('Ok' in topUsersResult) setTopUsers(topUsersResult.Ok);
+            if ('Ok' in totalUsersCountResult) setTotalUsersCount(totalUsersCountResult.Ok);
 
         } catch (error) {
             console.error('Error fetching usage data:', error);
@@ -186,7 +190,7 @@ const UserUsage: React.FC = () => {
                                     <div className="flex items-center justify-between">
                                         <div>
                                             <p className="text-sm font-medium text-blue-600">Total Users</p>
-                                            <p className="text-3xl font-bold text-blue-900">{allSubscriptions.length}</p>
+                                            <p className="text-3xl font-bold text-blue-900">{totalUsersCount}</p>
                                         </div>
                                         <div className="bg-blue-500 rounded-full p-3">
                                             <span className="text-2xl text-white">👥</span>

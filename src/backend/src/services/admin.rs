@@ -653,23 +653,36 @@ pub fn admin_get_users_at_limit() -> Result<Vec<(String, u32, UserTier)>, String
 
     let mut users_at_limit = Vec::new();
     
-    // Check all users with subscriptions
-    USER_SUBSCRIPTIONS.with(|subs| {
-        for (user_id_key, subscription) in subs.borrow().iter() {
-            let user_id = user_id_key.to_string();
-            let tier = subscription.tier.clone();
+    // First, collect all user data without calling functions that might cause borrow conflicts
+    let daily_usage_data: Vec<(String, u32)> = USER_DAILY_USAGE.with(|usage| {
+        usage.borrow()
+            .iter()
+            .map(|((user_id_key, _), requests_count)| (user_id_key.to_string(), requests_count))
+            .collect()
+    });
+    
+    // Then process each user
+    for (user_id, requests_count) in daily_usage_data {
+        let tier = get_user_tier(&user_id);
+        
+        // Only check Free tier users (Pro users have unlimited)
+        if matches!(tier, UserTier::Free) {
+            // Check if user can make more requests without causing borrow conflicts
+            let daily_limit = match tier {
+                UserTier::Free => Some(20), // FREE_DAILY_LIMIT
+                UserTier::Pro => None,
+            };
             
-            // Only check Free tier users (Pro users have unlimited)
-            if matches!(tier, UserTier::Free) {
-                let requests_made = get_user_daily_requests(&user_id);
-                let can_make_more = can_make_request(&user_id);
-                
-                if !can_make_more {
-                    users_at_limit.push((user_id, requests_made, tier));
-                }
+            let can_make_more = match daily_limit {
+                None => true, // Pro users have unlimited
+                Some(limit) => requests_count < limit,
+            };
+            
+            if !can_make_more {
+                users_at_limit.push((user_id, requests_count, tier));
             }
         }
-    });
+    }
 
     // Sort by requests made (highest first)
     users_at_limit.sort_by(|a, b| b.1.cmp(&a.1));
@@ -739,23 +752,61 @@ pub fn admin_get_usage_by_tier() -> Result<Vec<(UserTier, u32, u32)>, String> {
     Ok(result)
 }
 
-/// Get top users by request count (today)
+/// Get total users across all platforms (Discord, Slack, Playground)
+#[query]
+pub fn admin_get_total_users_count() -> Result<u32, String> {
+    if !is_allowed_principal() {
+        return Err("Unauthorized: Caller is not an admin".to_string());
+    }
+
+    let mut total_users = 0;
+    
+    // Count Discord users
+    total_users += DISCORD_USERS.with(|users| users.borrow().len()) as u32;
+    
+    // Count Slack users
+    total_users += SLACK_USERS.with(|users| users.borrow().len()) as u32;
+    
+    // Count Playground users (from API messages)
+    let playground_users = crate::storage::memory::API_MESSAGES.with(|messages| {
+        let messages = messages.borrow();
+        let mut playground_user_ids = std::collections::HashSet::new();
+        
+        for (_, api_message) in messages.iter() {
+            if api_message.user_id.starts_with("playground_") {
+                playground_user_ids.insert(api_message.user_id.clone());
+            }
+        }
+        
+        playground_user_ids.len() as u32
+    });
+    total_users += playground_users;
+    
+    Ok(total_users)
+}
+
+/// Get top users by request count (today) - includes all users who made requests
 #[query]
 pub fn admin_get_top_users_by_requests(limit: u32) -> Result<Vec<(String, u32, UserTier)>, String> {
     if !is_allowed_principal() {
         return Err("Unauthorized: Caller is not an admin".to_string());
     }
 
+    // First, collect all user data without calling functions that might cause borrow conflicts
+    let daily_usage_data: Vec<(String, u32)> = USER_DAILY_USAGE.with(|usage| {
+        usage.borrow()
+            .iter()
+            .map(|((user_id_key, _), requests_count)| (user_id_key.to_string(), requests_count))
+            .collect()
+    });
+    
     let mut all_users = Vec::new();
     
-    // Get all users with subscriptions
-    USER_SUBSCRIPTIONS.with(|subs| {
-        for (user_id_key, subscription) in subs.borrow().iter() {
-            let user_id = user_id_key.to_string();
-            let requests_made = get_user_daily_requests(&user_id);
-            all_users.push((user_id, requests_made, subscription.tier.clone()));
-        }
-    });
+    // Then process each user
+    for (user_id, requests_count) in daily_usage_data {
+        let tier = get_user_tier(&user_id);
+        all_users.push((user_id, requests_count, tier));
+    }
 
     // Sort by requests made (highest first)
     all_users.sort_by(|a, b| b.1.cmp(&a.1));

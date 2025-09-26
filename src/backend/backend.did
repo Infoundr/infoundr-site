@@ -137,10 +137,13 @@ type PlaygroundStats = record {
 type RemoveTeamMember = record { email : text };
 type Result = variant { Ok; Err : text };
 type Result_1 = variant { Ok : ChatMessage; Err : text };
-type Result_10 = variant { Ok : UserActivityReport; Err : text };
-type Result_11 = variant { Ok : opt UserSubscription; Err : text };
-type Result_12 = variant { Ok : UsageStats; Err : text };
-type Result_13 = variant { Ok : nat32; Err : text };
+type Result_10 = variant {
+  Ok : vec record { UserTier; nat32; nat32 };
+  Err : text;
+};
+type Result_11 = variant { Ok : UserActivityReport; Err : text };
+type Result_12 = variant { Ok : opt UserSubscription; Err : text };
+type Result_13 = variant { Ok : UsageStats; Err : text };
 type Result_14 = variant { Ok : Startup; Err : text };
 type Result_15 = variant { Ok : StartupCohort; Err : text };
 type Result_16 = variant { Ok : StartupStatus; Err : text };
@@ -179,10 +182,7 @@ type Result_5 = variant {
 type Result_6 = variant { Ok : PlaygroundStats; Err : text };
 type Result_7 = variant { Ok : UserActivity; Err : text };
 type Result_8 = variant { Ok : vec text; Err : text };
-type Result_9 = variant {
-  Ok : vec record { UserTier; nat32; nat32 };
-  Err : text;
-};
+type Result_9 = variant { Ok : nat32; Err : text };
 type Role = variant { ProgramManager; Viewer; SuperAdmin; Admin };
 type SlackUser = record {
   site_principal : opt principal;
@@ -423,10 +423,11 @@ service : {
     ) query;
   admin_get_recent_playground_messages : (nat32) -> (Result_2) query;
   admin_get_top_users_by_requests : (nat32) -> (Result_5) query;
-  admin_get_usage_by_tier : () -> (Result_9) query;
-  admin_get_user_activity_report : (text) -> (Result_10) query;
-  admin_get_user_subscription : (text) -> (Result_11) query;
-  admin_get_user_usage_stats : (text) -> (Result_12) query;
+  admin_get_total_users_count : () -> (Result_9) query;
+  admin_get_usage_by_tier : () -> (Result_10) query;
+  admin_get_user_activity_report : (text) -> (Result_11) query;
+  admin_get_user_subscription : (text) -> (Result_12) query;
+  admin_get_user_usage_stats : (text) -> (Result_13) query;
   admin_get_users_at_limit : () -> (Result_5) query;
   admin_update_accelerator : (principal, AcceleratorUpdate) -> (Result);
   admin_upgrade_user_tier : (text, UserTier, opt nat64) -> (Result);
@@ -436,7 +437,7 @@ service : {
   api_get_user_tier : (text) -> (UserTier) query;
   api_increment_user_requests : (text) -> (Result);
   api_upgrade_user_tier : (text, UserTier, opt nat64) -> (Result);
-  calculate_engagement_score : (text) -> (Result_13) query;
+  calculate_engagement_score : (text) -> (Result_9) query;
   check_auth : () -> (bool) query;
   create_startup : (StartupInput) -> (Result_14);
   create_startup_cohort : (StartupCohortInput) -> (Result_15);
