@@ -13,6 +13,7 @@ use crate::storage::memory::{USERS, WAITLIST, ACCELERATORS, ADMINS, SLACK_USERS,
 use candid::Principal;
 use ic_cdk::{caller, query, update};
 use crate::models::admin::PlaygroundStats;
+use chrono::{Utc, TimeZone};
 
 // Admin callers
 #[query]
@@ -476,7 +477,7 @@ pub fn admin_get_recent_api_messages_for_user(identifier: AccountUserIdentifier,
 // USER USAGE & REQUEST MONITORING
 // ================================
 
-/// Get usage statistics for all users with subscriptions
+/// Get usage statistics for all users who have made requests
 #[query]
 pub fn admin_get_all_user_usage_stats() -> Result<Vec<UsageStats>, String> {
     if !is_allowed_principal() {
@@ -485,14 +486,44 @@ pub fn admin_get_all_user_usage_stats() -> Result<Vec<UsageStats>, String> {
 
     let mut all_usage_stats = Vec::new();
     
-    // Get all users with subscriptions
-    USER_SUBSCRIPTIONS.with(|subs| {
-        for (user_id_key, _) in subs.borrow().iter() {
-            let user_id = user_id_key.to_string();
-            let usage_stats = get_usage_stats(&user_id);
-            all_usage_stats.push(usage_stats);
-        }
+    // Get all users with daily usage data (regardless of subscription status)
+    let daily_usage_data: Vec<(String, u32)> = USER_DAILY_USAGE.with(|usage| {
+        usage.borrow()
+            .iter()
+            .map(|((user_id_key, _), requests_count)| (user_id_key.to_string(), requests_count))
+            .collect()
     });
+    
+    // Create usage stats for each user
+    for (user_id, requests_count) in daily_usage_data {
+        let tier = get_user_tier(&user_id);
+        let daily_limit = match tier {
+            UserTier::Free => Some(20), // FREE_DAILY_LIMIT
+            UserTier::Pro => None,
+        };
+        
+        let now = ic_cdk::api::time();
+        let day_bucket = now / 86_400_000_000_000; // NANOS_PER_DAY
+        
+        // Calculate next reset time
+        let next_bucket_start_ns = (day_bucket + 1) * 86_400_000_000_000;
+        let secs = (next_bucket_start_ns / 1_000_000_000) as i64;
+        let reset_time_rfc3339 = Utc.timestamp_opt(secs, 0)
+            .single()
+            .unwrap_or_else(|| Utc::now())
+            .to_rfc3339();
+        
+        let usage_stats = UsageStats {
+            user_id: user_id.clone(),
+            tier,
+            requests_used: requests_count,
+            requests_limit: daily_limit,
+            day_bucket,
+            reset_time_rfc3339,
+        };
+        
+        all_usage_stats.push(usage_stats);
+    }
 
     // Sort by requests used (highest first)
     all_usage_stats.sort_by(|a, b| b.requests_used.cmp(&a.requests_used));

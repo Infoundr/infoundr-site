@@ -85,13 +85,33 @@ const UserUsage: React.FC = () => {
                 actor.admin_get_total_users_count()
             ]);
 
-            if ('Ok' in usageStatsResult) setAllUsageStats(usageStatsResult.Ok);
+            if ('Ok' in usageStatsResult) {
+                console.log('Usage stats loaded:', usageStatsResult.Ok.length, 'users');
+                setAllUsageStats(usageStatsResult.Ok);
+            } else {
+                console.log('Usage stats error:', usageStatsResult.Err);
+            }
             if ('Ok' in subscriptionsResult) setAllSubscriptions(subscriptionsResult.Ok);
             if ('Ok' in dailyUsageResult) setDailyUsageSummary(dailyUsageResult.Ok);
-            if ('Ok' in usersAtLimitResult) setUsersAtLimit(usersAtLimitResult.Ok);
+            if ('Ok' in usersAtLimitResult) {
+                console.log('Users at limit loaded:', usersAtLimitResult.Ok.length, 'users');
+                setUsersAtLimit(usersAtLimitResult.Ok);
+            } else {
+                console.log('Users at limit error:', usersAtLimitResult.Err);
+            }
             if ('Ok' in usageByTierResult) setUsageByTier(usageByTierResult.Ok);
-            if ('Ok' in topUsersResult) setTopUsers(topUsersResult.Ok);
-            if ('Ok' in totalUsersCountResult) setTotalUsersCount(totalUsersCountResult.Ok);
+            if ('Ok' in topUsersResult) {
+                console.log('Top users loaded:', topUsersResult.Ok.length, 'users');
+                setTopUsers(topUsersResult.Ok);
+            } else {
+                console.log('Top users error:', topUsersResult.Err);
+            }
+            if ('Ok' in totalUsersCountResult) {
+                console.log('Total users count:', totalUsersCountResult.Ok);
+                setTotalUsersCount(totalUsersCountResult.Ok);
+            } else {
+                console.log('Total users count error:', totalUsersCountResult.Err);
+            }
 
         } catch (error) {
             console.error('Error fetching usage data:', error);
@@ -350,29 +370,39 @@ const UserUsage: React.FC = () => {
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
-                                        {allUsageStats.map((stats) => (
-                                            <tr key={stats.user_id}>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                    {stats.user_id.length > 20 ? `${stats.user_id.substring(0, 20)}...` : stats.user_id}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                                        'Pro' in stats.tier 
-                                                            ? 'bg-green-100 text-green-800' 
-                                                            : 'bg-gray-100 text-gray-800'
-                                                    }`}>
-                                                        {formatTier(stats.tier)}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{stats.requests_used}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                    {stats.requests_limit.length > 0 ? stats.requests_limit[0] : 'Unlimited'}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {formatResetTime(stats.reset_time_rfc3339)}
+                                        {allUsageStats.length === 0 ? (
+                                            <tr>
+                                                <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                                                    <div className="text-6xl mb-4">📊</div>
+                                                    <h3 className="text-lg font-medium text-gray-900 mb-2">No usage data found</h3>
+                                                    <p className="text-gray-500">No users have made requests today.</p>
                                                 </td>
                                             </tr>
-                                        ))}
+                                        ) : (
+                                            allUsageStats.map((stats) => (
+                                                <tr key={stats.user_id}>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                                        {stats.user_id.length > 20 ? `${stats.user_id.substring(0, 20)}...` : stats.user_id}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                                            'Pro' in stats.tier 
+                                                                ? 'bg-green-100 text-green-800' 
+                                                                : 'bg-gray-100 text-gray-800'
+                                                        }`}>
+                                                            {formatTier(stats.tier)}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{stats.requests_used}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                        {stats.requests_limit.length > 0 ? stats.requests_limit[0] : 'Unlimited'}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                        {formatResetTime(stats.reset_time_rfc3339)}
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
                                     </tbody>
                                 </table>
                             </div>
