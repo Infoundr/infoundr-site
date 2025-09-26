@@ -43,7 +43,7 @@ const Pricing: React.FC<PricingProps> = ({ onGetStartedClick }) => {
       buttonText: 'Get Started',
       buttonVariant: 'primary' as const,
       buttonClassName: 'bg-purple-600 text-white hover:bg-purple-700 hover:shadow-lg transition-all duration-200',
-      featured: true
+      featured: false
     }
   ];
 
