@@ -82,6 +82,17 @@ pub fn store_api_message(
                     })
             })
         }
+        UserIdentifier::PlaygroundId(playground_id) => {
+            // Create a special principal for Playground messages
+            // This is a deterministic way to create a principal from a Playground ID
+            let mut bytes = [0u8; 29];
+            bytes[0] = 7; // Special type for Playground
+            // Use the first 28 bytes of the Playground ID
+            let playground_bytes = playground_id.as_bytes();
+            let len = std::cmp::min(playground_bytes.len(), 28);
+            bytes[1..1+len].copy_from_slice(&playground_bytes[..len]);
+            Principal::from_slice(&bytes)
+        }
     };
 
     let timestamp = ic_cdk::api::time();
@@ -90,6 +101,7 @@ pub fn store_api_message(
         UserIdentifier::OpenChatId(openchat_id) => openchat_id.clone(),
         UserIdentifier::SlackId(slack_id) => slack_id.clone(),
         UserIdentifier::DiscordId(discord_id) => discord_id.clone(),
+        UserIdentifier::PlaygroundId(playground_id) => playground_id.clone(),
     };
     
     
@@ -263,6 +275,19 @@ pub fn get_api_message_history(identifier: UserIdentifier) -> Vec<ApiMessage> {
 
             principals
         }
+        UserIdentifier::PlaygroundId(playground_id) => {
+            let mut principals = vec![];
+
+            // Create special Playground principal
+            let mut bytes = [0u8; 29];
+            bytes[0] = 7; // Special type for Playground
+            let playground_bytes = playground_id.as_bytes();
+            let len = std::cmp::min(playground_bytes.len(), 28);
+            bytes[1..1+len].copy_from_slice(&playground_bytes[..len]);
+            principals.push(Principal::from_slice(&bytes));
+
+            principals
+        }
     };
 
     // Collect all API messages across all relevant principals
@@ -290,6 +315,7 @@ pub fn get_api_message_history(identifier: UserIdentifier) -> Vec<ApiMessage> {
         UserIdentifier::OpenChatId(openchat_id) => openchat_id.clone(),
         UserIdentifier::SlackId(slack_id) => slack_id.clone(),
         UserIdentifier::DiscordId(discord_id) => discord_id.clone(),
+        UserIdentifier::PlaygroundId(playground_id) => playground_id.clone(),
     };
 
     API_MESSAGES.with(|messages| {
@@ -385,4 +411,3 @@ pub fn api_upgrade_user_tier(user_id: String, tier: UserTier, expires_at_ns: Opt
 pub fn api_get_user_subscription(user_id: String) -> Option<UserSubscription> {
     get_user_subscription(&user_id)
 }
-

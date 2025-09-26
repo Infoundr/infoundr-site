@@ -15,6 +15,9 @@ env:
   FRONTEND_PACKAGE: "frontend"  # Frontend canister name
   VERSION: ${{ github.sha }}  
   DFX_WARNING: "-mainnet_plaintext_identity"
+  # Production environment variables
+  VITE_USE_MOCK_DATA: "false"
+  VITE_ENV_MODE: "mainnet"
 
 jobs:
   build-and-deploy:
@@ -115,6 +118,22 @@ jobs:
           mkdir -p $GITHUB_WORKSPACE/wasm
           cd $GITHUB_WORKSPACE/src/frontend
           npm install
+          # Create production environment file before build
+          cat > .env << EOL
+          VITE_DFX_NETWORK=ic
+          VITE_IC_HOST=https://icp0.io
+          VITE_CANISTER_ID=g7ko2-fyaaa-aaaam-qdlea-cai
+          VITE_AUTH_MODE=backend
+          VITE_ENV_MODE=mainnet
+          VITE_EMAIL_SERVICE_URL=${{ secrets.EMAIL_SERVICE_URL }}
+          VITE_EMAIL_SERVICE_API_KEY=${{ secrets.EMAIL_SERVICE_API_KEY }}
+          VITE_INFOUNDR_API_URL=${{ secrets.INFOUNDR_API_URL }}
+          VITE_INFOUNDR_API_KEY=${{ secrets.INFOUNDR_API_KEY }}
+          VITE_USE_MOCK_DATA=false
+          EOL
+          # Verify environment file was created
+          echo "Environment file contents:"
+          cat .env
           # Build the frontend assets
           npm run build
           # Create the frontend canister
@@ -186,6 +205,11 @@ jobs:
           VITE_CANISTER_ID=$CANISTER_ID
           VITE_AUTH_MODE=backend
           VITE_ENV_MODE=mainnet
+          VITE_EMAIL_SERVICE_URL=${{ secrets.EMAIL_SERVICE_URL }}
+          VITE_EMAIL_SERVICE_API_KEY=${{ secrets.EMAIL_SERVICE_API_KEY }}
+          VITE_INFOUNDR_API_URL=${{ secrets.INFOUNDR_API_URL }}
+          VITE_INFOUNDR_API_KEY=${{ secrets.INFOUNDR_API_KEY }}
+          VITE_USE_MOCK_DATA=false
           EOL
           
           # Update config.ts if it exists

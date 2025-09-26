@@ -129,6 +129,11 @@ type OpenChatUser = record {
   openchat_id : text;
   first_interaction : nat64;
 };
+type PlaygroundStats = record {
+  bot_usage : vec record { text; nat32 };
+  unique_users : nat32;
+  total_messages : nat32;
+};
 type RemoveTeamMember = record { email : text };
 type Result = variant { Ok; Err : text };
 type Result_1 = variant { Ok : ChatMessage; Err : text };
@@ -175,6 +180,35 @@ type Result_6 = variant {
 type Result_7 = variant { Ok : UserActivityReport; Err : text };
 type Result_8 = variant { Ok : opt UserSubscription; Err : text };
 type Result_9 = variant { Ok : UsageStats; Err : text };
+type Result_10 = variant { Ok : StartupInvite; Err : text };
+type Result_11 = variant { Ok : opt Accelerator; Err : text };
+type Result_12 = variant { Ok : vec Accelerator; Err : text };
+type Result_13 = variant { Ok : vec DiscordUser; Err : text };
+type Result_14 = variant { Ok : vec OpenChatUser; Err : text };
+type Result_15 = variant { Ok : vec SlackUser; Err : text };
+type Result_16 = variant { Ok : vec User; Err : text };
+type Result_17 = variant { Ok : opt Startup; Err : text };
+type Result_18 = variant { Ok : vec StartupActivity; Err : text };
+type Result_19 = variant { Ok : opt StartupInvite; Err : text };
+type Result_2 = variant { Ok : vec ApiMessage; Err : text };
+type Result_20 = variant { Ok : StartupStats; Err : text };
+type Result_21 = variant { Ok : opt TeamInvite; Err : text };
+type Result_22 = variant { Ok : vec WaitlistEntry; Err : text };
+type Result_23 = variant { Ok : text; Err : text };
+type Result_24 = variant { Ok : WaitlistEntry; Err : text };
+type Result_25 = variant { Ok : vec StartupCohort; Err : text };
+type Result_26 = variant { Ok : vec StartupStatus; Err : text };
+type Result_27 = variant { Ok : vec Startup; Err : text };
+type Result_28 = variant { Ok : vec TeamMember; Err : text };
+type Result_29 = variant { Ok : User; Err : text };
+type Result_3 = variant { Ok : PlaygroundStats; Err : text };
+type Result_30 = variant { Ok; Err : vec text };
+type Result_4 = variant { Ok : UserActivity; Err : text };
+type Result_5 = variant { Ok : vec text; Err : text };
+type Result_6 = variant { Ok : nat32; Err : text };
+type Result_7 = variant { Ok : Startup; Err : text };
+type Result_8 = variant { Ok : StartupCohort; Err : text };
+type Result_9 = variant { Ok : StartupStatus; Err : text };
 type Role = variant { ProgramManager; Viewer; SuperAdmin; Admin };
 type SlackUser = record {
   site_principal : opt principal;
@@ -368,6 +402,7 @@ type UserActivityReport = record {
   last_activity : nat64;
 };
 type UserIdentifier = variant {
+  PlaygroundId : text;
   Principal : principal;
   SlackId : text;
   DiscordId : text;
@@ -403,6 +438,11 @@ service : {
       Result_2,
     ) query;
   admin_get_daily_usage_summary : () -> (Result_5) query;
+  admin_get_playground_messages : () -> (Result_2) query;
+  admin_get_playground_messages_by_bot : (text) -> (Result_2) query;
+  admin_get_playground_stats : () -> (Result_3) query;
+  admin_get_playground_user_activity : (text) -> (Result_4) query;
+  admin_get_playground_users : () -> (Result_5) query;
   admin_get_recent_api_messages : (nat32) -> (Result_2) query;
   admin_get_recent_api_messages_for_user : (UserIdentifier, nat32) -> (
       Result_2,
@@ -426,6 +466,13 @@ service : {
   create_startup : (StartupInput) -> (Result_11);
   create_startup_cohort : (StartupCohortInput) -> (Result_12);
   create_startup_status : (StartupStatusInput) -> (Result_13);
+  admin_get_recent_playground_messages : (nat32) -> (Result_2) query;
+  admin_update_accelerator : (principal, AcceleratorUpdate) -> (Result);
+  calculate_engagement_score : (text) -> (Result_6) query;
+  check_auth : () -> (bool) query;
+  create_startup : (StartupInput) -> (Result_7);
+  create_startup_cohort : (StartupCohortInput) -> (Result_8);
+  create_startup_status : (StartupStatusInput) -> (Result_9);
   decline_invitation : (text) -> (Result);
   delete_accelerator : (principal) -> (Result);
   delete_startup : (text) -> (Result);
@@ -443,6 +490,12 @@ service : {
   get_all_accelerators : () -> (Result_16) query;
   get_api_message_history : (UserIdentifier) -> (vec ApiMessage) query;
   get_api_messages_by_bot : (UserIdentifier, text) -> (vec ApiMessage) query;
+  generate_startup_invite : (GenerateStartupInviteInput) -> (Result_10);
+  get_accelerator_by_id : (principal) -> (Result_11) query;
+  get_active_openchat_users : (nat64) -> (vec OpenChatUser) query;
+  get_admin_details : () -> (vec record { principal; Admin }) query;
+  get_admins : () -> (vec principal) query;
+  get_all_accelerators : () -> (Result_12) query;
   get_chat_history : (UserIdentifier) -> (vec ChatMessage) query;
   get_connection_status : (UserIdentifier) -> (ConnectionStatus) query;
   get_current_repo : (principal) -> (opt text) query;
@@ -450,6 +503,7 @@ service : {
   get_discord_user : (text) -> (opt DiscordUser) query;
   get_discord_user_by_principal : (principal) -> (opt DiscordUser) query;
   get_my_accelerator : () -> (Result_15);
+  get_my_accelerator : () -> (Result_11);
   get_openchat_user : (text) -> (opt OpenChatUser) query;
   get_openchat_user_by_principal : (principal) -> (opt OpenChatUser) query;
   get_recent_api_messages : (UserIdentifier, nat32) -> (vec ApiMessage) query;
@@ -476,6 +530,28 @@ service : {
   get_users : () -> (Result_20) query;
   get_waitlist : () -> (Result_27) query;
   invite_team_member : (TeamMemberInviteWithId) -> (Result_28);
+  get_registered_discord_users_admin : () -> (Result_13) query;
+  get_registered_openchat_users : () -> (vec OpenChatUser) query;
+  get_registered_openchat_users_admin : () -> (Result_14) query;
+  get_registered_slack_users : () -> (vec SlackUser) query;
+  get_registered_slack_users_admin : () -> (Result_15) query;
+  get_registered_users : () -> (Result_16) query;
+  get_slack_user : (text) -> (opt SlackUser) query;
+  get_slack_user_by_principal : (principal) -> (opt SlackUser) query;
+  get_startup : (text) -> (Result_17) query;
+  get_startup_activities : (text, opt nat64) -> (Result_18) query;
+  get_startup_invite_by_code : (text) -> (Result_19) query;
+  get_startup_stats : () -> (Result_20) query;
+  get_team_invite_by_token : (text) -> (Result_21) query;
+  get_token_info : (text) -> (opt DashboardToken) query;
+  get_user_activity : (UserIdentifier) -> (UserActivity) query;
+  get_user_activity_admin : (UserIdentifier) -> (Result_4) query;
+  get_user_connections : (principal) -> (opt ConnectedAccounts) query;
+  get_user_issues : (UserIdentifier) -> (vec Issue) query;
+  get_user_tasks : (UserIdentifier) -> (vec Task) query;
+  get_users : () -> (Result_16) query;
+  get_waitlist : () -> (Result_22) query;
+  invite_team_member : (TeamMemberInviteWithId) -> (Result_23);
   is_admin : () -> (bool) query;
   is_allowed_principal : () -> (bool) query;
   is_discord_user_registered : (text) -> (bool) query;
@@ -499,6 +575,24 @@ service : {
   remove_team_member : (RemoveTeamMember) -> (Result);
   revoke_startup_invite : (text) -> (Result);
   sign_up_accelerator : (AcceleratorSignUp) -> (Result_28);
+  join_waitlist : (text) -> (Result_24);
+  link_accounts : (principal, text) -> (Result);
+  link_startup_principal : (text, text) -> (Result);
+  link_token_to_principal : (text, principal) -> (Result);
+  list_startup_cohorts : () -> (Result_25) query;
+  list_startup_invites : (text) -> (vec StartupInvite) query;
+  list_startup_statuses : () -> (Result_26) query;
+  list_startups : (opt StartupFilter) -> (Result_27) query;
+  list_team_members : () -> (Result_28) query;
+  record_startup_activity : (text, StartupActivityType, text, opt text) -> (
+      Result,
+    );
+  register_startup : (text, text, text) -> (Result_29);
+  register_user : (text) -> (Result_29);
+  remove_admin : (principal) -> (Result);
+  remove_team_member : (RemoveTeamMember) -> (Result);
+  revoke_startup_invite : (text) -> (Result);
+  sign_up_accelerator : (AcceleratorSignUp) -> (Result_23);
   store_api_message : (UserIdentifier, text, text, text, opt ApiMetadata) -> ();
   store_asana_connection : (
       UserIdentifier,
@@ -521,5 +615,6 @@ service : {
   update_team_member_role : (UpdateTeamMemberRole) -> (Result);
   validate_dashboard_token : (blob) -> (opt TokenValidationResult) query;
   verify_connections : (principal) -> (Result_35) query;
+  verify_connections : (principal) -> (Result_30) query;
   verify_token : (text) -> (Result);
 }

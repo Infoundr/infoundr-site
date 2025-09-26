@@ -47,6 +47,7 @@ use crate::services::accelerator_service::TeamInvite;
 use crate::services::accelerator_service::{GenerateStartupInviteInput, StartupRegistrationInput};
 pub use crate::models::usage_service::{UsageStats, UserTier, UserSubscription};
 pub use crate::services::admin::UserActivityReport;
+use crate::models::admin::PlaygroundStats;
 
 #[derive(candid::CandidType, candid::Deserialize)]
 struct StableState {

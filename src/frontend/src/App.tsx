@@ -8,6 +8,9 @@ import DiscordIntegration from './components/home/DiscordIntegration';
 import Pricing from './components/home/Pricing';
 import Footer from './components/layout/Footer';
 import WaitlistModal from './components/common/WaitlistModal';
+import GetStartedModal from './components/common/GetStartedModal';
+import PlaygroundChatModal from './components/common/PlaygroundChatModal';
+import PlaygroundChatButton from './components/common/PlaygroundChatButton';
 import { checkIsAuthenticated } from './services/auth';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
@@ -21,6 +24,7 @@ import AdminAdmins from './pages/Admin/Admins';
 import AdminAccelerators from './pages/Admin/Accelerators';
 import AdminPlatformUsers from './pages/Admin/PlatformUsers';
 import AdminApiMessages from './pages/Admin/ApiMessages';
+import AdminPlaygroundMonitoring from './pages/Admin/PlaygroundMonitoring';
 import Auth from './pages/Dashboard/Auth';
 import DashboardLayout from './pages/Dashboard/layouts/DashboardLayout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -64,6 +68,8 @@ import EmailAgent from './pages/documentation/discord/EmailAgent';
 
 const App: React.FC = () => {
   const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
+  const [isGetStartedModalOpen, setIsGetStartedModalOpen] = useState(false);
+  const [isPlaygroundModalOpen, setIsPlaygroundModalOpen] = useState(false);
   const [isUserAuthenticated, setIsUserAuthenticated] = useState(false);
   const [actor, setActor] = useState<Actor | null>(null);
 
@@ -80,6 +86,21 @@ const App: React.FC = () => {
     setIsUserAuthenticated(status);
   };
 
+  const handleGetStartedClick = () => {
+    setIsGetStartedModalOpen(true);
+  };
+
+  const handleTryPlayground = () => {
+    setIsGetStartedModalOpen(false);
+    setIsPlaygroundModalOpen(true);
+  };
+
+  const handleViewDocumentation = () => {
+    setIsGetStartedModalOpen(false);
+    // Navigate to documentation page
+    window.location.href = '/documentation';
+  };
+
   return (
     <BrowserRouter>
       <div className="relative">
@@ -89,17 +110,17 @@ const App: React.FC = () => {
           <Route path="/" element={
             <>
               <NavBar 
-                onGetStartedClick={() => setIsWaitlistModalOpen(true)} 
+                onGetStartedClick={handleGetStartedClick} 
                 isAuthenticated={isUserAuthenticated}
                 onAuthChange={handleAuthenticationChange}
               />
               <main>
-                <Hero onGetStartedClick={() => setIsWaitlistModalOpen(true)} />
+                <Hero onGetStartedClick={handleGetStartedClick} />
                 <Features />
                 <SlackIntegration />
                 <DiscordIntegration />
                 {/* <AIAssistants /> */}
-                <Pricing onGetStartedClick={() => setIsWaitlistModalOpen(true)} />
+                <Pricing onGetStartedClick={handleGetStartedClick} />
               </main>
               <Footer />
             </>
@@ -176,6 +197,7 @@ const App: React.FC = () => {
             <Route path="accelerators" element={<AdminAccelerators />} />
             <Route path="platform-users" element={<AdminPlatformUsers />} />
             <Route path="api-messages" element={<AdminApiMessages />} />
+            <Route path="playground" element={<AdminPlaygroundMonitoring />} />
           </Route>
           
           {/* Documentation Routes */}
@@ -200,6 +222,20 @@ const App: React.FC = () => {
           isOpen={isWaitlistModalOpen}
           onClose={() => setIsWaitlistModalOpen(false)}
           onAuthSuccess={() => setIsUserAuthenticated(true)}
+        />
+        
+        <GetStartedModal 
+          isOpen={isGetStartedModalOpen}
+          onClose={() => setIsGetStartedModalOpen(false)}
+          onTryPlayground={handleTryPlayground}
+          onViewDocumentation={handleViewDocumentation}
+        />
+        
+        {/* Playground Chat Components */}
+        <PlaygroundChatButton onClick={() => setIsPlaygroundModalOpen(true)} />
+        <PlaygroundChatModal 
+          isOpen={isPlaygroundModalOpen}
+          onClose={() => setIsPlaygroundModalOpen(false)}
         />
       </div>
     </BrowserRouter>
