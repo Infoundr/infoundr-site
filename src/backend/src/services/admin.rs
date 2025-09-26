@@ -479,11 +479,6 @@ pub fn admin_get_recent_api_messages_for_user(identifier: AccountUserIdentifier,
 /// Get usage statistics for all users with subscriptions
 #[query]
 pub fn admin_get_all_user_usage_stats() -> Result<Vec<UsageStats>, String> {
-// Playground-specific admin functions
-
-// Get all playground users and their activity
-#[query]
-pub fn admin_get_playground_users() -> Result<Vec<String>, String> {
     if !is_allowed_principal() {
         return Err("Unauthorized: Caller is not an admin".to_string());
     }
@@ -505,9 +500,15 @@ pub fn admin_get_playground_users() -> Result<Vec<String>, String> {
     Ok(all_usage_stats)
 }
 
-/// Get usage statistics for a specific user
+// Playground-specific admin functions
+
+// Get all playground users and their activity
 #[query]
-pub fn admin_get_user_usage_stats(user_id: String) -> Result<UsageStats, String> {
+pub fn admin_get_playground_users() -> Result<Vec<String>, String> {
+    if !is_allowed_principal() {
+        return Err("Unauthorized: Caller is not an admin".to_string());
+    }
+
     // Get all playground user IDs from API messages
     let playground_users = crate::storage::memory::API_MESSAGES.with(|messages| {
         let messages = messages.borrow();
@@ -526,6 +527,17 @@ pub fn admin_get_user_usage_stats(user_id: String) -> Result<UsageStats, String>
     Ok(playground_users)
 }
 
+/// Get usage statistics for a specific user
+#[query]
+pub fn admin_get_user_usage_stats(user_id: String) -> Result<UsageStats, String> {
+    if !is_allowed_principal() {
+        return Err("Unauthorized: Caller is not an admin".to_string());
+    }
+
+    let usage_stats = get_usage_stats(&user_id);
+    Ok(usage_stats)
+}
+
 // Get all playground API messages
 #[query]
 pub fn admin_get_playground_messages() -> Result<Vec<ApiMessage>, String> {
@@ -533,8 +545,17 @@ pub fn admin_get_playground_messages() -> Result<Vec<ApiMessage>, String> {
         return Err("Unauthorized: Caller is not an admin".to_string());
     }
 
-    let usage_stats = get_usage_stats(&user_id);
-    Ok(usage_stats)
+    // Get all API messages from playground users
+    let playground_messages = crate::storage::memory::API_MESSAGES.with(|messages| {
+        let messages = messages.borrow();
+        messages
+            .iter()
+            .filter(|(_, api_message)| api_message.user_id.starts_with("playground_"))
+            .map(|(_, message)| message.clone())
+            .collect::<Vec<ApiMessage>>()
+    });
+
+    Ok(playground_messages)
 }
 
 /// Get subscription details for all users
@@ -568,17 +589,12 @@ pub fn admin_get_all_user_subscriptions() -> Result<Vec<(String, UserSubscriptio
 /// Get subscription details for a specific user
 #[query]
 pub fn admin_get_user_subscription(user_id: String) -> Result<Option<UserSubscription>, String> {
-    // Get all API messages from playground users
-    let playground_messages = crate::storage::memory::API_MESSAGES.with(|messages| {
-        let messages = messages.borrow();
-        messages
-            .iter()
-            .filter(|(_, api_message)| api_message.user_id.starts_with("playground_"))
-            .map(|(_, message)| message.clone())
-            .collect::<Vec<ApiMessage>>()
-    });
+    if !is_allowed_principal() {
+        return Err("Unauthorized: Caller is not an admin".to_string());
+    }
 
-    Ok(playground_messages)
+    let subscription = get_user_subscription(&user_id);
+    Ok(subscription)
 }
 
 // Get playground messages by bot
@@ -588,8 +604,20 @@ pub fn admin_get_playground_messages_by_bot(bot_name: String) -> Result<Vec<ApiM
         return Err("Unauthorized: Caller is not an admin".to_string());
     }
 
-    let subscription = get_user_subscription(&user_id);
-    Ok(subscription)
+    // Get all API messages from playground users for a specific bot
+    let playground_messages = crate::storage::memory::API_MESSAGES.with(|messages| {
+        let messages = messages.borrow();
+        messages
+            .iter()
+            .filter(|(_, api_message)| 
+                api_message.user_id.starts_with("playground_") && 
+                api_message.bot_name == bot_name
+            )
+            .map(|(_, message)| message.clone())
+            .collect::<Vec<ApiMessage>>()
+    });
+
+    Ok(playground_messages)
 }
 
 /// Get daily usage summary - users who have made requests today
@@ -619,25 +647,6 @@ pub fn admin_get_daily_usage_summary() -> Result<Vec<(String, u32, UserTier)>, S
 /// Get users who have reached their daily limit
 #[query]
 pub fn admin_get_users_at_limit() -> Result<Vec<(String, u32, UserTier)>, String> {
-    // Get all API messages from playground users for a specific bot
-    let playground_messages = crate::storage::memory::API_MESSAGES.with(|messages| {
-        let messages = messages.borrow();
-        messages
-            .iter()
-            .filter(|(_, api_message)| 
-                api_message.user_id.starts_with("playground_") && 
-                api_message.bot_name == bot_name
-            )
-            .map(|(_, message)| message.clone())
-            .collect::<Vec<ApiMessage>>()
-    });
-
-    Ok(playground_messages)
-}
-
-// Get recent playground messages
-#[query]
-pub fn admin_get_recent_playground_messages(limit: u32) -> Result<Vec<ApiMessage>, String> {
     if !is_allowed_principal() {
         return Err("Unauthorized: Caller is not an admin".to_string());
     }
@@ -666,6 +675,30 @@ pub fn admin_get_recent_playground_messages(limit: u32) -> Result<Vec<ApiMessage
     users_at_limit.sort_by(|a, b| b.1.cmp(&a.1));
     
     Ok(users_at_limit)
+}
+
+// Get recent playground messages
+#[query]
+pub fn admin_get_recent_playground_messages(limit: u32) -> Result<Vec<ApiMessage>, String> {
+    if !is_allowed_principal() {
+        return Err("Unauthorized: Caller is not an admin".to_string());
+    }
+
+    // Get recent API messages from playground users
+    let mut playground_messages = crate::storage::memory::API_MESSAGES.with(|messages| {
+        let messages = messages.borrow();
+        messages
+            .iter()
+            .filter(|(_, api_message)| api_message.user_id.starts_with("playground_"))
+            .map(|(_, message)| message.clone())
+            .collect::<Vec<ApiMessage>>()
+    });
+
+    // Sort by timestamp (newest first) and limit
+    playground_messages.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+    playground_messages.truncate(limit as usize);
+
+    Ok(playground_messages)
 }
 
 /// Get usage statistics grouped by tier
@@ -781,21 +814,6 @@ pub struct UserActivityReport {
     pub can_make_more_requests: bool,
     pub total_api_messages: u32,
     pub last_activity: u64,
-    // Get recent API messages from playground users
-    let mut playground_messages = crate::storage::memory::API_MESSAGES.with(|messages| {
-        let messages = messages.borrow();
-        messages
-            .iter()
-            .filter(|(_, api_message)| api_message.user_id.starts_with("playground_"))
-            .map(|(_, message)| message.clone())
-            .collect::<Vec<ApiMessage>>()
-    });
-
-    // Sort by timestamp (newest first) and limit
-    playground_messages.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
-    playground_messages.truncate(limit as usize);
-
-    Ok(playground_messages)
 }
 
 // Get playground activity for a specific user

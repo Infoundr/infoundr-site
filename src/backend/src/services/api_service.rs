@@ -372,6 +372,7 @@ pub enum UserIdentifier {
     OpenChatId(String),
     SlackId(String),
     DiscordId(String),
+    PlaygroundId(String),
 } 
 
 // -------------------- USAGE & PRICING API --------------------
