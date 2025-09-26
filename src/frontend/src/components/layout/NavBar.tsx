@@ -57,7 +57,7 @@ const NavBar: React.FC<NavBarProps> = ({ onGetStartedClick, isAuthenticated: isU
         {/* Logo */}
         <div className="flex items-center">
           <a href="/" className="text-2xl font-bold text-indigo-600">
-            <img src="images/Logo.png" alt="Infoundr" className="h-10 md:h-12" />
+            <img src="images/Logo.png" alt="Infoundr" className="h-24 md:h-16" />
           </a>
         </div>
 
