@@ -52,7 +52,7 @@ const Pricing: React.FC<PricingProps> = ({ onGetStartedClick }) => {
     if (buttonText === 'Start Free') {
       window.location.href = '/documentation';
     }
-    // Coming Soon button does nothing
+    // Coming soon button does nothing
   };
 
   return (
@@ -68,7 +68,7 @@ const Pricing: React.FC<PricingProps> = ({ onGetStartedClick }) => {
           {plans.map((plan) => (
             <div 
               key={plan.name} 
-              className={`border rounded-3xl p-6 sm:p-8 bg-white 
+              className={`flex flex-col justify-between h-full border rounded-3xl p-6 sm:p-8 bg-white
                 transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-lg cursor-pointer
                 ${plan.featured ? 'border-purple-600 border-2 relative' : ''} ${plan.name === 'Pro' ? 'relative' : ''}`}
             >
@@ -77,13 +77,7 @@ const Pricing: React.FC<PricingProps> = ({ onGetStartedClick }) => {
                   Most Popular
                 </span>
               )}
-              {plan.name === 'Pro' && (
-                <div className="absolute inset-0 bg-black bg-opacity-20 rounded-3xl flex items-center justify-center z-10">
-                  <span className="bg-purple-600 text-white px-6 py-3 rounded-full text-lg font-semibold shadow-lg">
-                    Coming Soon
-                  </span>
-                </div>
-              )}
+              <div className="flex-1">
               <h3 className="text-xl sm:text-2xl font-bold mb-2">{plan.name}</h3>
               <p className="text-sm text-gray-600 mb-4">{plan.description}</p>
               <div className="text-2xl sm:text-3xl font-bold mb-6">
@@ -99,9 +93,10 @@ const Pricing: React.FC<PricingProps> = ({ onGetStartedClick }) => {
                   </li>
                 ))}
               </ul>
+              </div>
               <Button 
                 variant={plan.buttonVariant}
-                className={`w-full ${
+                className={`w-full mt-auto ${
                   plan.featured 
                     ? 'bg-purple-600 text-white hover:bg-purple-700' 
                     : (plan.buttonClassName || 'bg-gray-900 text-white hover:bg-gray-800')
