@@ -16,7 +16,7 @@ pub struct User {
     pub discord_id: Option<String>,
 }
 
-#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum SubscriptionTier {
     Free,
     Professional,
