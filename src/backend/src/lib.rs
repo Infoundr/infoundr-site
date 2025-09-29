@@ -39,6 +39,7 @@ use crate::storage::memory::{
 };
 use candid::Principal;
 use ic_cdk::storage::{stable_restore, stable_save};
+use serde::{Deserialize, Serialize};
 use crate::services::token_service::TokenValidationResult;
 use crate::services::accelerator_service::{AcceleratorSignUp, TeamMemberInviteWithId, UpdateTeamMemberRole, RemoveTeamMember, AcceleratorUpdateWithId, AcceleratorUpdate};
 use crate::models::accelerator::{Accelerator, TeamMember};
@@ -49,8 +50,9 @@ pub use crate::models::usage_service::{UsageStats, UserTier, UserSubscription};
 pub use crate::services::admin::UserActivityReport;
 use crate::models::admin::PlaygroundStats;
 
-#[derive(candid::CandidType, candid::Deserialize)]
-struct StableState {
+// Versioned stable state for migration support
+#[derive(Serialize, Deserialize)]
+struct StableStateV1 {
     users: Vec<(StablePrincipal, User)>,
     waitlist: Vec<(StableString, WaitlistEntry)>,
     chat_history: Vec<((StablePrincipal, u64), ChatMessage)>,
@@ -69,8 +71,61 @@ struct StableState {
     startup_cohorts: Vec<(StableString, StartupCohort)>,
     startup_activities: Vec<((StableString, u64), StartupActivity)>,
     admins: Vec<(StablePrincipal, crate::models::admin::Admin)>,
-    user_subscriptions: Vec<(StableString, UserSubscription)>,  // ADD THIS
-    user_daily_usage: Vec<((StableString, u64), u32)>,          // ADD THIS
+}
+
+#[derive(Serialize, Deserialize)]
+struct StableStateV2 {
+    users: Vec<(StablePrincipal, User)>,
+    waitlist: Vec<(StableString, WaitlistEntry)>,
+    chat_history: Vec<((StablePrincipal, u64), ChatMessage)>,
+    api_messages: Vec<((StableString, u64), ApiMessage)>,
+    connected_accounts: Vec<(StablePrincipal, ConnectedAccounts)>,
+    tasks: Vec<((StablePrincipal, StableString), Task)>,
+    github_issues: Vec<((StablePrincipal, StableString), Issue)>,
+    openchat_users: Vec<(StableString, OpenChatUser)>,
+    slack_users: Vec<(StableString, SlackUser)>,
+    discord_users: Vec<(StableString, DiscordUser)>,
+    dashboard_tokens: Vec<(StableString, DashboardToken)>,
+    accelerators: Vec<(StablePrincipal, Accelerator)>,
+    startup_invites: Vec<(StableString, StartupInvite)>,
+    startups: Vec<(StableString, Startup)>,
+    startup_statuses: Vec<(StableString, StartupStatus)>,
+    startup_cohorts: Vec<(StableString, StartupCohort)>,
+    startup_activities: Vec<((StableString, u64), StartupActivity)>,
+    admins: Vec<(StablePrincipal, crate::models::admin::Admin)>,
+    user_subscriptions: Vec<(StableString, UserSubscription)>,
+    user_daily_usage: Vec<((StableString, u64), u32)>,
+}
+
+// Current stable state (latest version)
+type StableState = StableStateV2;
+
+// Migration implementations
+impl From<StableStateV1> for StableStateV2 {
+    fn from(v1: StableStateV1) -> Self {
+        StableStateV2 {
+            users: v1.users,
+            waitlist: v1.waitlist,
+            chat_history: v1.chat_history,
+            api_messages: v1.api_messages,
+            connected_accounts: v1.connected_accounts,
+            tasks: v1.tasks,
+            github_issues: v1.github_issues,
+            openchat_users: v1.openchat_users,
+            slack_users: v1.slack_users,
+            discord_users: v1.discord_users,
+            dashboard_tokens: v1.dashboard_tokens,
+            accelerators: v1.accelerators,
+            startup_invites: v1.startup_invites,
+            startups: v1.startups,
+            startup_statuses: v1.startup_statuses,
+            startup_cohorts: v1.startup_cohorts,
+            startup_activities: v1.startup_activities,
+            admins: v1.admins,
+            user_subscriptions: vec![], // Default empty for new field
+            user_daily_usage: vec![],   // Default empty for new field
+        }
+    }
 }
 
 #[ic_cdk::pre_upgrade]
@@ -96,7 +151,6 @@ fn pre_upgrade() {
     let user_subscriptions = USER_SUBSCRIPTIONS.with(|s| s.borrow().iter().collect::<Vec<_>>());
     let user_daily_usage = USER_DAILY_USAGE.with(|u| u.borrow().iter().collect::<Vec<_>>());
 
-
     let state = StableState {
         users,
         waitlist,
@@ -118,38 +172,82 @@ fn pre_upgrade() {
         admins,
         user_subscriptions,
         user_daily_usage,
-
     };
 
-    stable_save((state,)).expect("Failed to save stable state");
+    // Serialize with bincode for better performance and compatibility
+    let serialized = bincode::serialize(&state).expect("Failed to serialize state");
+    stable_save((serialized,)).expect("Failed to save stable state");
 }
 
 #[ic_cdk::post_upgrade]
 fn post_upgrade() {
-    let (state,): (StableState,) = match stable_restore() {
-        Ok(data) => data,
-        Err(_) => (StableState {
-            users: vec![],
-            waitlist: vec![],
-            chat_history: vec![],
-            api_messages: vec![],
-            connected_accounts: vec![],
-            tasks: vec![],
-            github_issues: vec![],
-            openchat_users: vec![],
-            slack_users: vec![],
-            discord_users: vec![],
-            dashboard_tokens: vec![],
-            accelerators: vec![],
-            startup_invites: vec![],
-            startups: vec![],
-            startup_statuses: vec![],
-            startup_cohorts: vec![],
-            startup_activities: vec![],
-            admins: vec![],
-            user_subscriptions: vec![],   // ADD THIS
-            user_daily_usage: vec![],     // ADD THIS
-        },),
+    let state = match stable_restore::<(Vec<u8>,)>() {
+        Ok((serialized,)) => {
+            // Try to deserialize as current version first
+            match bincode::deserialize::<StableState>(&serialized) {
+                Ok(state) => state,
+                Err(_) => {
+                    // If that fails, try to deserialize as V1 and migrate
+                    match bincode::deserialize::<StableStateV1>(&serialized) {
+                        Ok(v1_state) => {
+                            ic_cdk::println!("Migrating from V1 to V2");
+                            StableState::from(v1_state)
+                        }
+                        Err(e) => {
+                            ic_cdk::println!("Failed to deserialize state: {:?}", e);
+                            // Fallback to empty state
+                            StableState {
+                                users: vec![],
+                                waitlist: vec![],
+                                chat_history: vec![],
+                                api_messages: vec![],
+                                connected_accounts: vec![],
+                                tasks: vec![],
+                                github_issues: vec![],
+                                openchat_users: vec![],
+                                slack_users: vec![],
+                                discord_users: vec![],
+                                dashboard_tokens: vec![],
+                                accelerators: vec![],
+                                startup_invites: vec![],
+                                startups: vec![],
+                                startup_statuses: vec![],
+                                startup_cohorts: vec![],
+                                startup_activities: vec![],
+                                admins: vec![],
+                                user_subscriptions: vec![],
+                                user_daily_usage: vec![],
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        Err(_) => {
+            // No existing state, start fresh
+            StableState {
+                users: vec![],
+                waitlist: vec![],
+                chat_history: vec![],
+                api_messages: vec![],
+                connected_accounts: vec![],
+                tasks: vec![],
+                github_issues: vec![],
+                openchat_users: vec![],
+                slack_users: vec![],
+                discord_users: vec![],
+                dashboard_tokens: vec![],
+                accelerators: vec![],
+                startup_invites: vec![],
+                startups: vec![],
+                startup_statuses: vec![],
+                startup_cohorts: vec![],
+                startup_activities: vec![],
+                admins: vec![],
+                user_subscriptions: vec![],
+                user_daily_usage: vec![],
+            }
+        }
     };
 
     // Restore users

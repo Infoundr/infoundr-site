@@ -4,7 +4,7 @@ use ic_stable_structures::{BoundedStorable, Storable};
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 
-#[derive(CandidType, Deserialize, Clone, Debug)]
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
 pub struct User {
     pub principal: StablePrincipal,
     pub name: String,
