@@ -30,7 +30,7 @@ const NavBar: React.FC<NavBarProps> = ({ onGetStartedClick, isAuthenticated: isU
     e.preventDefault();
     const element = document.getElementById(targetId);
     if (element) {
-      const navbarHeight = 96; // Height of navbar (24px logo height + padding)
+      const navbarHeight = 48; // Height of navbar (24px logo height + padding)
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - navbarHeight;
 
@@ -53,11 +53,11 @@ const NavBar: React.FC<NavBarProps> = ({ onGetStartedClick, isAuthenticated: isU
         ? 'bg-white/95 backdrop-blur-md shadow-md' 
         : 'bg-white/80 backdrop-blur-sm'
     }`}>
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-6 py-1 md:py-2 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center">
           <a href="/" className="text-2xl font-bold text-indigo-600">
-            <img src="images/Logo.png" alt="Infoundr" className="h-24" />
+            <img src="images/Logo.png" alt="Infoundr" className="h-24 md:h-16" />
           </a>
         </div>
 
