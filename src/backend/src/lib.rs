@@ -1,6 +1,7 @@
 pub mod models;
 pub mod services;
 pub mod storage;
+pub mod migrations;
 
 
 // Custom getrandom implementation - for pocket ic testing only
@@ -27,7 +28,7 @@ use crate::models::discord_user::DiscordUser;
 use crate::models::slack_user::SlackUser;
 use crate::models::task::Task;
 use crate::models::{
-    api_message::{ApiMessage, ApiMetadata}, chat::ChatMessage, stable_principal::StablePrincipal, stable_string::StableString, user::User,
+    api_message::{ApiMessage, ApiMetadata}, chat::ChatMessage, stable_principal::StablePrincipal, user::User,
     waitlist::WaitlistEntry,
 };
 use crate::models::startup::{Startup, StartupStatus, StartupCohort, StartupActivity, StartupInput, StartupUpdate, StartupStatusInput, StartupCohortInput, StartupFilter, StartupStats, StartupActivityType};
@@ -39,7 +40,6 @@ use crate::storage::memory::{
 };
 use candid::Principal;
 use ic_cdk::storage::{stable_restore, stable_save};
-use serde::{Deserialize, Serialize};
 use crate::services::token_service::TokenValidationResult;
 use crate::services::accelerator_service::{AcceleratorSignUp, TeamMemberInviteWithId, UpdateTeamMemberRole, RemoveTeamMember, AcceleratorUpdateWithId, AcceleratorUpdate};
 use crate::models::accelerator::{Accelerator, TeamMember};
@@ -49,84 +49,10 @@ use crate::services::accelerator_service::{GenerateStartupInviteInput, StartupRe
 pub use crate::models::usage_service::{UsageStats, UserTier, UserSubscription};
 pub use crate::services::admin::UserActivityReport;
 use crate::models::admin::PlaygroundStats;
+use crate::migrations::{CurrentStableState, migrate_from_bytes};
 
-// Versioned stable state for migration support
-#[derive(Serialize, Deserialize)]
-struct StableStateV1 {
-    users: Vec<(StablePrincipal, User)>,
-    waitlist: Vec<(StableString, WaitlistEntry)>,
-    chat_history: Vec<((StablePrincipal, u64), ChatMessage)>,
-    api_messages: Vec<((StableString, u64), ApiMessage)>,
-    connected_accounts: Vec<(StablePrincipal, ConnectedAccounts)>,
-    tasks: Vec<((StablePrincipal, StableString), Task)>,
-    github_issues: Vec<((StablePrincipal, StableString), Issue)>,
-    openchat_users: Vec<(StableString, OpenChatUser)>,
-    slack_users: Vec<(StableString, SlackUser)>,
-    discord_users: Vec<(StableString, DiscordUser)>,
-    dashboard_tokens: Vec<(StableString, DashboardToken)>,
-    accelerators: Vec<(StablePrincipal, Accelerator)>,
-    startup_invites: Vec<(StableString, StartupInvite)>,
-    startups: Vec<(StableString, Startup)>,
-    startup_statuses: Vec<(StableString, StartupStatus)>,
-    startup_cohorts: Vec<(StableString, StartupCohort)>,
-    startup_activities: Vec<((StableString, u64), StartupActivity)>,
-    admins: Vec<(StablePrincipal, crate::models::admin::Admin)>,
-}
-
-#[derive(Serialize, Deserialize)]
-struct StableStateV2 {
-    users: Vec<(StablePrincipal, User)>,
-    waitlist: Vec<(StableString, WaitlistEntry)>,
-    chat_history: Vec<((StablePrincipal, u64), ChatMessage)>,
-    api_messages: Vec<((StableString, u64), ApiMessage)>,
-    connected_accounts: Vec<(StablePrincipal, ConnectedAccounts)>,
-    tasks: Vec<((StablePrincipal, StableString), Task)>,
-    github_issues: Vec<((StablePrincipal, StableString), Issue)>,
-    openchat_users: Vec<(StableString, OpenChatUser)>,
-    slack_users: Vec<(StableString, SlackUser)>,
-    discord_users: Vec<(StableString, DiscordUser)>,
-    dashboard_tokens: Vec<(StableString, DashboardToken)>,
-    accelerators: Vec<(StablePrincipal, Accelerator)>,
-    startup_invites: Vec<(StableString, StartupInvite)>,
-    startups: Vec<(StableString, Startup)>,
-    startup_statuses: Vec<(StableString, StartupStatus)>,
-    startup_cohorts: Vec<(StableString, StartupCohort)>,
-    startup_activities: Vec<((StableString, u64), StartupActivity)>,
-    admins: Vec<(StablePrincipal, crate::models::admin::Admin)>,
-    user_subscriptions: Vec<(StableString, UserSubscription)>,
-    user_daily_usage: Vec<((StableString, u64), u32)>,
-}
-
-// Current stable state (latest version)
-type StableState = StableStateV2;
-
-// Migration implementations
-impl From<StableStateV1> for StableStateV2 {
-    fn from(v1: StableStateV1) -> Self {
-        StableStateV2 {
-            users: v1.users,
-            waitlist: v1.waitlist,
-            chat_history: v1.chat_history,
-            api_messages: v1.api_messages,
-            connected_accounts: v1.connected_accounts,
-            tasks: v1.tasks,
-            github_issues: v1.github_issues,
-            openchat_users: v1.openchat_users,
-            slack_users: v1.slack_users,
-            discord_users: v1.discord_users,
-            dashboard_tokens: v1.dashboard_tokens,
-            accelerators: v1.accelerators,
-            startup_invites: v1.startup_invites,
-            startups: v1.startups,
-            startup_statuses: v1.startup_statuses,
-            startup_cohorts: v1.startup_cohorts,
-            startup_activities: v1.startup_activities,
-            admins: v1.admins,
-            user_subscriptions: vec![], // Default empty for new field
-            user_daily_usage: vec![],   // Default empty for new field
-        }
-    }
-}
+// Use the stable state from migrations module
+type StableState = CurrentStableState;
 
 #[ic_cdk::pre_upgrade]
 fn pre_upgrade() {
@@ -183,42 +109,32 @@ fn pre_upgrade() {
 fn post_upgrade() {
     let state = match stable_restore::<(Vec<u8>,)>() {
         Ok((serialized,)) => {
-            // Try to deserialize as current version first
-            match bincode::deserialize::<StableState>(&serialized) {
+            match migrate_from_bytes(&serialized) {
                 Ok(state) => state,
-                Err(_) => {
-                    // If that fails, try to deserialize as V1 and migrate
-                    match bincode::deserialize::<StableStateV1>(&serialized) {
-                        Ok(v1_state) => {
-                            ic_cdk::println!("Migrating from V1 to V2");
-                            StableState::from(v1_state)
-                        }
-                        Err(e) => {
-                            ic_cdk::println!("Failed to deserialize state: {:?}", e);
-                            // Fallback to empty state
-                            StableState {
-                                users: vec![],
-                                waitlist: vec![],
-                                chat_history: vec![],
-                                api_messages: vec![],
-                                connected_accounts: vec![],
-                                tasks: vec![],
-                                github_issues: vec![],
-                                openchat_users: vec![],
-                                slack_users: vec![],
-                                discord_users: vec![],
-                                dashboard_tokens: vec![],
-                                accelerators: vec![],
-                                startup_invites: vec![],
-                                startups: vec![],
-                                startup_statuses: vec![],
-                                startup_cohorts: vec![],
-                                startup_activities: vec![],
-                                admins: vec![],
-                                user_subscriptions: vec![],
-                                user_daily_usage: vec![],
-                            }
-                        }
+                Err(e) => {
+                    ic_cdk::println!("Failed to migrate state: {}", e);
+                    // Fallback to empty state
+                    StableState {
+                        users: vec![],
+                        waitlist: vec![],
+                        chat_history: vec![],
+                        api_messages: vec![],
+                        connected_accounts: vec![],
+                        tasks: vec![],
+                        github_issues: vec![],
+                        openchat_users: vec![],
+                        slack_users: vec![],
+                        discord_users: vec![],
+                        dashboard_tokens: vec![],
+                        accelerators: vec![],
+                        startup_invites: vec![],
+                        startups: vec![],
+                        startup_statuses: vec![],
+                        startup_cohorts: vec![],
+                        startup_activities: vec![],
+                        admins: vec![],
+                        user_subscriptions: vec![],
+                        user_daily_usage: vec![],
                     }
                 }
             }
