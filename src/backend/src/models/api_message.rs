@@ -1,9 +1,9 @@
 use candid::{CandidType, Decode, Encode};
 use ic_stable_structures::{BoundedStorable, Storable};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 
-#[derive(CandidType, Deserialize, Clone, Debug)]
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
 pub struct ApiMessage {
     pub id: String, // Unique identifier for the message
     pub user_id: String, // User identifier from the API
@@ -14,7 +14,7 @@ pub struct ApiMessage {
     pub timestamp: u64, // Timestamp when the message was stored
 }
 
-#[derive(CandidType, Deserialize, Clone, Debug)]
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
 pub struct ApiMetadata {
     pub has_token: Option<bool>,
     pub session_active: Option<bool>,

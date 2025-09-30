@@ -1,6 +1,7 @@
 pub mod models;
 pub mod services;
 pub mod storage;
+pub mod migrations;
 
 
 // Custom getrandom implementation - for pocket ic testing only
@@ -27,7 +28,7 @@ use crate::models::discord_user::DiscordUser;
 use crate::models::slack_user::SlackUser;
 use crate::models::task::Task;
 use crate::models::{
-    api_message::{ApiMessage, ApiMetadata}, chat::ChatMessage, stable_principal::StablePrincipal, stable_string::StableString, user::User,
+    api_message::{ApiMessage, ApiMetadata}, chat::ChatMessage, stable_principal::StablePrincipal, user::User,
     waitlist::WaitlistEntry,
 };
 use crate::models::startup::{Startup, StartupStatus, StartupCohort, StartupActivity, StartupInput, StartupUpdate, StartupStatusInput, StartupCohortInput, StartupFilter, StartupStats, StartupActivityType};
@@ -48,30 +49,10 @@ use crate::services::accelerator_service::{GenerateStartupInviteInput, StartupRe
 pub use crate::models::usage_service::{UsageStats, UserTier, UserSubscription};
 pub use crate::services::admin::UserActivityReport;
 use crate::models::admin::PlaygroundStats;
+use crate::migrations::{CurrentStableState, migrate_from_bytes};
 
-#[derive(candid::CandidType, candid::Deserialize)]
-struct StableState {
-    users: Vec<(StablePrincipal, User)>,
-    waitlist: Vec<(StableString, WaitlistEntry)>,
-    chat_history: Vec<((StablePrincipal, u64), ChatMessage)>,
-    api_messages: Vec<((StableString, u64), ApiMessage)>,
-    connected_accounts: Vec<(StablePrincipal, ConnectedAccounts)>,
-    tasks: Vec<((StablePrincipal, StableString), Task)>,
-    github_issues: Vec<((StablePrincipal, StableString), Issue)>,
-    openchat_users: Vec<(StableString, OpenChatUser)>,
-    slack_users: Vec<(StableString, SlackUser)>,
-    discord_users: Vec<(StableString, DiscordUser)>,
-    dashboard_tokens: Vec<(StableString, DashboardToken)>,
-    accelerators: Vec<(StablePrincipal, Accelerator)>,
-    startup_invites: Vec<(StableString, StartupInvite)>,
-    startups: Vec<(StableString, Startup)>,
-    startup_statuses: Vec<(StableString, StartupStatus)>,
-    startup_cohorts: Vec<(StableString, StartupCohort)>,
-    startup_activities: Vec<((StableString, u64), StartupActivity)>,
-    admins: Vec<(StablePrincipal, crate::models::admin::Admin)>,
-    user_subscriptions: Vec<(StableString, UserSubscription)>,  // ADD THIS
-    user_daily_usage: Vec<((StableString, u64), u32)>,          // ADD THIS
-}
+// Use the stable state from migrations module
+type StableState = CurrentStableState;
 
 #[ic_cdk::pre_upgrade]
 fn pre_upgrade() {
@@ -96,7 +77,6 @@ fn pre_upgrade() {
     let user_subscriptions = USER_SUBSCRIPTIONS.with(|s| s.borrow().iter().collect::<Vec<_>>());
     let user_daily_usage = USER_DAILY_USAGE.with(|u| u.borrow().iter().collect::<Vec<_>>());
 
-
     let state = StableState {
         users,
         waitlist,
@@ -118,38 +98,72 @@ fn pre_upgrade() {
         admins,
         user_subscriptions,
         user_daily_usage,
-
     };
 
-    stable_save((state,)).expect("Failed to save stable state");
+    // Serialize with bincode for better performance and compatibility
+    let serialized = bincode::serialize(&state).expect("Failed to serialize state");
+    stable_save((serialized,)).expect("Failed to save stable state");
 }
 
 #[ic_cdk::post_upgrade]
 fn post_upgrade() {
-    let (state,): (StableState,) = match stable_restore() {
-        Ok(data) => data,
-        Err(_) => (StableState {
-            users: vec![],
-            waitlist: vec![],
-            chat_history: vec![],
-            api_messages: vec![],
-            connected_accounts: vec![],
-            tasks: vec![],
-            github_issues: vec![],
-            openchat_users: vec![],
-            slack_users: vec![],
-            discord_users: vec![],
-            dashboard_tokens: vec![],
-            accelerators: vec![],
-            startup_invites: vec![],
-            startups: vec![],
-            startup_statuses: vec![],
-            startup_cohorts: vec![],
-            startup_activities: vec![],
-            admins: vec![],
-            user_subscriptions: vec![],   // ADD THIS
-            user_daily_usage: vec![],     // ADD THIS
-        },),
+    let state = match stable_restore::<(Vec<u8>,)>() {
+        Ok((serialized,)) => {
+            match migrate_from_bytes(&serialized) {
+                Ok(state) => state,
+                Err(e) => {
+                    ic_cdk::println!("Failed to migrate state: {}", e);
+                    // Fallback to empty state
+                    StableState {
+                        users: vec![],
+                        waitlist: vec![],
+                        chat_history: vec![],
+                        api_messages: vec![],
+                        connected_accounts: vec![],
+                        tasks: vec![],
+                        github_issues: vec![],
+                        openchat_users: vec![],
+                        slack_users: vec![],
+                        discord_users: vec![],
+                        dashboard_tokens: vec![],
+                        accelerators: vec![],
+                        startup_invites: vec![],
+                        startups: vec![],
+                        startup_statuses: vec![],
+                        startup_cohorts: vec![],
+                        startup_activities: vec![],
+                        admins: vec![],
+                        user_subscriptions: vec![],
+                        user_daily_usage: vec![],
+                    }
+                }
+            }
+        }
+        Err(_) => {
+            // No existing state, start fresh
+            StableState {
+                users: vec![],
+                waitlist: vec![],
+                chat_history: vec![],
+                api_messages: vec![],
+                connected_accounts: vec![],
+                tasks: vec![],
+                github_issues: vec![],
+                openchat_users: vec![],
+                slack_users: vec![],
+                discord_users: vec![],
+                dashboard_tokens: vec![],
+                accelerators: vec![],
+                startup_invites: vec![],
+                startups: vec![],
+                startup_statuses: vec![],
+                startup_cohorts: vec![],
+                startup_activities: vec![],
+                admins: vec![],
+                user_subscriptions: vec![],
+                user_daily_usage: vec![],
+            }
+        }
     };
 
     // Restore users
