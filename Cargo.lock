@@ -73,12 +73,15 @@ dependencies = [
  "candid",
  "chrono",
  "getrandom 0.2.16",
+ "hex",
  "ic-cdk",
  "ic-cdk-timers",
  "ic-stable-structures",
  "pocket-ic",
  "rand 0.8.5",
  "serde",
+ "serde_json",
+ "sha2",
 ]
 
 [[package]]

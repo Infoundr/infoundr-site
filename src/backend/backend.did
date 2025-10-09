@@ -89,6 +89,12 @@ type ConnectionStatus = record {
   asana_connected : bool;
   asana_workspace : opt text;
 };
+type Currency = variant { GHS; KES; NGN; USD; ZAR };
+type CustomField = record {
+  variable_name : text;
+  value : text;
+  display_name : text;
+};
 type DashboardToken = record {
   token : blob;
   created_at : nat64;
@@ -110,8 +116,46 @@ type GenerateStartupInviteInput = record {
   expiry_days : opt nat64;
 };
 type GitHubAccount = record { token : text; selected_repo : opt text };
+type HttpHeader = record { value : text; name : text };
+type HttpResponse = record {
+  status : nat;
+  body : blob;
+  headers : vec HttpHeader;
+};
+type InitializePaymentRequest = record {
+  enable_card : bool;
+  tier : text;
+  billing_period : text;
+  user_id : text;
+  email : text;
+  callback_url : text;
+  enable_mpesa : bool;
+  currency : text;
+  phone_number : opt text;
+};
+type InitializePaymentResponse = record {
+  authorization_url : opt text;
+  reference : text;
+  message : text;
+  currency : text;
+  success : bool;
+  amount : nat64;
+  access_code : opt text;
+};
 type InviteStatus = variant { Used; Revoked; Expired; Pending };
 type InviteType = variant { Code; Link };
+type Invoice = record {
+  id : text;
+  invoice_number : text;
+  paid : bool;
+  created_at : nat64;
+  user_id : text;
+  billing_period_start : nat64;
+  currency : Currency;
+  billing_period_end : nat64;
+  payment_id : text;
+  amount : nat64;
+};
 type Issue = record {
   id : text;
   status : IssueStatus;
@@ -129,6 +173,52 @@ type OpenChatUser = record {
   openchat_id : text;
   first_interaction : nat64;
 };
+type PaymentChannel = variant {
+  Qr;
+  BankAccount;
+  Card;
+  Ussd;
+  BankTransfer;
+  MobileMoney;
+};
+type PaymentMetadata = record {
+  phone_number : opt text;
+  custom_fields : vec CustomField;
+  customer_name : opt text;
+};
+type PaymentRecord = record {
+  id : text;
+  status : PaymentStatus;
+  updated_at : nat64;
+  authorization_url : opt text;
+  metadata : PaymentMetadata;
+  tier : text;
+  paystack_reference : text;
+  created_at : nat64;
+  billing_period : text;
+  user_id : text;
+  email : text;
+  currency : Currency;
+  paid_at : opt nat64;
+  amount : nat64;
+  paystack_transaction_id : opt nat64;
+  access_code : opt text;
+  payment_channel : opt PaymentChannel;
+};
+type PaymentStatus = variant {
+  Queued;
+  Abandoned;
+  Failed;
+  Reversed;
+  Success;
+  Pending;
+};
+type PaystackConfig = record {
+  public_key : text;
+  secret_key : text;
+  environment : PaystackEnvironment;
+};
+type PaystackEnvironment = variant { Live; Test };
 type PlaygroundStats = record {
   bot_usage : vec record { text; nat32 };
   unique_users : nat32;
@@ -171,10 +261,12 @@ type Result_32 = variant { Ok : vec StartupCohort; Err : text };
 type Result_33 = variant { Ok : vec StartupStatus; Err : text };
 type Result_34 = variant { Ok : vec Startup; Err : text };
 type Result_35 = variant { Ok : vec TeamMember; Err : text };
-type Result_36 = variant { Ok : User; Err : text };
-type Result_37 = variant { Ok : ApiMessage; Err : text };
-type Result_38 = variant { Ok; Err : vec text };
+type Result_36 = variant { Ok : InitializePaymentResponse; Err : text };
+type Result_37 = variant { Ok : TransactionDetails; Err : text };
+type Result_38 = variant { Ok : User; Err : text };
+type Result_39 = variant { Ok : ApiMessage; Err : text };
 type Result_4 = variant { Ok : vec UsageStats; Err : text };
+type Result_40 = variant { Ok; Err : vec text };
 type Result_5 = variant {
   Ok : vec record { text; nat32; UserTier };
   Err : text;
@@ -342,6 +434,19 @@ type TeamMember = record {
 };
 type TeamMemberInviteWithId = record { name : text; role : Role; email : text };
 type TokenValidationResult = record { platform_id : text; platform : text };
+type TransactionDetails = record {
+  transaction_id : opt nat64;
+  status : PaymentStatus;
+  fees : opt nat64;
+  reference : text;
+  currency : Currency;
+  paid_at : opt text;
+  customer_email : text;
+  channel : opt PaymentChannel;
+  amount : nat64;
+  customer_name : opt text;
+};
+type TransformArgs = record { context : blob; response : HttpResponse };
 type UpdateTeamMemberRole = record { email : text; new_role : Role };
 type UsageStats = record {
   tier : UserTier;
@@ -506,17 +611,25 @@ service : {
   list_startup_statuses : () -> (Result_33) query;
   list_startups : (opt StartupFilter) -> (Result_34) query;
   list_team_members : () -> (Result_35) query;
+  payment_get : (text) -> (opt PaymentRecord) query;
+  payment_get_config : () -> (PaystackConfig) query;
+  payment_get_history : (text) -> (vec PaymentRecord) query;
+  payment_get_invoices : (text) -> (vec Invoice) query;
+  payment_initialize : (InitializePaymentRequest) -> (Result_36);
+  payment_set_config : (PaystackConfig) -> (Result_30);
+  payment_verify : (text) -> (Result_37);
+  payment_webhook : (text, text) -> (Result_30);
   record_startup_activity : (text, StartupActivityType, text, opt text) -> (
       Result,
     );
-  register_startup : (text, text, text) -> (Result_36);
-  register_user : (text) -> (Result_36);
+  register_startup : (text, text, text) -> (Result_38);
+  register_user : (text) -> (Result_38);
   remove_admin : (principal) -> (Result);
   remove_team_member : (RemoveTeamMember) -> (Result);
   revoke_startup_invite : (text) -> (Result);
   sign_up_accelerator : (AcceleratorSignUp) -> (Result_30);
   store_api_message : (UserIdentifier, text, text, text, opt ApiMetadata) -> (
-      Result_37,
+      Result_39,
     );
   store_asana_connection : (
       UserIdentifier,
@@ -528,6 +641,7 @@ service : {
   store_chat_message : (UserIdentifier, ChatMessage) -> ();
   store_github_connection : (UserIdentifier, text, opt text) -> ();
   store_github_issue : (UserIdentifier, Issue) -> (Result);
+  transform_payment_http_response : (TransformArgs) -> (HttpResponse) query;
   unlink_accounts : (text) -> (Result);
   update_accelerator : (principal, AcceleratorUpdate) -> (Result);
   update_engagement_score : (text, nat32) -> (Result);
@@ -538,6 +652,6 @@ service : {
   update_startup_status : (text, StartupStatusInput) -> (Result);
   update_team_member_role : (UpdateTeamMemberRole) -> (Result);
   validate_dashboard_token : (blob) -> (opt TokenValidationResult) query;
-  verify_connections : (principal) -> (Result_38) query;
+  verify_connections : (principal) -> (Result_40) query;
   verify_token : (text) -> (Result);
 }
