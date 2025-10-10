@@ -87,7 +87,7 @@ pub async fn verify_transaction(reference: String) -> Result<VerifyTransactionRe
 
     // Build HTTP request
     let url = format!("{}/transaction/verify/{}", PAYSTACK_API_BASE, reference);
-    
+
     let request = CanisterHttpRequestArgument {
         url: url.clone(),
         method: HttpMethod::GET,
@@ -102,6 +102,7 @@ pub async fn verify_transaction(reference: String) -> Result<VerifyTransactionRe
         }),
         headers,
     };
+    ic_cdk::println!("Request: {:?}", request);
 
     // Make HTTP outcall
     match http_request(request, CYCLES_PER_CALL).await {
@@ -109,6 +110,7 @@ pub async fn verify_transaction(reference: String) -> Result<VerifyTransactionRe
             parse_verify_response(response)
         }
         Err((code, msg)) => {
+            ic_cdk::println!("HTTP request failed: {:?} - {}", code, msg);
             Err(format!("HTTP request failed: {:?} - {}", code, msg))
         }
     }
@@ -137,6 +139,7 @@ fn parse_initialize_response(response: HttpResponse) -> Result<InitializeTransac
 fn parse_verify_response(response: HttpResponse) -> Result<VerifyTransactionResponse, String> {
     // Check status code
     if response.status != 200u32 {
+        ic_cdk::println!("Paystack API returned status {}: {}", response.status, String::from_utf8_lossy(&response.body));
         return Err(format!(
             "Paystack API returned status {}: {}",
             response.status,
@@ -147,6 +150,7 @@ fn parse_verify_response(response: HttpResponse) -> Result<VerifyTransactionResp
     // Parse JSON response
     let response_text = String::from_utf8(response.body)
         .map_err(|e| format!("Invalid UTF-8 in response: {}", e))?;
+    ic_cdk::println!("Response converted to string on parse_verify_response: {:?}", response_text);
 
     serde_json::from_str::<VerifyTransactionResponse>(&response_text)
         .map_err(|e| format!("Failed to parse response: {}. Response: {}", e, response_text))

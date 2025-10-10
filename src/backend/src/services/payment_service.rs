@@ -155,11 +155,15 @@ pub async fn initialize_payment(
 
 /// Verify a payment and upgrade subscription if successful
 pub async fn verify_payment(reference: String) -> Result<TransactionDetails, String> {
+    ic_cdk::println!("Verifying payment for reference: {}", reference);
     // Call Paystack API to verify
     match paystack_verify(reference.clone()).await {
         Ok(response) => {
+            ic_cdk::println!("Paystack API returned success");
+            ic_cdk::println!("Response is: {:?}", response);
             if response.status {
                 if let Some(data) = response.data {
+                    ic_cdk::println!("Data is: {:?}", data);
                     // Update payment record
                     let status = parse_payment_status(&data.status);
                     let channel = parse_payment_channel(&data.channel);
