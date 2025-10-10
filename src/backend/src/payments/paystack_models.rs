@@ -11,8 +11,8 @@ pub struct InitializeTransactionRequest {
     pub reference: String,
     pub callback_url: String,
     pub channels: Vec<String>,  // ["card", "mobile_money", "bank"]
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<String>,  // JSON string instead of Value
+    pub phone: Option<String>,  // Customer phone number
 }
 
 /// Response from Paystack transaction initialization
@@ -70,7 +70,7 @@ pub struct CustomerData {
     pub risk_action: String,
 }
 
-#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug, Default)]
 pub struct AuthorizationData {
     pub authorization_code: String,
     pub bin: String,

@@ -9,6 +9,20 @@
 
 ---
 
+## ⚡ Recent Updates
+
+**Fixed Issues:**
+1. ✅ Phone number now properly sent to Paystack customer records
+2. ✅ Verification endpoint now handles abandoned/pending transactions correctly
+3. ✅ Payment API endpoints moved to `src/backend/src/payments/api.rs` for better organization
+
+**Important Notes:**
+- The payment channel (Card/M-Pesa) is determined when the user completes checkout, not during initialization
+- You must open the `authorization_url` in a browser to see the M-Pesa payment option
+- Transactions will show as "abandoned" until the user completes the checkout flow
+
+---
+
 ## Step 1: Deploy Updated Canister
 
 ```bash
@@ -127,11 +141,44 @@ OTP: 1234 (wrong OTP)
 
 ## 📱 M-Pesa Testing
 
-For M-Pesa testing in Kenya:
+### How to Test M-Pesa:
 
+1. **Initialize a payment with M-Pesa enabled:**
+```bash
+dfx canister call backend payment_initialize '(
+  record {
+    user_id = "test-user-124";
+    email = "your-email@gmail.com";
+    tier = "Pro";
+    billing_period = "monthly";
+    currency = "KES";
+    callback_url = "http://localhost:3000/payment/callback";
+    phone_number = opt "+254712345678";  # Your M-Pesa number
+    enable_mpesa = true;
+    enable_card = false;  # Set to false to only show M-Pesa
+  }
+)'
 ```
-Phone: +254712345678 (test number)
+
+2. **Copy the `authorization_url` from the response**
+
+3. **Open the URL in your browser:**
+   - You'll see the Paystack checkout page
+   - Select "Mobile Money" or "M-Pesa" as payment method
+   - Enter your M-Pesa number (or it will be pre-filled from the phone_number field)
+   - You'll receive an STK push prompt on your phone
+   - Enter your M-Pesa PIN to complete payment
+
+4. **Verify the payment:**
+```bash
+dfx canister call backend payment_verify '("INF-test-use-XXXX")'
 ```
+
+**Important Notes:**
+- M-Pesa testing requires a real Kenyan phone number with M-Pesa enabled
+- The phone number must be in international format: `+254XXXXXXXXX`
+- Abandoned transactions show "card" as the channel until a payment method is selected
+- The actual payment channel is recorded after the user completes checkout
 
 Follow Paystack's M-Pesa test flow.
 

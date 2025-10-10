@@ -22,7 +22,8 @@ const PRO_YEARLY_NGN: u64 = 29_000_000; // ₦290,000 = $190 USD approx (save ~1
 
 /// Pricing in Kenyan Shillings (for M-Pesa)
 /// 1 KES = 100 cents
-const PRO_MONTHLY_KES: u64 = 290_000; // KES 2,900 = ~$19 USD
+// const PRO_MONTHLY_KES: u64 = 290_000; // KES 2,900 = ~$19 USD
+const PRO_MONTHLY_KES: u64 = 1_000; // KES 1 for testing
 const PRO_YEARLY_KES: u64 = 2_900_000; // KES 29,000 = ~$190 USD
 
 /// Request to initialize a payment
@@ -90,6 +91,7 @@ pub async fn initialize_payment(
         callback_url: request.callback_url.clone(),
         channels,
         metadata: Some(metadata),  // metadata is now String
+        phone: request.phone_number.clone(),  // Pass phone to Paystack
     };
     ic_cdk::println!("Paystack request: {:?}", paystack_request);
     
