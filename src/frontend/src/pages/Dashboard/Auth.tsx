@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Button from '../../components/common/Button';
 import { loginWithII, loginWithNFID, registerUser, isRegistered, checkIsAuthenticated } from '../../services/auth';
 import { ActorSubclass } from "@dfinity/agent";
@@ -13,6 +13,7 @@ import { useMockData } from '../../mocks/mockData';
 const Auth: React.FC = () => {
     console.log("useMockData", useMockData);
     const navigate = useNavigate();
+    const location = useLocation();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isLogin, setIsLogin] = useState(true);
@@ -32,7 +33,11 @@ const Auth: React.FC = () => {
                 sessionStorage.setItem('user_principal', MOCK_USER.principal);
                 sessionStorage.setItem('openchat_id', MOCK_USER.openchat_id);
                 setIsLoading(false);
-                navigate('/dashboard/home', { replace: true });
+                
+                // Check for redirect from payment flow
+                const state = location.state as { from?: { pathname: string }, redirectTo?: string };
+                const redirectPath = state?.redirectTo || '/dashboard/home';
+                navigate(redirectPath, { replace: true });
                 return;
             }
             
@@ -94,7 +99,13 @@ const Auth: React.FC = () => {
                 sessionStorage.setItem('user_principal', userPrincipal.toString());
                 
                 setIsLoading(false);
-                navigate('/dashboard/home', { replace: true });
+                
+                // Check if there's a redirect URL from payment flow
+                const state = location.state as { from?: { pathname: string }, redirectTo?: string };
+                const redirectPath = state?.redirectTo || '/dashboard/home';
+                
+                console.log('Auth successful, redirecting to:', redirectPath);
+                navigate(redirectPath, { replace: true });
             } catch (err) {
                 console.error("Registration check error:", err);
                 throw new Error("Failed to verify registration status");
@@ -116,7 +127,11 @@ const Auth: React.FC = () => {
             await registerUser(registrationData.name);
             console.log("Registration successful, navigating to dashboard");
             setIsLoading(false);
-            navigate('/dashboard/home', { replace: true });
+            
+            // Check for redirect from payment flow
+            const state = location.state as { from?: { pathname: string }, redirectTo?: string };
+            const redirectPath = state?.redirectTo || '/dashboard/home';
+            navigate(redirectPath, { replace: true });
             return;
         } catch (err) {
             console.log("Registration failed:", err);
@@ -163,7 +178,7 @@ const Auth: React.FC = () => {
                     </div>
 
                     {error && (
-                        <p className="mt-4 text-red-600 text-sm text-center">{error}</p>
+                        <p className="mt- 4 text-red-600 text-sm text-center">{error}</p>
                     )}
                 </div>
             </div>

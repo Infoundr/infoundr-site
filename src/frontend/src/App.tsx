@@ -64,6 +64,8 @@ import GitHubAgent from './pages/documentation/discord/GitHubAgent';
 import ProjectManagementAgent from './pages/documentation/discord/ProjectManagementAgent';
 import CalendarAgent from './pages/documentation/discord/CalendarAgent';
 import EmailAgent from './pages/documentation/discord/EmailAgent';
+import PaymentCallback from './pages/PaymentCallback';
+import PaymentCheckout from './pages/PaymentCheckout';
 
 
 const App: React.FC = () => {
@@ -128,6 +130,14 @@ const App: React.FC = () => {
 
           {/* Auth Route */}
           <Route path="/dashboard" element={<Auth />} />
+
+          {/* Payment Routes */}
+          <Route path="/payment/callback" element={<PaymentCallback />} />
+          <Route path="/payment/checkout" element={
+            <ProtectedRoute>
+              <PaymentCheckout />
+            </ProtectedRoute>
+          } />
 
           {/* Public invite accept route (not protected) - must be before other /accelerator routes */}
           <Route path="/accelerator/invite/:inviteCode/*" element={<StartupInviteAccept />} />
