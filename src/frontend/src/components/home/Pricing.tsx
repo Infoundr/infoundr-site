@@ -59,11 +59,21 @@ const Pricing: React.FC<PricingProps> = ({ onGetStartedClick }) => {
       const isAuth = await checkIsAuthenticated();
       
       if (!isAuth) {
-        // User is not authenticated, redirect to auth page with payment redirect
-        console.log('User not authenticated, redirecting to auth...');
-        navigate('/dashboard', { 
-          state: { redirectTo: '/payment/checkout' }
+        // User is not authenticated, set payment intent and redirect to auth
+        console.log('🔒 User not authenticated, setting payment intent...');
+        
+        // Store payment intent in sessionStorage to persist across page navigation
+        sessionStorage.setItem('payment_intent', 'pro_upgrade');
+        sessionStorage.setItem('payment_intent_timestamp', Date.now().toString());
+        
+        console.log('✅ Payment intent set:', {
+          intent: sessionStorage.getItem('payment_intent'),
+          timestamp: sessionStorage.getItem('payment_intent_timestamp')
         });
+        
+        // Redirect to auth page with payment context in URL
+        console.log('🔀 Redirecting to /dashboard?intent=payment');
+        navigate('/dashboard?intent=payment');
       } else {
         // User is authenticated, go directly to payment checkout
         console.log('User authenticated, redirecting to payment checkout...');
