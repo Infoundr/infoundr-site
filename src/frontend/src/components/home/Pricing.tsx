@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../common/Button';
-import { checkIsAuthenticated } from '../../services/auth';
+import { checkIsAuthenticated, hasActiveProSubscription } from '../../services/auth';
 
 interface PricingProps {
   onGetStartedClick: () => void;
@@ -75,9 +75,20 @@ const Pricing: React.FC<PricingProps> = ({ onGetStartedClick }) => {
         console.log('🔀 Redirecting to /dashboard?intent=payment');
         navigate('/dashboard?intent=payment');
       } else {
-        // User is authenticated, go directly to payment checkout
-        console.log('User authenticated, redirecting to payment checkout...');
-        navigate('/payment/checkout');
+        // User is authenticated, check if they already have Pro subscription
+        console.log('🔍 User authenticated, checking subscription status...');
+        
+        const hasPro = await hasActiveProSubscription();
+        
+        if (hasPro) {
+          console.log('✅ User already has Pro subscription, redirecting to dashboard');
+          alert('You already have an active Pro subscription! Redirecting to your dashboard.');
+          navigate('/dashboard');
+        } else {
+          // User doesn't have Pro, proceed to payment checkout
+          console.log('💰 User needs to upgrade to Pro, redirecting to payment checkout...');
+          navigate('/payment/checkout');
+        }
       }
     } catch (error) {
       console.error('Error during upgrade process:', error);
