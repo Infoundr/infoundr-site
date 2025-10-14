@@ -13,6 +13,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, userEmail 
   const [email, setEmail] = useState(userEmail || '');
   const [phone, setPhone] = useState('');
   const [currency, setCurrency] = useState<'KES' | 'NGN'>('KES');
+  const [paymentMethod, setPaymentMethod] = useState<'mpesa_card' | 'card_only'>('mpesa_card');
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,6 +27,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, userEmail 
     
     console.log('🌍 Region detected:', regionInfo.region);
     console.log('💰 Default currency set:', regionInfo.defaultCurrency);
+    console.log('📍 Detected region name:', getRegionName(regionInfo.region));
   }, []);
 
   const prices = {
@@ -50,8 +52,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, userEmail 
         throw new Error('Please enter a valid email address');
       }
 
-      // Validate phone for KES/M-Pesa
-      if (currency === 'KES' && phone && !phone.match(/^\+?254[0-9]{9}$/)) {
+      // Validate phone for M-Pesa
+      if (paymentMethod === 'mpesa_card' && phone && !phone.match(/^\+?254[0-9]{9}$/)) {
         throw new Error('Phone number must be in format +254XXXXXXXXX for M-Pesa');
       }
 
@@ -61,7 +63,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, userEmail 
         currency,
         email,
         phoneNumber: phone || undefined,
-        enableMpesa: currency === 'KES',
+        enableMpesa: paymentMethod === 'mpesa_card',
         enableCard: true,
       });
 
@@ -147,37 +149,39 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, userEmail 
           </div>
         </div>
 
-        {/* Currency Selection */}
+        {/* Payment Method Selection */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-3">
-            Currency & Payment Method
+            Payment Method
           </label>
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
-              onClick={() => setCurrency('KES')}
+              onClick={() => setPaymentMethod('mpesa_card')}
               className={`p-3 rounded-lg border-2 transition-all ${
-                currency === 'KES'
+                paymentMethod === 'mpesa_card'
                   ? 'border-purple-600 bg-purple-50 text-purple-700'
                   : 'border-gray-200 hover:border-gray-300'
               }`}
             >
               <div className="font-semibold">KES {prices[billingPeriod].KES}</div>
-              <div className="text-xs text-gray-600">M-Pesa & Card</div>
+              <div className="text-xs text-gray-600">M-Pesa</div>
               <div className="text-xs text-gray-500 mt-1">🇰🇪 Kenya</div>
             </button>
             <button
               type="button"
-              onClick={() => setCurrency('NGN')}
+              onClick={() => setPaymentMethod('card_only')}
               className={`p-3 rounded-lg border-2 transition-all ${
-                currency === 'NGN'
+                paymentMethod === 'card_only'
                   ? 'border-purple-600 bg-purple-50 text-purple-700'
                   : 'border-gray-200 hover:border-gray-300'
               }`}
             >
-              <div className="font-semibold">NGN {prices[billingPeriod].NGN}</div>
-              <div className="text-xs text-gray-600">Card</div>
-              <div className="text-xs text-gray-500 mt-1">🇳🇬 Nigeria / International</div>
+              <div className="font-semibold">KES {prices[billingPeriod].KES}</div>
+              <div className="text-xs text-gray-600">Card Only</div>
+              {/* <div className="text-xs text-gray-500 mt-1">💳 Card Payment</div> */}
+              <div className="text-xs text-gray-500 mt-1">🇰🇪 Kenya</div>
+
             </button>
           </div>
         </div>
@@ -200,8 +204,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, userEmail 
             />
           </div>
 
-          {/* Phone Input (for KES/M-Pesa) */}
-          {currency === 'KES' && (
+          {/* Phone Input (for M-Pesa) */}
+          {paymentMethod === 'mpesa_card' && (
             <div className="mb-4">
               <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
                 M-Pesa Phone Number (Optional)
