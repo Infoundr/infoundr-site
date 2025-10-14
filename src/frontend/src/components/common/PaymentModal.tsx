@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { initializePayment } from '../../services/payment';
 import Button from './Button';
+import { getRegionInfo, getRegionName, shouldEnableMPesa } from '../../utils/regionDetection';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -15,6 +16,17 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, userEmail 
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [detectedRegion, setDetectedRegion] = useState<string>('');
+
+  // Detect region and set default currency on mount
+  useEffect(() => {
+    const regionInfo = getRegionInfo();
+    setCurrency(regionInfo.defaultCurrency);
+    setDetectedRegion(getRegionName(regionInfo.region));
+    
+    console.log('🌍 Region detected:', regionInfo.region);
+    console.log('💰 Default currency set:', regionInfo.defaultCurrency);
+  }, []);
 
   const prices = {
     monthly: {
@@ -92,6 +104,14 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, userEmail 
           <p className="text-gray-600 text-sm">
             Get unlimited access to all AI agents and premium features
           </p>
+          {detectedRegion && (
+            <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>Detected region: <strong>{detectedRegion}</strong></span>
+            </div>
+          )}
         </div>
 
         {/* Billing Period Selection */}
@@ -144,6 +164,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, userEmail 
             >
               <div className="font-semibold">KES {prices[billingPeriod].KES}</div>
               <div className="text-xs text-gray-600">M-Pesa & Card</div>
+              <div className="text-xs text-gray-500 mt-1">🇰🇪 Kenya</div>
             </button>
             <button
               type="button"
@@ -156,6 +177,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, userEmail 
             >
               <div className="font-semibold">NGN {prices[billingPeriod].NGN}</div>
               <div className="text-xs text-gray-600">Card</div>
+              <div className="text-xs text-gray-500 mt-1">🇳🇬 Nigeria / International</div>
             </button>
           </div>
         </div>
