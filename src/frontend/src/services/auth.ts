@@ -537,7 +537,8 @@ export async function hasActiveProSubscription(): Promise<boolean> {
     const userSubscription = subscription[0];
     
     // Check if subscription is Pro and active
-    const isPro = 'Pro' in userSubscription.tier;
+    // UserTier is a variant: {Pro: null} or {Free: null}
+    const isPro = 'Pro' in userSubscription.tier; // Check if Pro variant exists
     const isActive = userSubscription.is_active;
     
     // Check if subscription has expired
@@ -554,6 +555,8 @@ export async function hasActiveProSubscription(): Promise<boolean> {
     
     console.log("Subscription check:", {
       tier: userSubscription.tier,
+      tierKeys: Object.keys(userSubscription.tier),
+      isPro,
       isActive,
       isExpired,
       hasActivePro
