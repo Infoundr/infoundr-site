@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import InFoundrNotification from '../components/common/InFoundrNotification';
+import { useInFoundrNotification } from '../hooks/useInFoundrNotification';
 import { verifyPayment } from '../services/payment';
 
 const PaymentCallback: React.FC = () => {
   const navigate = useNavigate();
   const [status, setStatus] = useState<'verifying' | 'success' | 'failed'>('verifying');
   const [message, setMessage] = useState('Verifying your payment...');
+  const { notification, showSuccess, showError, hideNotification } = useInFoundrNotification();
 
   useEffect(() => {
     const verifyPaymentStatus = async () => {
@@ -32,6 +35,13 @@ const PaymentCallback: React.FC = () => {
           setStatus('success');
           setMessage('Payment successful! Your Pro subscription is now active.');
           
+          // Show personalized InFoundr notification
+          showSuccess(
+            'Welcome to Pro! 🎉',
+            'Congratulations! Your payment was successful and your Pro subscription is now active. You now have unlimited access to all AI agents and premium features. Redirecting to your dashboard...',
+            { duration: 4000 }
+          );
+          
           // Clear the pending reference
           sessionStorage.removeItem('pending_payment_reference');
           
@@ -42,11 +52,25 @@ const PaymentCallback: React.FC = () => {
         } else {
           setStatus('failed');
           setMessage('Payment verification failed. Please contact support if you were charged.');
+          
+          // Show personalized InFoundr error notification
+          showError(
+            'Payment Verification Failed',
+            'We encountered an issue verifying your payment. If you were charged, please contact our support team and we\'ll resolve this immediately.',
+            { duration: 6000 }
+          );
         }
       } catch (error) {
         console.error('Payment verification error:', error);
         setStatus('failed');
         setMessage('An error occurred while verifying your payment. Please contact support.');
+        
+        // Show personalized InFoundr error notification
+        showError(
+          'Verification Error',
+          'An unexpected error occurred while verifying your payment. Please contact our support team for assistance.',
+          { duration: 6000 }
+        );
       }
     };
 
@@ -139,6 +163,17 @@ const PaymentCallback: React.FC = () => {
           </>
         )}
       </div>
+      
+      {/* InFoundr Notification */}
+      <InFoundrNotification
+        type={notification.type}
+        title={notification.title}
+        message={notification.message}
+        isVisible={notification.isVisible}
+        onClose={hideNotification}
+        autoClose={notification.autoClose}
+        duration={notification.duration}
+      />
     </div>
   );
 };

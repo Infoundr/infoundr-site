@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PaymentModal from '../components/common/PaymentModal';
+import InFoundrNotification from '../components/common/InFoundrNotification';
+import { useInFoundrNotification } from '../hooks/useInFoundrNotification';
 import { getCurrentUser, hasActiveProSubscription } from '../services/auth';
 
 const PaymentCheckout: React.FC = () => {
@@ -9,6 +11,7 @@ const PaymentCheckout: React.FC = () => {
   const [hasProSubscription, setHasProSubscription] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const navigate = useNavigate();
+  const { notification, showSuccess, hideNotification } = useInFoundrNotification();
 
   useEffect(() => {
     const checkSubscriptionAndFetchUser = async () => {
@@ -19,8 +22,23 @@ const PaymentCheckout: React.FC = () => {
         
         if (hasPro) {
           console.log('✅ User already has Pro subscription, redirecting to dashboard');
-          // User already has Pro, redirect to dashboard
-          navigate('/dashboard', { replace: true });
+          
+          // Show personalized InFoundr notification
+          console.log('🔔 About to show notification...');
+          showSuccess(
+            'You\'re already Pro! 🚀',
+            'Great news! You already have an active Pro subscription with unlimited access to all AI agents and premium features. Taking you to your dashboard...',
+            { duration: 6000, autoClose: true }
+          );
+          console.log('🔔 Notification should be showing now...');
+          
+          // Use requestAnimationFrame to ensure the notification renders first
+          requestAnimationFrame(() => {
+            setTimeout(() => {
+              console.log('🔄 Redirecting to dashboard...');
+              navigate('/dashboard', { replace: true });
+            }, 3000); // 3 seconds should be enough to see the notification
+          });
           return;
         }
         
@@ -97,6 +115,17 @@ const PaymentCheckout: React.FC = () => {
           userEmail={userEmail}
         />
       )}
+      
+      {/* InFoundr Notification */}
+      <InFoundrNotification
+        type={notification.type}
+        title={notification.title}
+        message={notification.message}
+        isVisible={notification.isVisible}
+        onClose={hideNotification}
+        autoClose={notification.autoClose}
+        duration={notification.duration}
+      />
     </div>
   );
 };

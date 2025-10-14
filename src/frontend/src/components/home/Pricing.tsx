@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../common/Button';
+import InFoundrNotification from '../common/InFoundrNotification';
+import { useInFoundrNotification } from '../../hooks/useInFoundrNotification';
 import { checkIsAuthenticated, hasActiveProSubscription } from '../../services/auth';
 
 interface PricingProps {
@@ -10,6 +12,7 @@ interface PricingProps {
 const Pricing: React.FC<PricingProps> = ({ onGetStartedClick }) => {
   const navigate = useNavigate();
   const [isCheckingAuth, setIsCheckingAuth] = useState(false);
+  const { notification, showSuccess, hideNotification } = useInFoundrNotification();
   const plans = [
     {
       name: 'Free',
@@ -82,8 +85,18 @@ const Pricing: React.FC<PricingProps> = ({ onGetStartedClick }) => {
         
         if (hasPro) {
           console.log('✅ User already has Pro subscription, redirecting to dashboard');
-          alert('You already have an active Pro subscription! Redirecting to your dashboard.');
-          navigate('/dashboard');
+          
+          // Show personalized InFoundr notification
+          showSuccess(
+            'Welcome back, Pro member! 🎉',
+            'You already have an active Pro subscription with unlimited access to all AI agents and premium features. Redirecting you to your dashboard...',
+            { duration: 3000 }
+          );
+          
+          // Small delay to let user see the notification before redirecting
+          setTimeout(() => {
+            navigate('/dashboard');
+          }, 2000);
         } else {
           // User doesn't have Pro, proceed to payment checkout
           console.log('💰 User needs to upgrade to Pro, redirecting to payment checkout...');
@@ -175,6 +188,17 @@ const Pricing: React.FC<PricingProps> = ({ onGetStartedClick }) => {
           ))}
         </div>
       </div>
+      
+      {/* InFoundr Notification */}
+      <InFoundrNotification
+        type={notification.type}
+        title={notification.title}
+        message={notification.message}
+        isVisible={notification.isVisible}
+        onClose={hideNotification}
+        autoClose={notification.autoClose}
+        duration={notification.duration}
+      />
     </section>
   );
 };
