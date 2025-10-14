@@ -95,7 +95,7 @@ const Pricing: React.FC<PricingProps> = ({ onGetStartedClick }) => {
           
           // Small delay to let user see the notification before redirecting
           setTimeout(() => {
-            navigate('/dashboard');
+            navigate('/dashboard/home'); // Redirect to specific dashboard route
           }, 2000);
         } else {
           // User doesn't have Pro, proceed to payment checkout

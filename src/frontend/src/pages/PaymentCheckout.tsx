@@ -36,7 +36,7 @@ const PaymentCheckout: React.FC = () => {
           requestAnimationFrame(() => {
             setTimeout(() => {
               console.log('🔄 Redirecting to dashboard...');
-              navigate('/dashboard', { replace: true });
+              navigate('/dashboard/home', { replace: true }); // Redirect to specific dashboard route
             }, 3000); // 3 seconds should be enough to see the notification
           });
           return;

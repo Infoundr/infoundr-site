@@ -47,7 +47,7 @@ const PaymentCallback: React.FC = () => {
           
           // Redirect to dashboard after 3 seconds
           setTimeout(() => {
-            navigate('/dashboard');
+            navigate('/dashboard/home'); // Redirect to specific dashboard route
           }, 3000);
         } else {
           setStatus('failed');
