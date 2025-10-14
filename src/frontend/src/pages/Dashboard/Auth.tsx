@@ -185,14 +185,24 @@ const Auth: React.FC = () => {
             console.log("Starting registration with name:", registrationData.name);
             await registerUser(registrationData.name);
             console.log("Registration successful");
+            
+            // ✅ CRITICAL FIX: Store user principal in sessionStorage after registration
+            // This is needed for ProtectedRoute to recognize the user as authenticated
+            const authClient = await AuthClient.create();
+            const identity = authClient.getIdentity();
+            const userPrincipal = identity.getPrincipal();
+            sessionStorage.setItem('user_principal', userPrincipal.toString());
+            console.log("Stored user principal:", userPrincipal.toString());
+            
             setIsLoading(false);
             
             // Check for payment intent first
             const paymentIntent = sessionStorage.getItem('payment_intent');
             if (paymentIntent === 'pro_upgrade') {
-                console.log('Payment intent detected after registration, redirecting to payment checkout...');
+                console.log('💳 Payment intent detected after registration, redirecting to payment checkout...');
                 sessionStorage.removeItem('payment_intent');
                 sessionStorage.removeItem('payment_intent_timestamp');
+                console.log('🚀 Navigating to /payment/checkout with stored principal');
                 navigate('/payment/checkout', { replace: true });
                 return;
             }
