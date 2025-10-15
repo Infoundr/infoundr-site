@@ -1,14 +1,15 @@
 import { createAuthenticatedActor, createUnauthenticatedActor } from './auth';
 import { GenerateStartupInviteInput, StartupInvite } from '../types/startup-invites';
 import type { StartupRegistrationInput } from '../types/startup-invites';
+import { StartupInviteRow } from '../utils/csvParser';
 
 interface CandidInput {
   accelerator_id: string;
   program_name: string;
   invite_type: GenerateStartupInviteInput['invite_type'];
   startup_name: string;
-  email: string[];
-  expiry_days: bigint[];
+  email: [string];
+  expiry_days?: bigint[];
 }
 
 export const generateStartupInvite = async (input: GenerateStartupInviteInput): Promise<StartupInvite | string> => {
@@ -157,3 +158,46 @@ export const linkStartupPrincipal = async (startupEmail: string, founderName: st
     return 'Failed to link startup principal';
   }
 }; 
+
+export interface BulkStartupInviteInput {
+  accelerator_id: string;
+  program_name: string;
+  invite_type: string;
+  invites: { startup_name: string; email: string; expiry_days?: number }[];
+}
+
+export interface InviteError {
+  row_number: number;
+  startup_name: string;
+  email: string;
+  error: string;
+}
+
+export interface BulkInviteResult {
+  total: number;
+  successful: any[];
+  failed: InviteError[];
+}
+
+export const generateBulkStartupInvites = async (
+  input: BulkStartupInviteInput,
+  progressCb?: (p: { current?: number; total?: number }) => void
+): Promise<BulkInviteResult> => {
+  try {
+    const response = await fetch('/api/generate_bulk_startup_invites', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    });
+
+    if (!response.ok) {
+      const txt = await response.text();
+      throw new Error(txt || 'Backend error');
+    }
+
+    const json = await response.json();
+    return json as BulkInviteResult;
+  } catch (err) {
+    throw err;
+  }
+};

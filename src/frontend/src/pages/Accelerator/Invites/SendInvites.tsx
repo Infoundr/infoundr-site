@@ -6,6 +6,9 @@ import { getMyAccelerator } from '../../../services/accelerator';
 import type { Accelerator } from '../../../types/accelerator';
 import { emailService } from '../../../services/email';
 import { toast } from 'react-toastify';
+import BulkInviteUpload from "../../../components/accelerator/BulkInviteUpload";
+import { StartupInviteRow } from "../../../utils/csvParser";
+
 
 interface InviteModalProps {
   isOpen: boolean;
@@ -365,6 +368,55 @@ const SendInvites = () => {
             {loading ? 'Generating...' : 'Generate Invite'}
           </button>
         </div>
+      </div>
+      <div className="mt-6 flex justify-end">
+  <button 
+    onClick={handleGenerateInvite}
+    disabled={loading} 
+    className={`bg-purple-600 text-white px-6 py-2 rounded-md transition ${
+      loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-purple-700'
+    }`}
+    >
+    {loading ? 'Generating...' : 'Generate Invite'}
+    </button>
+    </div>
+     {/* ✅ Fixed Bulk Invite Upload Section */}
+      <div className="mt-10 border-t pt-6">
+        <h2 className="text-lg font-medium mb-4">Bulk Invite Upload</h2>
+        <p className="text-sm text-gray-600 mb-4">
+          Upload a CSV file to generate multiple invites at once. The file should include columns: 
+          <code>startup_name</code>, <code>email</code>, and <code>expiry_days</code>.
+        </p>
+
+        {accelerator && (
+          <BulkInviteUpload
+            acceleratorId={accelerator.id.toString()}
+            programName={program}
+            inviteType="Link"
+            onInvitesParsed={async (parsedInvites: StartupInviteRow[]) => {
+              for (const row of parsedInvites) {
+                try {
+                  const input = {
+                    accelerator_id: accelerator.id.toString(),
+                    program_name: program,
+                    invite_type: { Link: null },
+                    startup_name: row.startup_name,
+                    email: [row.email] as [string],
+                    expiry_days: row.expiry_days
+                      ? [BigInt(row.expiry_days)] as [bigint]
+                      : ([BigInt(30)] as [bigint]),
+                  };
+
+                  await generateStartupInvite(input);
+                } catch (err) {
+                  console.error("Error generating bulk invite for", row.startup_name, err);
+                }
+              }
+              toast.success("Bulk invites processed successfully!");
+              await fetchInvitesForAccelerator(accelerator.id.toString());
+            }}
+          />
+        )}
       </div>
 
       {/* Invites Table */}

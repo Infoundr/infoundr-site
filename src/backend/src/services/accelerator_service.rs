@@ -3,6 +3,10 @@ use crate::models::stable_principal::StablePrincipal;
 use crate::models::stable_string::StableString;
 use crate::storage::memory::ACCELERATORS;
 use candid::{CandidType, Deserialize};
+use serde::Serialize;
+use candid::Principal;
+use regex::Regex;
+use std::collections::HashSet;
 use ic_cdk::{caller, update, query};
 use rand::RngCore;
 use rand::rngs::OsRng;
@@ -784,4 +788,303 @@ pub fn link_startup_principal(startup_email: String, founder_name: String) -> Re
             Ok(())
         }
     }
+}  
+
+#[derive(Clone, Debug, CandidType, Deserialize)]
+pub struct StartupInviteRow {
+    pub startup_name: String,
+    pub email: String,
+    pub expiry_days: Option<u64>,
+}
+
+#[derive(Clone, Debug, CandidType, Deserialize)]
+pub struct BulkStartupInviteInput {
+    pub accelerator_id: String,
+    pub program_name: String,
+    pub invite_type: InviteType,
+    pub invites: Vec<StartupInviteRow>,
+}
+
+#[derive(Clone, Debug, CandidType, Serialize)]
+pub struct InviteError {
+    pub row_number: u64,
+    pub startup_name: String,
+    pub email: String,
+    pub error: String,
+}
+
+#[derive(Clone, Debug, CandidType, Serialize)]
+pub struct BulkInviteResult {
+    pub total: u64,
+    pub successful: Vec<StartupInvite>, 
+    pub failed: Vec<InviteError>,
+}
+#[update]
+pub async fn generate_bulk_startup_invites(
+    input: BulkStartupInviteInput,
+) -> Result<BulkInviteResult, String> {
+    ic_cdk::println!(
+        "generate_bulk_startup_invites: received {} invites for accelerator {}",
+        input.invites.len(),
+        input.accelerator_id
+    );
+
+    let caller_principal = caller();
+
+    // 1️⃣ Permission check
+    if !is_admin_or_superadmin(&caller_principal) && !is_accel_admin(&caller_principal, &input.accelerator_id) {
+        return Err("Permission denied — caller must be admin or superadmin.".to_string());
+    }
+
+    // 2️⃣ Validate accelerator exists
+    let accel_id = input.accelerator_id.clone();
+    if !accelerator_exists(&accel_id) {
+        return Err(format!("Accelerator with ID '{}' not found.", accel_id));
+    }
+
+    let mut successful: Vec<StartupInvite> = Vec::new();
+    let mut failed: Vec<InviteError> = Vec::new();
+    let mut seen_emails: HashSet<String> = HashSet::new();
+    let _total = input.invites.len();
+
+    for (index, row) in input.invites.iter().enumerate() {
+        let row_number = index + 1;
+        let email_trimmed = row.email.trim().to_lowercase();
+        let name_trimmed = row.startup_name.trim();
+
+        // 3️⃣ Validate required fields
+        if name_trimmed.is_empty() {
+            failed.push(InviteError {
+                row_number: row_number as u64,
+                startup_name: row.startup_name.clone(),
+                email: row.email.clone(),
+                error: "Missing startup_name".to_string(),
+            });
+            continue;
+        }
+
+        if email_trimmed.is_empty() {
+            failed.push(InviteError {
+                row_number: row_number as u64,
+                startup_name: row.startup_name.clone(),
+                email: row.email.clone(),
+                error: "Missing email".to_string(),
+            });
+            continue;
+        }
+
+        // 4️⃣ Email format
+        if !is_valid_email(&email_trimmed) {
+            failed.push(InviteError {
+                row_number: row_number as u64,
+                startup_name: row.startup_name.clone(),
+                email: row.email.clone(),
+                error: "Invalid email format".to_string(),
+            });
+            continue;
+        }
+
+        // 5️⃣ Prevent duplicate invites in same CSV
+        if seen_emails.contains(&email_trimmed) {
+            failed.push(InviteError {
+                row_number: row_number as u64,
+                startup_name: row.startup_name.clone(),
+                email: row.email.clone(),
+                error: "Duplicate email in CSV".to_string(),
+            });
+            continue;
+        } else {
+            seen_emails.insert(email_trimmed.clone());
+        }
+
+        // 6️⃣ Check if invite already exists
+        if invite_already_exists(&accel_id, &email_trimmed) {
+            failed.push(InviteError {
+                row_number: row_number as u64,
+                startup_name: row.startup_name.clone(),
+                email: row.email.clone(),
+                error: "Invite already exists".to_string(),
+            });
+            continue;
+        }
+
+        // 7️⃣ Create invite
+        match create_startup_invite_internal(
+            &accel_id,
+            &input.program_name,
+            name_trimmed,
+            input.invite_type.clone(),
+            Some(email_trimmed.clone()),
+            row.expiry_days,
+        ) {
+            Ok(invite) => successful.push(invite),
+            Err(err) => failed.push(InviteError {
+                row_number: row_number as u64,
+                startup_name: row.startup_name.clone(),
+                email: row.email.clone(),
+                error: err,
+            }),
+        }
+    }
+
+    // 8️⃣ Update accelerator metrics
+    if !successful.is_empty() {
+        increment_accelerator_invite_count(&accel_id, successful.len() as u64);
+    }
+
+    ic_cdk::println!(
+        "generate_bulk_startup_invites: {} successful, {} failed.",
+        successful.len(),
+        failed.len()
+    );
+
+    Ok(BulkInviteResult {
+        total: input.invites.len() as u64,
+        successful,
+        failed,
+    })
+}
+
+// ---------------------------------------------------------
+// 🧩 SINGLE INVITE CREATION
+// ---------------------------------------------------------
+fn create_startup_invite_internal(
+    accelerator_id: &String,
+    program_name: &String,
+    startup_name: &str,
+    invite_type: InviteType,
+    email: Option<String>,
+    expiry_days: Option<u64>,
+) -> Result<StartupInvite, String> {
+    // Fetch accelerator
+    let sp = StablePrincipal::new(Principal::from_text(accelerator_id).map_err(|_| "Invalid Principal")?);
+    let accelerator = ACCELERATORS.with(|accs|{ accs.borrow().get(&sp).map(|acc|acc.clone())});
+    let accelerator = accelerator.ok_or("Accelerator not found".to_string())?;
+
+    // Generate token / invite code
+    let mut token_bytes = [0u8; 32];
+    OsRng.fill_bytes(&mut token_bytes);
+    let invite_code = BASE64.encode(&token_bytes);
+    let invite_id = invite_code.clone();
+
+    let now = ic_cdk::api::time();
+    let expiry = now + expiry_days.unwrap_or(3) * 24 * 60 * 60 * 1_000_000_000; // ns
+
+    let invite = StartupInvite {
+        invite_id: invite_id.clone(),
+        startup_name: startup_name.to_string(),
+        accelerator_id: accelerator.id.clone(),
+        program_name: program_name.clone(),
+        invite_type,
+        invite_code: invite_code.clone(),
+        expiry,
+        status: InviteStatus::Pending,
+        created_at: now,
+        used_at: None,
+        email,
+        registered_principal: None,
+        registered_at: None,
+    };
+
+    // Store invite
+    STARTUP_INVITES.with(|invites| {
+        invites.borrow_mut().insert(StableString::new(&invite_id), invite.clone());
+    });
+
+    // Log activity
+    ACCELERATORS.with(|accs| {
+        let accs_mut = accs.borrow_mut();
+        if let Some(mut acc) = accs_mut.get(&sp) {
+            acc.invites_sent += 1;
+            acc.recent_activity.push(Activity {
+                timestamp: now,
+                description: format!("Invite generated for {}", startup_name),
+                activity_type: ActivityType::SentInvite,
+            });
+        }
+    });
+
+    Ok(invite)
+}
+
+// ---------------------------------------------------------
+// 🧩 HELPER FUNCTIONS
+// ---------------------------------------------------------
+
+/// Check if an accelerator exists
+fn accelerator_exists(accelerator_id: &String) -> bool {
+    let sp = StablePrincipal::new(Principal::from_text(accelerator_id).unwrap());
+    ACCELERATORS.with(|accs| {
+        let accs_ref = accs.borrow();
+        accs_ref.get(&sp).is_some()
+    })
+}
+
+/// Increment invites_sent count for an accelerator
+fn increment_accelerator_invite_count(accelerator_id: &String, count: u64) {
+    let sp = StablePrincipal::new(Principal::from_text(accelerator_id).unwrap());
+    ACCELERATORS.with(|accs| {
+        let mut accs_mut = accs.borrow_mut();
+        if let Some(mut acc) = accs_mut.get(&sp) {
+            acc.invites_sent = acc.invites_sent.saturating_add(count as u32);
+            accs_mut.insert(sp.clone(), acc); // write back
+        }
+    });
+}
+
+/// Check if the caller is admin or superadmin of any accelerator
+fn is_admin_or_superadmin(caller: &Principal) -> bool {
+    ACCELERATORS.with(|accs| {
+        let accs_ref = accs.borrow();
+        for (_key, acc) in accs_ref.iter() {
+            if acc.team_members.iter().any(|m| {
+                m.principal == Some(*caller)
+                    && (m.role == Role::Admin || m.role == Role::SuperAdmin)
+                    && m.status == MemberStatus::Active
+            }) {
+                return true;
+            }
+        }
+        false
+    })
+}
+
+/// Check if the caller is admin or superadmin of a specific accelerator
+fn is_accel_admin(caller: &Principal, accelerator_id: &String) -> bool {
+    let sp = StablePrincipal::new(Principal::from_text(accelerator_id).unwrap());
+    ACCELERATORS.with(|accs| {
+        let accs_ref = accs.borrow();
+        if let Some(acc) = accs_ref.get(&sp) {
+            acc.team_members.iter().any(|m| {
+                m.principal == Some(*caller)
+                    && (m.role == Role::Admin || m.role == Role::SuperAdmin)
+                    && m.status == MemberStatus::Active
+            })
+        } else {
+            false
+        }
+    })
+}
+
+/// Check if a pending invite already exists for a startup email
+fn invite_already_exists(accelerator_id: &String, email: &String) -> bool {
+    let sp = StablePrincipal::new(Principal::from_text(accelerator_id).unwrap());
+    STARTUP_INVITES.with(|invites| {
+        let invites_ref = invites.borrow();
+        for (_key, invite) in invites_ref.iter() {
+            if invite.accelerator_id == sp
+                && invite.email.as_ref() == Some(email)
+                && invite.status == InviteStatus::Pending
+            {
+                return true;
+            }
+        }
+        false
+    })
+}
+
+/// Validate email format using regex
+fn is_valid_email(email: &str) -> bool {
+    let email_regex = Regex::new(r"^[^\s@]+@[^\s@]+\.[^\s@]+$").unwrap();
+    email_regex.is_match(email)
 }

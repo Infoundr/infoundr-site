@@ -17,6 +17,7 @@ serde = { version = "1.0.9", features = ["derive"] }
 base64 = "0.21"
 rand = { version = "0.8", features = ["getrandom"] }
 getrandom = { version = "0.2", features = ["custom"] }
+regex = "1.12.2"
 
 [dev-dependencies]
 pocket-ic = "9.0.2"

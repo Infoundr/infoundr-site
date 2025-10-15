@@ -455,6 +455,83 @@ app.post('/send-welcome-email', async (req, res) => {
   }
 });
 
+// Send bulk startup invites (new route)
+app.post('/send-bulk-startup-invites', async (req, res) => {
+  try {
+    const invites = req.body.invites || [];
+    if (!Array.isArray(invites) || invites.length === 0) {
+      return res.status(400).json({ error: 'Invites array is required' });
+    }
+
+    const results = { successful: [], failed: [] };
+
+    for (const invite of invites) {
+      const {
+        email,
+        startupName,
+        programName,
+        acceleratorName,
+        inviteCode,
+        expiryDate
+      } = invite;
+
+      if (!email || !startupName || !programName || !inviteCode) {
+        results.failed.push({
+          email: email || '(missing)',
+          error: 'Missing required fields: email, startupName, programName, inviteCode'
+        });
+        continue;
+      }
+
+      const template = emailTemplates.startupInvite;
+      const data = {
+        startupName,
+        programName,
+        acceleratorName: acceleratorName || 'Your Accelerator',
+        inviteCode,
+        inviteLink: invite.inviteLink || `https://infoundr.com/accelerator/invite/${inviteCode}`,
+        expiryDate: expiryDate || '30 days from now',
+        email
+      };
+
+      const msg = {
+        to: email,
+        from: {
+          email: process.env.FROM_EMAIL || 'noreply@infoundr.com',
+          name: process.env.FROM_NAME || 'InFoundr Team'
+        },
+        subject: template.subject(startupName, programName),
+        text: template.text(data),
+        html: template.html(data)
+      };
+
+      try {
+        await sgMail.send(msg);
+        results.successful.push(email);
+        console.log(`✅ Bulk invite sent to ${email}`);
+      } catch (err) {
+        console.error(`❌ Error sending to ${email}:`, err.message);
+        results.failed.push({ email, error: err.message });
+      }
+    }
+
+    res.json({
+      success: true,
+      total: invites.length,
+      successful: results.successful.length,
+      failed: results.failed.length,
+      results
+    });
+
+  } catch (error) {
+    console.error('Error in /send-bulk-startup-invites:', error);
+    res.status(500).json({
+      error: 'Internal server error while sending bulk invites',
+      details: error.message
+    });
+  }
+});
+
 // Bulk send emails
 app.post('/bulk-send', async (req, res) => {
   try {
@@ -587,6 +664,7 @@ app.use('*', (req, res) => {
       'POST /send-team-invite',
       'POST /send-welcome-email',
       'POST /bulk-send',
+      'POST /send-bulk-startup-invites',
       'GET /test'
     ]
   });

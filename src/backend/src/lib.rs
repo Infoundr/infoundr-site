@@ -43,7 +43,7 @@ use crate::services::accelerator_service::{AcceleratorSignUp, TeamMemberInviteWi
 use crate::models::accelerator::{Accelerator, TeamMember};
 use crate::models::startup_invite::StartupInvite;
 use crate::services::accelerator_service::TeamInvite;
-use crate::services::accelerator_service::{GenerateStartupInviteInput, StartupRegistrationInput};
+use crate::services::accelerator_service::{GenerateStartupInviteInput, StartupRegistrationInput, BulkStartupInviteInput, BulkInviteResult};
 
 #[derive(candid::CandidType, candid::Deserialize)]
 struct StableState {
