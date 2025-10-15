@@ -57,7 +57,6 @@ use crate::migrations::{CurrentStableState, migrate_from_bytes};
 type StableState = CurrentStableState;
 
 // Payment API endpoints and types
-pub use crate::services::payment_service::{InitializePaymentRequest, InitializePaymentResponse};
 pub use crate::models::payment::{PaymentRecord, Invoice, TransactionDetails};
 pub use crate::payments::PaystackConfig;
 
