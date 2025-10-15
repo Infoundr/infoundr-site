@@ -71,15 +71,22 @@ const PaymentManagement: React.FC = () => {
         if ('KES' in currency) return 'KES';
         if ('USD' in currency) return 'USD';
         
-        return 'NGN'; // Default fallback
+        return 'KES'; // Default fallback
     };
 
-    const formatCurrency = (amount: number | bigint, currency: Currency | string = 'NGN') => {
+    const formatCurrency = (amount: number | bigint, currency: Currency | string = 'KES') => {
         // Convert BigInt to number if needed
         const numAmount = typeof amount === 'bigint' ? Number(amount) : amount;
         const currencyString = getCurrencyString(currency);
         
-        return new Intl.NumberFormat('en-NG', {
+        // Use appropriate locale based on currency
+        const locale = currencyString === 'KES' ? 'en-KE' : 
+                      currencyString === 'NGN' ? 'en-NG' : 
+                      currencyString === 'GHS' ? 'en-GH' : 
+                      currencyString === 'ZAR' ? 'en-ZA' : 
+                      'en-US';
+        
+        return new Intl.NumberFormat(locale, {
             style: 'currency',
             currency: currencyString,
         }).format(numAmount / 100); // Convert from kobo to main currency unit
