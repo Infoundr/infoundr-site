@@ -2,6 +2,7 @@ pub mod models;
 pub mod services;
 pub mod storage;
 pub mod migrations;
+pub mod payments;
 
 
 // Custom getrandom implementation - for pocket ic testing only
@@ -37,6 +38,7 @@ use crate::services::account_service::{UserActivity, UserIdentifier,  UserIdenti
 use crate::storage::memory::{
     API_MESSAGES, CHAT_HISTORY, CONNECTED_ACCOUNTS, DASHBOARD_TOKENS, OPENCHAT_USERS, SLACK_USERS, DISCORD_USERS, TASKS, USERS, WAITLIST, GITHUB_ISSUES,
     STARTUPS, STARTUP_STATUSES, STARTUP_COHORTS, STARTUP_ACTIVITIES, ACCELERATORS, STARTUP_INVITES, ADMINS, USER_SUBSCRIPTIONS, USER_DAILY_USAGE,
+    PAYMENT_RECORDS, INVOICES,
 };
 use candid::Principal;
 use ic_cdk::storage::{stable_restore, stable_save};
@@ -47,12 +49,43 @@ use crate::models::startup_invite::StartupInvite;
 use crate::services::accelerator_service::TeamInvite;
 use crate::services::accelerator_service::{GenerateStartupInviteInput, StartupRegistrationInput};
 pub use crate::models::usage_service::{UsageStats, UserTier, UserSubscription};
-pub use crate::services::admin::UserActivityReport;
+pub use crate::services::admin::{UserActivityReport, PaymentStats};
 use crate::models::admin::PlaygroundStats;
 use crate::migrations::{CurrentStableState, migrate_from_bytes};
 
 // Use the stable state from migrations module
 type StableState = CurrentStableState;
+// Payment API endpoints and types
+pub use crate::payments::api::*;
+pub use crate::services::payment_service::{InitializePaymentRequest, InitializePaymentResponse};
+pub use crate::models::payment::{PaymentRecord, Invoice, TransactionDetails};
+pub use crate::payments::PaystackConfig;
+
+#[derive(candid::CandidType, candid::Deserialize)]
+struct StableState {
+    users: Vec<(StablePrincipal, User)>,
+    waitlist: Vec<(StableString, WaitlistEntry)>,
+    chat_history: Vec<((StablePrincipal, u64), ChatMessage)>,
+    api_messages: Vec<((StableString, u64), ApiMessage)>,
+    connected_accounts: Vec<(StablePrincipal, ConnectedAccounts)>,
+    tasks: Vec<((StablePrincipal, StableString), Task)>,
+    github_issues: Vec<((StablePrincipal, StableString), Issue)>,
+    openchat_users: Vec<(StableString, OpenChatUser)>,
+    slack_users: Vec<(StableString, SlackUser)>,
+    discord_users: Vec<(StableString, DiscordUser)>,
+    dashboard_tokens: Vec<(StableString, DashboardToken)>,
+    accelerators: Vec<(StablePrincipal, Accelerator)>,
+    startup_invites: Vec<(StableString, StartupInvite)>,
+    startups: Vec<(StableString, Startup)>,
+    startup_statuses: Vec<(StableString, StartupStatus)>,
+    startup_cohorts: Vec<(StableString, StartupCohort)>,
+    startup_activities: Vec<((StableString, u64), StartupActivity)>,
+    admins: Vec<(StablePrincipal, crate::models::admin::Admin)>,
+    user_subscriptions: Vec<(StableString, UserSubscription)>,  
+    user_daily_usage: Vec<((StableString, u64), u32)>,
+    payment_records: Vec<(StableString, crate::models::payment::PaymentRecord)>,
+    invoices: Vec<(StableString, crate::models::payment::Invoice)>,
+}
 
 #[ic_cdk::pre_upgrade]
 fn pre_upgrade() {
@@ -76,6 +109,8 @@ fn pre_upgrade() {
     let admins = ADMINS.with(|a| a.borrow().iter().collect::<Vec<_>>());
     let user_subscriptions = USER_SUBSCRIPTIONS.with(|s| s.borrow().iter().collect::<Vec<_>>());
     let user_daily_usage = USER_DAILY_USAGE.with(|u| u.borrow().iter().collect::<Vec<_>>());
+    let payment_records = PAYMENT_RECORDS.with(|p| p.borrow().iter().collect::<Vec<_>>());
+    let invoices = INVOICES.with(|i| i.borrow().iter().collect::<Vec<_>>());
 
     let state = StableState {
         users,
@@ -98,6 +133,8 @@ fn pre_upgrade() {
         admins,
         user_subscriptions,
         user_daily_usage,
+        payment_records,
+        invoices,
     };
 
     // Serialize with bincode for better performance and compatibility
@@ -164,6 +201,32 @@ fn post_upgrade() {
                 user_daily_usage: vec![],
             }
         }
+    let (state,): (StableState,) = match stable_restore() {
+        Ok(data) => data,
+        Err(_) => (StableState {
+            users: vec![],
+            waitlist: vec![],
+            chat_history: vec![],
+            api_messages: vec![],
+            connected_accounts: vec![],
+            tasks: vec![],
+            github_issues: vec![],
+            openchat_users: vec![],
+            slack_users: vec![],
+            discord_users: vec![],
+            dashboard_tokens: vec![],
+            accelerators: vec![],
+            startup_invites: vec![],
+            startups: vec![],
+            startup_statuses: vec![],
+            startup_cohorts: vec![],
+            startup_activities: vec![],
+            admins: vec![],
+            user_subscriptions: vec![],
+            user_daily_usage: vec![],
+            payment_records: vec![],
+            invoices: vec![],
+        },),
     };
 
     // Restore users
@@ -326,6 +389,21 @@ fn post_upgrade() {
         }
     });
 
+    // Restore payment records
+    PAYMENT_RECORDS.with(|p| {
+        let mut p = p.borrow_mut();
+        for (k, v) in state.payment_records {
+            p.insert(k, v);
+        }
+    });
+
+    // Restore invoices
+    INVOICES.with(|i| {
+        let mut i = i.borrow_mut();
+        for (k, v) in state.invoices {
+            i.insert(k, v);
+        }
+    });
 }
 
 ic_cdk::export_candid!();

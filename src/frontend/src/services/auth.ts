@@ -482,3 +482,89 @@ export const logAcceleratorLogin = async () => {
         return false;
     }
 };
+
+// Get user subscription status
+export async function getUserSubscription() {
+  try {
+    const authClient = await initializeAuthClient();
+    const isAuthenticated = await authClient.isAuthenticated();
+    
+    if (!isAuthenticated) {
+      return { Err: "Not authenticated" };
+    }
+
+    const identity = authClient.getIdentity();
+    const principal = identity.getPrincipal();
+    
+    console.log("Getting subscription for user:", principal.toString());
+    
+    // Create actor with the authenticated identity
+    const actor = createActor(CANISTER_ID, {
+      agentOptions: {
+        identity,
+        host: import.meta.env.VITE_IC_HOST || "https://ic0.app"
+      }
+    });
+
+    // Call the backend to get user subscription
+    const result = await actor.api_get_user_subscription(principal.toString());
+    console.log("Backend subscription result:", result);
+    
+    return { Ok: result };
+  } catch (error) {
+    console.error("Error getting user subscription:", error);
+    return { Err: `Failed to get subscription: ${error}` };
+  }
+}
+
+// Check if user has active Pro subscription
+export async function hasActiveProSubscription(): Promise<boolean> {
+  try {
+    const result = await getUserSubscription();
+    
+    if ('Err' in result) {
+      console.log("Could not get subscription:", result.Err);
+      return false;
+    }
+    
+    const subscription = result.Ok;
+    
+    if (!subscription || subscription.length === 0) {
+      console.log("No subscription found - user is Free tier");
+      return false;
+    }
+    
+    const userSubscription = subscription[0];
+    
+    // Check if subscription is Pro and active
+    // UserTier is a variant: {Pro: null} or {Free: null}
+    const isPro = 'Pro' in userSubscription.tier; // Check if Pro variant exists
+    const isActive = userSubscription.is_active;
+    
+    // Check if subscription has expired
+    let isExpired = false;
+    if (userSubscription.expires_at_ns && userSubscription.expires_at_ns.length > 0) {
+      const now = BigInt(Date.now() * 1_000_000); // Convert to nanoseconds
+      const expiryTime = userSubscription.expires_at_ns[0];
+      if (expiryTime) {
+        isExpired = now > expiryTime;
+      }
+    }
+    
+    const hasActivePro = isPro && isActive && !isExpired;
+    
+    console.log("Subscription check:", {
+      tier: userSubscription.tier,
+      tierKeys: Object.keys(userSubscription.tier),
+      isPro,
+      isActive,
+      isExpired,
+      hasActivePro
+    });
+    
+    return hasActivePro;
+  } catch (error) {
+    console.error("Error checking Pro subscription:", error);
+    return false;
+  }
+}

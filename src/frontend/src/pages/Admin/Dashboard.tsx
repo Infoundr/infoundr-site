@@ -26,6 +26,12 @@ const AdminDashboard: React.FC = () => {
         playgroundStats: {
             totalMessages: 0,
             uniqueUsers: 0
+        },
+        paymentStats: {
+            total_payments: 0,
+            successful_payments: 0,
+            total_revenue: 0,
+            monthly_revenue: 0
         }
     });
 
@@ -49,7 +55,8 @@ const AdminDashboard: React.FC = () => {
                 slackResult,
                 discordResult,
                 openchatResult,
-                playgroundStatsResult
+                playgroundStatsResult,
+                paymentStatsResult
             ] = await Promise.all([
                 authenticatedActor.get_users(),
                 authenticatedActor.get_waitlist(),
@@ -58,7 +65,8 @@ const AdminDashboard: React.FC = () => {
                 authenticatedActor.get_registered_slack_users_admin(),
                 authenticatedActor.get_registered_discord_users_admin(),
                 authenticatedActor.get_registered_openchat_users_admin(),
-                authenticatedActor.admin_get_playground_stats()
+                authenticatedActor.admin_get_playground_stats(),
+                authenticatedActor.admin_get_payment_stats()
             ]);
 
             console.log(usersResult);
@@ -75,7 +83,13 @@ const AdminDashboard: React.FC = () => {
                 playgroundStats: 'Ok' in playgroundStatsResult ? {
                     totalMessages: playgroundStatsResult.Ok.total_messages,
                     uniqueUsers: playgroundStatsResult.Ok.unique_users
-                } : { totalMessages: 0, uniqueUsers: 0 }
+                } : { totalMessages: 0, uniqueUsers: 0 },
+                paymentStats: 'Ok' in paymentStatsResult ? {
+                    total_payments: paymentStatsResult.Ok.total_payments,
+                    successful_payments: paymentStatsResult.Ok.successful_payments,
+                    total_revenue: Number(paymentStatsResult.Ok.total_revenue),
+                    monthly_revenue: Number(paymentStatsResult.Ok.monthly_revenue)
+                } : { total_payments: 0, successful_payments: 0, total_revenue: 0, monthly_revenue: 0 }
             });
         } catch (error) {
             console.error('Error fetching dashboard stats:', error);
@@ -155,6 +169,27 @@ const AdminDashboard: React.FC = () => {
             icon: '👥',
             color: 'bg-teal-500',
             path: '/admin/playground'
+        },
+        {
+            title: 'Total Payments',
+            value: stats.paymentStats.total_payments,
+            icon: '💳',
+            color: 'bg-green-500',
+            path: '/admin/payments'
+        },
+        {
+            title: 'Successful Payments',
+            value: stats.paymentStats.successful_payments,
+            icon: '✅',
+            color: 'bg-emerald-500',
+            path: '/admin/payments'
+        },
+        {
+            title: 'Total Revenue',
+            value: `Ksh ${(Number(stats.paymentStats.total_revenue) / 100).toLocaleString()}`,
+            icon: '💰',
+            color: 'bg-yellow-500',
+            path: '/admin/payments'
         }
     ];
 
