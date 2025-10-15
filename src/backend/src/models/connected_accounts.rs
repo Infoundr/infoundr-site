@@ -1,21 +1,22 @@
 use candid::{CandidType, Decode, Deserialize, Encode};
+use serde::Serialize;
 use ic_stable_structures::{BoundedStorable, Storable};
 use std::borrow::Cow;
 
-#[derive(CandidType, Deserialize, Clone, Debug)]
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
 pub struct AsanaAccount {
     pub token: String,
     pub workspace_id: String,
     pub project_ids: Vec<(String, String)>, // (project_name, project_id)
 }
 
-#[derive(CandidType, Deserialize, Clone, Debug)]
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
 pub struct GitHubAccount {
     pub token: String,
     pub selected_repo: Option<String>,
 }
 
-#[derive(CandidType, Deserialize, Clone, Debug)]
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
 pub struct ConnectedAccounts {
     pub asana: Option<AsanaAccount>,
     pub github: Option<GitHubAccount>,
