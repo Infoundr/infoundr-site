@@ -52,6 +52,7 @@ pub use crate::models::usage_service::{UsageStats, UserTier, UserSubscription};
 pub use crate::services::admin::{UserActivityReport, PaymentStats};
 use crate::models::admin::PlaygroundStats;
 use crate::migrations::{CurrentStableState, migrate_from_bytes};
+use crate::services::payment_service::{InitializePaymentRequest, InitializePaymentResponse};
 
 // Use the stable state from migrations module
 type StableState = CurrentStableState;
