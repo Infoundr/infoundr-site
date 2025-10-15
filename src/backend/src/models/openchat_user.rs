@@ -1,10 +1,11 @@
 use crate::models::stable_principal::StablePrincipal;
 use candid::{CandidType, Deserialize};
+use serde::Serialize;
 use candid::{Decode, Encode};
 use ic_stable_structures::{BoundedStorable, Storable};
 use std::borrow::Cow;
 
-#[derive(CandidType, Deserialize, Clone, Debug)]
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
 pub struct OpenChatUser {
     pub openchat_id: String,
     pub site_principal: Option<StablePrincipal>,

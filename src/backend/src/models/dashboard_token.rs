@@ -1,8 +1,9 @@
 use candid::{CandidType, Decode, Deserialize, Encode};
+use serde::Serialize;
 use ic_stable_structures::{BoundedStorable, Storable};
 use std::borrow::Cow;
 
-#[derive(CandidType, Deserialize, Clone, Debug)]
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
 pub struct DashboardToken {
     pub token: Vec<u8>,
     pub openchat_id: String,
