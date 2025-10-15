@@ -57,7 +57,6 @@ use crate::migrations::{CurrentStableState, migrate_from_bytes};
 type StableState = CurrentStableState;
 
 // Payment API endpoints and types
-pub use crate::payments::api::*;
 pub use crate::services::payment_service::{InitializePaymentRequest, InitializePaymentResponse};
 pub use crate::models::payment::{PaymentRecord, Invoice, TransactionDetails};
 pub use crate::payments::PaystackConfig;
@@ -126,6 +125,7 @@ fn post_upgrade() {
                 Err(e) => {
                     ic_cdk::println!("Failed to migrate state: {}", e);
                     // Fallback to empty state with all required fields
+                    // Fallback to empty state
                     StableState {
                         users: vec![],
                         waitlist: vec![],

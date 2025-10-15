@@ -92,6 +92,7 @@ pub struct StableStateV3 {
 
 // Current stable state (latest version)
 pub type CurrentStableState = StableStateV3;
+// Current stable state (latest version)
 
 // Migration implementations
 impl From<StableStateV1> for StableStateV2 {
