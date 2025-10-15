@@ -4,12 +4,13 @@ use crate::models::waitlist::WaitlistEntry;
 use crate::models::accelerator::Accelerator;
 use crate::models::api_message::ApiMessage;
 use crate::models::usage_service::{UsageStats, UserTier, UserSubscription};
+use crate::models::payment::{PaymentRecord, Invoice};
 use crate::services::slack_service::get_registered_slack_users;
 use crate::services::discord_service::get_registered_discord_users;
 use crate::services::account_service::{UserIdentifier as AccountUserIdentifier};
 use crate::services::api_service::{get_api_message_history, get_api_messages_by_bot, get_recent_api_messages, UserIdentifier as ApiUserIdentifier};
 use crate::services::pricing_services::{get_usage_stats, get_user_tier, get_user_subscription, can_make_request};
-use crate::storage::memory::{USERS, WAITLIST, ACCELERATORS, ADMINS, SLACK_USERS, DISCORD_USERS, OPENCHAT_USERS, USER_SUBSCRIPTIONS, USER_DAILY_USAGE};
+use crate::storage::memory::{USERS, WAITLIST, ACCELERATORS, ADMINS, SLACK_USERS, DISCORD_USERS, OPENCHAT_USERS, USER_SUBSCRIPTIONS, USER_DAILY_USAGE, PAYMENT_RECORDS, INVOICES};
 use candid::Principal;
 use ic_cdk::{caller, query, update};
 use crate::models::admin::PlaygroundStats;
@@ -947,4 +948,120 @@ pub fn admin_get_playground_stats() -> Result<PlaygroundStats, String> {
     });
 
     Ok(stats)
+}
+
+// ==================== ADMIN PAYMENT MANAGEMENT ====================
+
+/// Get all payment records (admin only)
+#[query]
+pub fn admin_get_all_payments() -> Result<Vec<PaymentRecord>, String> {
+    if !is_allowed_principal() {
+        return Err("Unauthorized: Admin access required".to_string());
+    }
+
+    let payments = PAYMENT_RECORDS.with(|records| {
+        records.borrow()
+            .iter()
+            .map(|(_, payment)| payment.clone())
+            .collect::<Vec<_>>()
+    });
+
+    Ok(payments)
+}
+
+/// Get all invoices (admin only)
+#[query]
+pub fn admin_get_all_invoices() -> Result<Vec<Invoice>, String> {
+    if !is_allowed_principal() {
+        return Err("Unauthorized: Admin access required".to_string());
+    }
+
+    let invoices = INVOICES.with(|invoices| {
+        invoices.borrow()
+            .iter()
+            .map(|(_, invoice)| invoice.clone())
+            .collect::<Vec<_>>()
+    });
+
+    Ok(invoices)
+}
+
+/// Get all user subscriptions (admin only)
+#[query]
+pub fn admin_get_all_subscriptions() -> Result<Vec<UserSubscription>, String> {
+    if !is_allowed_principal() {
+        return Err("Unauthorized: Admin access required".to_string());
+    }
+
+    let subscriptions = USER_SUBSCRIPTIONS.with(|subs| {
+        subs.borrow()
+            .iter()
+            .map(|(_, sub)| sub.clone())
+            .collect::<Vec<_>>()
+    });
+
+    Ok(subscriptions)
+}
+
+/// Get payment statistics (admin only)
+#[query]
+pub fn admin_get_payment_stats() -> Result<PaymentStats, String> {
+    if !is_allowed_principal() {
+        return Err("Unauthorized: Admin access required".to_string());
+    }
+
+    let stats = PAYMENT_RECORDS.with(|records| {
+        let records = records.borrow();
+        let mut total_payments = 0;
+        let mut successful_payments = 0;
+        let mut total_revenue = 0u64;
+        let mut monthly_revenue = 0u64;
+        let mut yearly_revenue = 0u64;
+        
+        let now = ic_cdk::api::time();
+        let one_month_ago = now - (30 * 24 * 60 * 60 * 1_000_000_000); // 30 days in nanoseconds
+        
+        for (_, payment) in records.iter() {
+            total_payments += 1;
+            
+            if payment.status == crate::models::payment::PaymentStatus::Success {
+                successful_payments += 1;
+                total_revenue += payment.amount;
+                
+                // Check if payment was made in the last month
+                if let Some(paid_at) = payment.paid_at {
+                    if paid_at > one_month_ago {
+                        monthly_revenue += payment.amount;
+                    }
+                }
+                
+                // Check if it's a yearly subscription
+                if payment.billing_period == "yearly" {
+                    yearly_revenue += payment.amount;
+                }
+            }
+        }
+        
+        PaymentStats {
+            total_payments,
+            successful_payments,
+            failed_payments: total_payments - successful_payments,
+            total_revenue,
+            monthly_revenue,
+            yearly_revenue,
+        }
+    });
+
+    Ok(stats)
+}
+
+/// Payment statistics structure
+#[derive(candid::CandidType, candid::Deserialize, Clone, Debug)]
+pub struct PaymentStats {
+    pub total_payments: u32,
+    pub successful_payments: u32,
+    pub failed_payments: u32,
+    pub total_revenue: u64,
+    pub monthly_revenue: u64,
+    pub yearly_revenue: u64,
 }

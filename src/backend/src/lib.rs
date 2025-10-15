@@ -48,7 +48,7 @@ use crate::models::startup_invite::StartupInvite;
 use crate::services::accelerator_service::TeamInvite;
 use crate::services::accelerator_service::{GenerateStartupInviteInput, StartupRegistrationInput};
 pub use crate::models::usage_service::{UsageStats, UserTier, UserSubscription};
-pub use crate::services::admin::UserActivityReport;
+pub use crate::services::admin::{UserActivityReport, PaymentStats};
 use crate::models::admin::PlaygroundStats;
 
 // Payment API endpoints and types

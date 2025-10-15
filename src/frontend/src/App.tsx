@@ -25,6 +25,7 @@ import AdminAccelerators from './pages/Admin/Accelerators';
 import AdminPlatformUsers from './pages/Admin/PlatformUsers';
 import AdminApiMessages from './pages/Admin/ApiMessages';
 import AdminPlaygroundMonitoring from './pages/Admin/PlaygroundMonitoring';
+import PaymentManagement from './pages/Admin/PaymentManagement';
 import Auth from './pages/Dashboard/Auth';
 import DashboardLayout from './pages/Dashboard/layouts/DashboardLayout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -203,6 +204,7 @@ const App: React.FC = () => {
             <Route path="users" element={<AdminUsers />} />
             <Route path="waitlist" element={<AdminWaitlist />} />
             <Route path="user-usage" element={<UserUsage />} />
+            <Route path="payments" element={<PaymentManagement />} />
             <Route path="admins" element={<AdminAdmins />} />
             <Route path="accelerators" element={<AdminAccelerators />} />
             <Route path="platform-users" element={<AdminPlatformUsers />} />
