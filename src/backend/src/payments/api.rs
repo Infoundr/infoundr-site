@@ -42,11 +42,13 @@ pub fn payment_get_invoices(user_id: String) -> Vec<Invoice> {
 /// Set Paystack configuration (admin only)
 #[ic_cdk::update]
 pub fn payment_set_config(config: PaystackConfig) -> Result<String, String> {
-    // TODO: Add admin check here
-    // let caller = ic_cdk::caller();
-    // if !is_admin(caller) {
-    //     return Err("Unauthorized: Admin access required".to_string());
-    // }
+    let caller = ic_cdk::caller();
+    let authorized_principal = candid::Principal::from_text("5mqc2-eelsb-rpsbu-tvroe-paiy3-c4wo3-4xl6q-7nelg-gprk3-rkq46-mqe")
+        .expect("Invalid authorized principal");
+    
+    if caller != authorized_principal {
+        return Err("Unauthorized: Only the authorized principal can update payment configuration".to_string());
+    }
     
     set_paystack_config(config);
     Ok("Paystack configuration updated successfully".to_string())
