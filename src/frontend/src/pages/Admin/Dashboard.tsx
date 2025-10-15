@@ -186,7 +186,7 @@ const AdminDashboard: React.FC = () => {
         },
         {
             title: 'Total Revenue',
-            value: `₦${(Number(stats.paymentStats.total_revenue) / 100).toLocaleString()}`,
+            value: `Ksh ${(Number(stats.paymentStats.total_revenue) / 100).toLocaleString()}`,
             icon: '💰',
             color: 'bg-yellow-500',
             path: '/admin/payments'
