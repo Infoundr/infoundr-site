@@ -30,11 +30,12 @@ use crate::models::{
     waitlist::WaitlistEntry,
 };
 use crate::models::startup::{Startup, StartupStatus, StartupCohort, StartupActivity, StartupInput, StartupUpdate, StartupStatusInput, StartupCohortInput, StartupFilter, StartupStats, StartupActivityType};
+use crate::models::business_profile::BusinessProfile;
 use crate::services::account_service::ConnectionStatus;
 use crate::services::account_service::{UserActivity, UserIdentifier,  UserIdentifier as AccountUserIdentifier};
 use crate::storage::memory::{
     API_MESSAGES, CHAT_HISTORY, CONNECTED_ACCOUNTS, DASHBOARD_TOKENS, OPENCHAT_USERS, SLACK_USERS, DISCORD_USERS, TASKS, USERS, WAITLIST, GITHUB_ISSUES,
-    STARTUPS, STARTUP_STATUSES, STARTUP_COHORTS, STARTUP_ACTIVITIES, ACCELERATORS, STARTUP_INVITES, ADMINS,
+    STARTUPS, STARTUP_STATUSES, STARTUP_COHORTS, STARTUP_ACTIVITIES, ACCELERATORS, STARTUP_INVITES, ADMINS, BUSINESS_PROFILES,
 };
 use candid::Principal;
 use ic_cdk::storage::{stable_restore, stable_save};
@@ -65,6 +66,7 @@ struct StableState {
     startup_cohorts: Vec<(StableString, StartupCohort)>,
     startup_activities: Vec<((StableString, u64), StartupActivity)>,
     admins: Vec<(StablePrincipal, crate::models::admin::Admin)>,
+    business_profiles: Vec<(StablePrincipal, BusinessProfile)>,
 }
 
 #[ic_cdk::pre_upgrade]
@@ -87,6 +89,7 @@ fn pre_upgrade() {
     let startup_cohorts = STARTUP_COHORTS.with(|c| c.borrow().iter().collect::<Vec<_>>());
     let startup_activities = STARTUP_ACTIVITIES.with(|a| a.borrow().iter().collect::<Vec<_>>());
     let admins = ADMINS.with(|a| a.borrow().iter().collect::<Vec<_>>());
+    let business_profiles = BUSINESS_PROFILES.with(|b| b.borrow().iter().collect::<Vec<_>>());
 
     let state = StableState {
         users,
@@ -107,6 +110,7 @@ fn pre_upgrade() {
         startup_cohorts,
         startup_activities,
         admins,
+        business_profiles, 
     };
 
     stable_save((state,)).expect("Failed to save stable state");
@@ -135,6 +139,7 @@ fn post_upgrade() {
             startup_cohorts: vec![],
             startup_activities: vec![],
             admins: vec![],
+            business_profiles: vec![],
         },),
     };
 
@@ -281,6 +286,15 @@ fn post_upgrade() {
             a.insert(k, v);
         }
     });
+
+    // Restore business profiles
+    BUSINESS_PROFILES.with(|b| {
+    let mut b = b.borrow_mut();
+    for (k, v) in state.business_profiles {
+        b.insert(k, v);
+    }
+    });
+
 }
 
 ic_cdk::export_candid!();

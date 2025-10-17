@@ -1,5 +1,6 @@
 use crate::models::admin::Admin;
 use crate::models::api_message::ApiMessage;
+use crate::models::business_profile::BusinessProfile;
 use crate::models::connected_accounts::ConnectedAccounts;
 use crate::models::dashboard_token::DashboardToken;
 use crate::models::github::Issue;
@@ -132,4 +133,21 @@ thread_local! {
             MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(15)))
         )
     );
-}
+    //addition of business profile
+    pub static BUSINESS_PROFILES: RefCell<
+    StableBTreeMap<StablePrincipal, BusinessProfile, Memory>
+> = RefCell::new(
+    StableBTreeMap::init(
+        MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(18))) // ✅ unique memory ID
+    )
+    );
+
+    // Optional: profile completion cache or metadata (if you’ll need analytics later)
+    pub static BUSINESS_PROFILE_METADATA: RefCell<
+    StableBTreeMap<StablePrincipal, f64, Memory>
+> = RefCell::new(
+    StableBTreeMap::init(
+        MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(19)))
+    )
+    );
+    }
