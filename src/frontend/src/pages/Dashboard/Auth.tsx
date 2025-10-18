@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Button from '../../components/common/Button';
 import { loginWithII, loginWithNFID, registerUser, isRegistered, checkIsAuthenticated } from '../../services/auth';
 import { ActorSubclass } from "@dfinity/agent";
@@ -13,6 +13,7 @@ import { useMockData } from '../../mocks/mockData';
 const Auth: React.FC = () => {
     console.log("useMockData", useMockData);
     const navigate = useNavigate();
+    const location = useLocation();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isLogin, setIsLogin] = useState(true);
@@ -20,6 +21,41 @@ const Auth: React.FC = () => {
         name: ''
     });
     const [showRegistrationForm, setShowRegistrationForm] = useState(false);
+    
+    // Check if already authenticated and has payment intent on mount
+    React.useEffect(() => {
+        const checkAuthAndRedirect = async () => {
+            // Check both sessionStorage and URL parameter
+            let currentPaymentIntent = sessionStorage.getItem('payment_intent');
+            const urlIntent = new URLSearchParams(location.search).get('intent');
+            
+            // If URL has intent=payment but sessionStorage doesn't, set it
+            if (urlIntent === 'payment' && !currentPaymentIntent) {
+                console.log('🔧 Setting payment intent from URL parameter');
+                sessionStorage.setItem('payment_intent', 'pro_upgrade');
+                sessionStorage.setItem('payment_intent_timestamp', Date.now().toString());
+                currentPaymentIntent = 'pro_upgrade';
+            }
+            
+            const isAuth = await checkIsAuthenticated();
+            
+            console.log('Auth page mounted - Auth status:', isAuth, 'Payment intent:', currentPaymentIntent, 'URL intent:', urlIntent);
+            
+            if (isAuth && currentPaymentIntent === 'pro_upgrade') {
+                console.log('User is already authenticated with payment intent, redirecting to checkout...');
+                sessionStorage.removeItem('payment_intent');
+                sessionStorage.removeItem('payment_intent_timestamp');
+                navigate('/payment/checkout', { replace: true });
+            }
+        };
+        
+        checkAuthAndRedirect();
+    }, [navigate, location.search]);
+    
+    // Check for payment intent for UI display
+    const paymentIntent = sessionStorage.getItem('payment_intent');
+    const urlIntent = new URLSearchParams(location.search).get('intent');
+    const isPaymentFlow = paymentIntent === 'pro_upgrade' || urlIntent === 'payment';
 
     const handleAuth = async (method: 'ii' | 'nfid') => {
         try {
@@ -32,7 +68,21 @@ const Auth: React.FC = () => {
                 sessionStorage.setItem('user_principal', MOCK_USER.principal);
                 sessionStorage.setItem('openchat_id', MOCK_USER.openchat_id);
                 setIsLoading(false);
-                navigate('/dashboard/home', { replace: true });
+                
+                // Check for payment intent first
+                const paymentIntent = sessionStorage.getItem('payment_intent');
+                if (paymentIntent === 'pro_upgrade') {
+                    console.log('Payment intent detected (mock), redirecting to payment checkout...');
+                    sessionStorage.removeItem('payment_intent');
+                    sessionStorage.removeItem('payment_intent_timestamp');
+                    navigate('/payment/checkout', { replace: true });
+                    return;
+                }
+                
+                // Check for redirect from location state
+                const state = location.state as { from?: { pathname: string }, redirectTo?: string };
+                const redirectPath = state?.redirectTo || '/dashboard/home';
+                navigate(redirectPath, { replace: true });
                 return;
             }
             
@@ -94,7 +144,27 @@ const Auth: React.FC = () => {
                 sessionStorage.setItem('user_principal', userPrincipal.toString());
                 
                 setIsLoading(false);
-                navigate('/dashboard/home', { replace: true });
+                
+                // Check for payment intent first
+                const paymentIntent = sessionStorage.getItem('payment_intent');
+                console.log('🔍 Checking payment intent after auth:', paymentIntent);
+                
+                if (paymentIntent === 'pro_upgrade') {
+                    console.log('✅ Payment intent detected, redirecting to payment checkout...');
+                    // Clear the payment intent
+                    sessionStorage.removeItem('payment_intent');
+                    sessionStorage.removeItem('payment_intent_timestamp');
+                    console.log('🚀 Navigating to /payment/checkout');
+                    navigate('/payment/checkout', { replace: true });
+                    return;
+                }
+                
+                // Check if there's a redirect URL from location state
+                const state = location.state as { from?: { pathname: string }, redirectTo?: string };
+                const redirectPath = state?.redirectTo || '/dashboard/home';
+                
+                console.log('ℹ️ No payment intent, redirecting to:', redirectPath);
+                navigate(redirectPath, { replace: true });
             } catch (err) {
                 console.error("Registration check error:", err);
                 throw new Error("Failed to verify registration status");
@@ -114,9 +184,33 @@ const Auth: React.FC = () => {
             
             console.log("Starting registration with name:", registrationData.name);
             await registerUser(registrationData.name);
-            console.log("Registration successful, navigating to dashboard");
+            console.log("Registration successful");
+            
+            // ✅ CRITICAL FIX: Store user principal in sessionStorage after registration
+            // This is needed for ProtectedRoute to recognize the user as authenticated
+            const authClient = await AuthClient.create();
+            const identity = authClient.getIdentity();
+            const userPrincipal = identity.getPrincipal();
+            sessionStorage.setItem('user_principal', userPrincipal.toString());
+            console.log("Stored user principal:", userPrincipal.toString());
+            
             setIsLoading(false);
-            navigate('/dashboard/home', { replace: true });
+            
+            // Check for payment intent first
+            const paymentIntent = sessionStorage.getItem('payment_intent');
+            if (paymentIntent === 'pro_upgrade') {
+                console.log('💳 Payment intent detected after registration, redirecting to payment checkout...');
+                sessionStorage.removeItem('payment_intent');
+                sessionStorage.removeItem('payment_intent_timestamp');
+                console.log('🚀 Navigating to /payment/checkout with stored principal');
+                navigate('/payment/checkout', { replace: true });
+                return;
+            }
+            
+            // Check for redirect from location state
+            const state = location.state as { from?: { pathname: string }, redirectTo?: string };
+            const redirectPath = state?.redirectTo || '/dashboard/home';
+            navigate(redirectPath, { replace: true });
             return;
         } catch (err) {
             console.log("Registration failed:", err);
@@ -163,7 +257,7 @@ const Auth: React.FC = () => {
                     </div>
 
                     {error && (
-                        <p className="mt-4 text-red-600 text-sm text-center">{error}</p>
+                        <p className="mt- 4 text-red-600 text-sm text-center">{error}</p>
                     )}
                 </div>
             </div>
@@ -224,14 +318,37 @@ const Auth: React.FC = () => {
                 </div>
 
                 <h2 className="text-3xl font-bold mb-2 text-center">
-                    {isLogin ? 'Welcome Back' : 'Get Started'}
+                    {isPaymentFlow 
+                        ? 'Upgrade to Pro' 
+                        : (isLogin ? 'Welcome Back' : 'Get Started')
+                    }
                 </h2>
                 <p className="text-gray-500 text-center mb-8">
-                    {isLogin 
-                        ? 'Login to access your dashboard' 
-                        : 'Create an account to start using Infoundr'
+                    {isPaymentFlow
+                        ? (isLogin 
+                            ? 'Login to complete your Pro subscription' 
+                            : 'Create an account to subscribe to Pro')
+                        : (isLogin 
+                            ? 'Login to access your dashboard' 
+                            : 'Create an account to start using Infoundr')
                     }
                 </p>
+                
+                {isPaymentFlow && (
+                    <div className="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                        <div className="flex items-start gap-3">
+                            <svg className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <div className="flex-1">
+                                <p className="text-sm text-purple-800 font-medium">Upgrading to Pro</p>
+                                <p className="text-xs text-purple-600 mt-1">
+                                    You'll be redirected to complete your payment after authentication.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
                 
                 {/* Internet Identity */}
                 <Button

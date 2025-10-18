@@ -32,6 +32,16 @@ EOL
 sed -i '' "s|mode: import.meta.env.VITE_ENV_MODE || 'local'|mode: 'mainnet'|" src/frontend/src/config.ts
 sed -i '' "s|authMode: import.meta.env.VITE_AUTH_MODE || 'backend'|authMode: 'backend'|" src/frontend/src/config.ts
 
+# Configure payment system if environment variables are set
+if [ ! -z "$PAYSTACK_PUBLIC_KEY" ] && [ ! -z "$PAYSTACK_SECRET_KEY" ]; then
+    echo "💳 Configuring payment system..."
+    ./scripts/configure-payment.sh
+else
+    echo "⚠️  Skipping payment configuration (PAYSTACK_PUBLIC_KEY or PAYSTACK_SECRET_KEY not set)"
+    echo "💡 To configure payments manually, run:"
+    echo "   PAYSTACK_PUBLIC_KEY=your_key PAYSTACK_SECRET_KEY=your_secret ./scripts/configure-payment.sh"
+fi
+
 echo "✅ Mainnet deployment complete!"
 echo "🔗 Your application is now live on mainnet!"
 echo "📝 Canister ID: $CANISTER_ID" 
