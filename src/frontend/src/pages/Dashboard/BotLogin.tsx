@@ -156,7 +156,7 @@ const BotLogin: React.FC = () => {
                             disabled={isLoading}
                         >
                              <img
-                            src="/images/google.png"                             alt="Google Logo"
+                            src="/images/google.png" alt="Google Logo"
                             className="w-6 h-6"
                             />  
                             Continue with Google
