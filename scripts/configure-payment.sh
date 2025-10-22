@@ -18,6 +18,10 @@ if [ -z "$PAYSTACK_SECRET_KEY" ]; then
     exit 1
 fi
 
+# Set default environment to live
+PAYSTACK_ENVIRONMENT=${PAYSTACK_ENVIRONMENT:-"Live"}
+echo "🌍 Paystack environment: $PAYSTACK_ENVIRONMENT"
+
 # Get the canister ID
 CANISTER_ID=$(dfx canister --network ic id backend)
 echo "📝 Backend canister ID: $CANISTER_ID"
@@ -25,12 +29,15 @@ echo "📝 Backend canister ID: $CANISTER_ID"
 # Configure payment system
 echo "🔧 Setting up Paystack configuration..."
 
-# Create the payment configuration payload
+# Create the payment configuration payload in Candid format
 PAYMENT_CONFIG=$(cat << EOF
-{
-    "public_key": "$PAYSTACK_PUBLIC_KEY",
-    "secret_key": "$PAYSTACK_SECRET_KEY"
-}
+(
+  record {
+    public_key = "$PAYSTACK_PUBLIC_KEY";
+    secret_key = "$PAYSTACK_SECRET_KEY";
+    environment = variant { $PAYSTACK_ENVIRONMENT };
+  },
+)
 EOF
 )
 
