@@ -25,6 +25,7 @@ import AdminAccelerators from './pages/Admin/Accelerators';
 import AdminPlatformUsers from './pages/Admin/PlatformUsers';
 import AdminApiMessages from './pages/Admin/ApiMessages';
 import AdminPlaygroundMonitoring from './pages/Admin/PlaygroundMonitoring';
+import PaymentManagement from './pages/Admin/PaymentManagement';
 import Auth from './pages/Dashboard/Auth';
 import DashboardLayout from './pages/Dashboard/layouts/DashboardLayout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -64,6 +65,8 @@ import GitHubAgent from './pages/documentation/discord/GitHubAgent';
 import ProjectManagementAgent from './pages/documentation/discord/ProjectManagementAgent';
 import CalendarAgent from './pages/documentation/discord/CalendarAgent';
 import EmailAgent from './pages/documentation/discord/EmailAgent';
+import PaymentCallback from './pages/PaymentCallback';
+import PaymentCheckout from './pages/PaymentCheckout';
 
 
 const App: React.FC = () => {
@@ -129,6 +132,14 @@ const App: React.FC = () => {
           {/* Auth Route */}
           <Route path="/dashboard" element={<Auth />} />
 
+          {/* Payment Routes */}
+          <Route path="/payment/callback" element={<PaymentCallback />} />
+          <Route path="/payment/checkout" element={
+            <ProtectedRoute>
+              <PaymentCheckout />
+            </ProtectedRoute>
+          } />
+
           {/* Public invite accept route (not protected) - must be before other /accelerator routes */}
           <Route path="/accelerator/invite/:inviteCode/*" element={<StartupInviteAccept />} />
 
@@ -193,6 +204,7 @@ const App: React.FC = () => {
             <Route path="users" element={<AdminUsers />} />
             <Route path="waitlist" element={<AdminWaitlist />} />
             <Route path="user-usage" element={<UserUsage />} />
+            <Route path="payments" element={<PaymentManagement />} />
             <Route path="admins" element={<AdminAdmins />} />
             <Route path="accelerators" element={<AdminAccelerators />} />
             <Route path="platform-users" element={<AdminPlatformUsers />} />
