@@ -196,6 +196,7 @@ jobs:
         env:
           PAYSTACK_PUBLIC_KEY: ${{ secrets.PAYSTACK_PUBLIC_KEY }}
           PAYSTACK_SECRET_KEY: ${{ secrets.PAYSTACK_SECRET_KEY }}
+          IC_IDENTITY: ${{ secrets.IC_IDENTITY }}
 
       - name: Deploy Frontend
         uses: ./.github/actions/deploy
