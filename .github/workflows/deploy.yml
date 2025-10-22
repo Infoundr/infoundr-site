@@ -18,6 +18,9 @@ env:
   # Production environment variables
   VITE_USE_MOCK_DATA: "false"
   VITE_ENV_MODE: "mainnet"
+  # Payment configuration
+  PAYSTACK_PUBLIC_KEY: ${{ secrets.PAYSTACK_PUBLIC_KEY }}
+  PAYSTACK_SECRET_KEY: ${{ secrets.PAYSTACK_SECRET_KEY }}
 
 jobs:
   build-and-deploy:
@@ -182,6 +185,17 @@ jobs:
           canister_name: ${{ env.BACKEND_PACKAGE }}
           network: ic
           wasm_file: wasm/${{ env.BACKEND_PACKAGE }}_${{ env.VERSION }}.wasm.gz
+
+      - name: Configure Payment System
+        run: |
+          source "$HOME/.local/share/dfx/env"
+          # Make the script executable
+          chmod +x scripts/configure-payment.sh
+          # Run the payment configuration script
+          ./scripts/configure-payment.sh
+        env:
+          PAYSTACK_PUBLIC_KEY: ${{ secrets.PAYSTACK_PUBLIC_KEY }}
+          PAYSTACK_SECRET_KEY: ${{ secrets.PAYSTACK_SECRET_KEY }}
 
       - name: Deploy Frontend
         uses: ./.github/actions/deploy
