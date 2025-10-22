@@ -6,13 +6,13 @@ use std::fmt;
 // use crate::models::stable_principal::StablePrincipal;
 // use ic_cdk::export::candid::Principal;
 
-#[derive(CandidType, Deserialize, Clone, Debug)]
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
 pub enum MessageRole {
     User,
     Assistant,
 }
 
-#[derive(CandidType, Deserialize, Clone, Debug)]
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
 pub struct ChatMessage {
     pub id: Principal,
     pub role: MessageRole,

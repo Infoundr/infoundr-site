@@ -8,7 +8,7 @@ const iconMap: Record<string, { icon: string; color: string }> = {
   SentInvite: { icon: '✉️', color: 'text-purple-500' },
   Graduated: { icon: '🎓', color: 'text-yellow-500' },
   MissedMilestone: { icon: '❗', color: 'text-red-400' },
-  AcceleratorCreated: { icon: '🚀', color: 'text-indigo-500' },
+  AcceleratorCreated: { icon: '🔧', color: 'text-indigo-500' },
   Other: { icon: '🔔', color: 'text-gray-500' },
 };
 

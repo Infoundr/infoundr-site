@@ -16,6 +16,8 @@ use std::cell::RefCell;
 use crate::models::accelerator::Accelerator;
 use crate::models::startup_invite::StartupInvite;
 use crate::models::startup::{Startup, StartupStatus, StartupCohort, StartupActivity};
+use crate::models::usage_service::UserSubscription;
+use crate::models::payment::{PaymentRecord, Invoice};
 
 pub type Memory = VirtualMemory<DefaultMemoryImpl>;
 
@@ -130,6 +132,32 @@ thread_local! {
     pub static STARTUP_ACTIVITIES: RefCell<StableBTreeMap<(StableString, u64), StartupActivity, Memory>> = RefCell::new(
         StableBTreeMap::init(
             MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(15)))
+        )
+    );
+
+    // --- NEW USAGE TRACKING STORAGE ---
+    pub static USER_DAILY_USAGE: RefCell<StableBTreeMap<(StableString, u64), u32, Memory>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(18)))
+        )
+    );
+
+    pub static USER_SUBSCRIPTIONS: RefCell<StableBTreeMap<StableString, UserSubscription, Memory>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(19)))
+        )
+    );
+
+    // --- PAYMENT STORAGE ---
+    pub static PAYMENT_RECORDS: RefCell<StableBTreeMap<StableString, PaymentRecord, Memory>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(20)))
+        )
+    );
+
+    pub static INVOICES: RefCell<StableBTreeMap<StableString, Invoice, Memory>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(21)))
         )
     );
 }

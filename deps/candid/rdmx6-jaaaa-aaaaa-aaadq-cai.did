@@ -275,7 +275,9 @@ type InternetIdentityInit = record {
     // If present, list of origins using the new authentication flow.
     new_flow_origins : opt vec text;
     // Configuration for OpenID Google client
-    openid_google : opt opt OpenIdConfig;
+    openid_google : opt opt GoogleOpenIdConfig;
+    // Configurations for OpenID clients
+    openid_configs : opt vec OpenIdConfig;
     // Configuration for Web Analytics
     analytics_config : opt opt AnalyticsConfig;
     // Configuration to fetch root key or not from frontend assets
@@ -322,6 +324,8 @@ type IdentityAnchorInfo = record {
     openid_credentials : opt vec OpenIdCredential;
     // The name of the Internet Identity
     name : opt text;
+    // The timestamp at which the anchor was created
+    created_at : opt Timestamp;
 };
 
 type AnchorCredentials = record {
@@ -360,8 +364,19 @@ type Aud = text;
 type JWT = text;
 type Salt = blob;
 
-type OpenIdConfig = record {
+type GoogleOpenIdConfig = record {
     client_id : text;
+};
+
+type OpenIdConfig = record {
+    name : text;
+    logo : text;
+    issuer : text;
+    client_id : text;
+    jwks_uri : text;
+    auth_uri : text;
+    auth_scope : vec text;
+    fedcm_uri : opt text;
 };
 
 type OpenIdCredentialKey = record { Iss; Sub };
@@ -479,6 +494,7 @@ type AuthnMethodData = record {
 type OpenIDRegFinishArg = record {
     jwt : JWT;
     salt : Salt;
+    name : text;
 };
 
 // Extra information about registration status for new authentication methods
@@ -618,6 +634,28 @@ type AccountDelegationError = variant {
     InternalCanisterError : text;
     Unauthorized : principal;
     NoSuchDelegation;
+};
+
+type GetDefaultAccountError = variant {
+    InternalCanisterError : text;
+    Unauthorized : principal;
+    NoSuchAnchor;
+    NoSuchOrigin : record {
+        anchor_number : UserNumber;
+    };
+};
+
+type SetDefaultAccountError = variant {
+    InternalCanisterError : text;
+    Unauthorized : principal;
+    NoSuchAnchor;
+    NoSuchOrigin : record {
+        anchor_number : UserNumber;
+    };
+    NoSuchAccount : record {
+        anchor_number : UserNumber;
+        account_number : opt AccountNumber;
+    };
 };
 
 type PrepareAccountDelegation = record {
@@ -919,7 +957,6 @@ service : (opt InternetIdentityInit) -> {
     // HTTP Gateway protocol
     // =====================
     http_request : (request : HttpRequest) -> (HttpResponse) query;
-    http_request_update : (request : HttpRequest) -> (HttpResponse);
 
     // Internal Methods
     // ================
@@ -971,4 +1008,15 @@ service : (opt InternetIdentityInit) -> {
         session_key : SessionKey,
         expiration : Timestamp
     ) -> (variant { Ok : SignedDelegation; Err : AccountDelegationError }) query;
+
+    get_default_account : (
+        anchor_number : UserNumber,
+        origin : FrontendHostname,
+    ) -> (variant { Ok : AccountInfo; Err: GetDefaultAccountError });
+
+    set_default_account : (
+        anchor_number : UserNumber,
+        origin : FrontendHostname,
+        account_number : opt AccountNumber
+    ) -> (variant { Ok : AccountInfo; Err: SetDefaultAccountError });
 };

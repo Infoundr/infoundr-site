@@ -1,9 +1,10 @@
 use candid::{CandidType, Deserialize, Encode, Decode};
+use serde::Serialize;
 use ic_stable_structures::storable::{Storable, BoundedStorable};
 use std::borrow::Cow;
 use crate::models::stable_principal::StablePrincipal;
 
-#[derive(CandidType, Deserialize, Clone, Debug)]
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
 pub struct SlackUser {
     pub slack_id: String,
     pub site_principal: Option<StablePrincipal>,

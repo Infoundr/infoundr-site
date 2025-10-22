@@ -17,10 +17,21 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
             console.log("ProtectedRoute: Current location:", location.pathname);
             console.log("ProtectedRoute: Auth mode:", import.meta.env.VITE_AUTH_MODE);
             
+            // Check if user_principal exists (recently authenticated)
+            const userPrincipal = sessionStorage.getItem('user_principal');
+            
+            // If we have a user_principal, consider them authenticated
+            // This handles the race condition right after login
+            if (userPrincipal) {
+                console.log("ProtectedRoute: User principal found, considering authenticated");
+                setIsAuthenticated(true);
+                return;
+            }
+            
             const auth = await checkIsAuthenticated();
             console.log("ProtectedRoute: Authentication status:", auth);
             console.log("ProtectedRoute: Session storage:", {
-                user_principal: sessionStorage.getItem('user_principal'),
+                user_principal: userPrincipal,
                 openchat_id: sessionStorage.getItem('openchat_id')
             });
             
