@@ -96,11 +96,12 @@ export const saveBusinessProfile = async (profile: BusinessProfile): Promise<boo
 //update_business_profile_field
 export const updateBusinessProfileField = async (
   field: string,
-  value: string
+  value: string | string[]
 ): Promise<boolean> => {
   try {
     const actor = await getActor();
-    const result: any = await actor.update_business_profile_field(field, value);
+    const payloadValue = Array.isArray(value) ? value.join(",") : value;
+    const result: any = await actor.update_business_profile_field(field, payloadValue);
     if ("Ok" in result) return true;
     console.error("updateBusinessProfileField Err:", result.Err);
     return false;
@@ -109,6 +110,7 @@ export const updateBusinessProfileField = async (
     return false;
   }
 };
+
 
 //list_business_profiles 
 export const listBusinessProfiles = async (): Promise<BusinessProfile[] | null> => {
@@ -160,15 +162,22 @@ export const getBusinessProfile = async (principalId: string): Promise<BusinessP
 };
 
 //delete_business_profile 
-export const deleteBusinessProfile = async (): Promise<boolean> => {
+export const deleteBusinessProfile = async (principalId: string): Promise<boolean> => {
   try {
     const actor = await getActor();
-    const result: any = await actor.delete_business_profile();
-    if ("Ok" in result) return true;
-    console.error("deleteBusinessProfile Err:", result.Err);
+    const principal = Principal.fromText(principalId); 
+
+    const result = await actor.delete_business_profile(principal);
+
+    if ("Ok" in result) {
+      console.log("Business profile deleted successfully");
+      return true;
+    }
+
+    console.error("Failed to delete profile:", result.Err);
     return false;
-  } catch (err) {
-    console.error("deleteBusinessProfile exception:", err);
+  } catch (error) {
+    console.error("deleteBusinessProfile error:", error);
     return false;
   }
 };

@@ -23,6 +23,7 @@ pub fn save_business_profile(profile: BusinessProfile) -> Result<String, String>
         }
 
         map.insert(principal.clone(), updated_profile);
+        ic_cdk::println!("Saved business profile for {:?}", principal);
         Ok(format!("Business profile saved for principal: {:?}", principal))
     })
 }
@@ -140,6 +141,18 @@ pub fn get_profile_completion(principal: StablePrincipal) -> Result<(u8, bool), 
             }
 
             if profile.unique_value_proposition.is_some() {
+                filled = filled.saturating_add(1);
+            }
+            // ✅ Optional fields added
+            if !profile.help_needed.is_empty() {
+                filled = filled.saturating_add(1);
+            }
+
+            if !profile.mentorship_interests.is_empty() {
+                filled = filled.saturating_add(1);
+            }
+
+            if !profile.technologies_used.is_empty() {
                 filled = filled.saturating_add(1);
             }
 

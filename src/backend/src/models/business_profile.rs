@@ -129,11 +129,11 @@ pub struct Competitor {
 
 impl Storable for BusinessProfile {
     fn to_bytes(&self) -> Cow<[u8]> {
-        Cow::Owned(candid::encode_one(self).unwrap())
+        Cow::Owned(candid::encode_one(self).expect("Failed to encode BusinessProfile"))
     }
 
     fn from_bytes(bytes: Cow<[u8]>) -> Self {
-        candid::decode_one(&bytes).unwrap()
+        candid::decode_one(&bytes).expect("Failed to decode BusinessProfile")
     }
 }
 

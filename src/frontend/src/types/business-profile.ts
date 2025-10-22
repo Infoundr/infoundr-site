@@ -69,7 +69,7 @@ export interface BusinessProfile {
   industry: string;
   sub_industry?: string;
   business_model?: BusinessModel;
-  founded_date?: bigint; // u64 in Rust → bigint in TS
+  founded_date?: bigint; 
   location?: string;
   website?: string;
 

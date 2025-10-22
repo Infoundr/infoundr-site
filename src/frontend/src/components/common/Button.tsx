@@ -5,6 +5,7 @@ const Button: React.FC<ButtonProps> = ({
   variant,
   className = '', 
   children,
+  type,
   onClick,
   disabled = false,
 }) => {
@@ -17,6 +18,7 @@ const Button: React.FC<ButtonProps> = ({
 
   return (
     <button
+      type={type || 'button'}
       className={`${baseStyles} ${variantStyles[variant]} ${className} ${
         disabled ? 'opacity-50 cursor-not-allowed' : ''
       }`}

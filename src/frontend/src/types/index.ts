@@ -7,6 +7,7 @@ export interface Assistant {
 export type ButtonProps = {
   variant: 'primary' | 'secondary' | 'dark';
   className?: string;
+  type?: 'button' | 'submit' | 'reset';
   children: React.ReactNode;
   onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
   disabled?: boolean;
