@@ -358,7 +358,7 @@ const Auth: React.FC = () => {
                     disabled={isLoading}
                 >
                     <img src="/images/icp-logo.png" alt="Internet Identity" className="w-6 h-6" />
-                    {isLogin ? 'Login with Internet Identity' : 'Sign up with Internet Identity'}
+                    {isLogin ? 'Internet Identity' : 'Internet Identity'}
                 </Button>
 
                 {/* NFID */}
@@ -368,21 +368,13 @@ const Auth: React.FC = () => {
                     onClick={() => handleAuth('nfid')}
                     disabled={isLoading}
                 >
-                    <svg
-                        className="w-6 h-6 text-white"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg"
-                    >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                        />
-                    </svg>
-                    {isLogin ? 'Login with email' : 'Sign up with email'}
+                    <div className="flex items-center gap-2">
+                    <img src="/images/google.png" alt="Google" className="w-5 h-5" />
+                    <span className="font-medium text-white text-sm">
+                    Google
+                    </span>
+                    </div>
+                    <span className="text-xs text-white opacity-80">(Secured by NFID)</span>
                 </Button>
 
                 {error && (
