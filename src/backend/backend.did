@@ -48,6 +48,25 @@ type ActivityType = variant {
   MissedMilestone;
 };
 type Admin = record { created_at : nat64; principal_id : text };
+type AnalyticsChartData = record {
+  labels : vec text;
+  datasets : vec ChartDataset;
+};
+type AnalyticsDataPoint = record {
+  lines_of_code_edited : nat32;
+  timestamp_ns : nat64;
+  date : text;
+  requests_made : nat32;
+  tasks_completed : nat32;
+  ai_interactions : nat32;
+};
+type AnalyticsSummary = record {
+  lines_of_agent_edits : nat32;
+  requests_made : nat32;
+  chart_data : AnalyticsChartData;
+  tasks_completed : nat32;
+  ai_interactions : nat32;
+};
 type ApiMessage = record {
   id : text;
   metadata : opt ApiMetadata;
@@ -71,6 +90,12 @@ type AsanaAccount = record {
   project_ids : vec record { text; text };
 };
 type BotType = variant { Dean; Uncle; Benny };
+type ChartDataset = record {
+  data : vec nat32;
+  border_color : text;
+  label : text;
+  background_color : text;
+};
 type ChatMessage = record {
   id : principal;
   question_asked : opt text;
@@ -263,19 +288,21 @@ type Result_3 = variant { Ok : vec Invoice; Err : text };
 type Result_30 = variant { Ok : opt StartupInvite; Err : text };
 type Result_31 = variant { Ok : StartupStats; Err : text };
 type Result_32 = variant { Ok : opt TeamInvite; Err : text };
-type Result_33 = variant { Ok : vec WaitlistEntry; Err : text };
-type Result_34 = variant { Ok : text; Err : text };
-type Result_35 = variant { Ok : WaitlistEntry; Err : text };
-type Result_36 = variant { Ok : vec StartupCohort; Err : text };
-type Result_37 = variant { Ok : vec StartupStatus; Err : text };
-type Result_38 = variant { Ok : vec Startup; Err : text };
-type Result_39 = variant { Ok : vec TeamMember; Err : text };
+type Result_33 = variant { Ok : UserAnalytics; Err : text };
+type Result_34 = variant { Ok : AnalyticsSummary; Err : text };
+type Result_35 = variant { Ok : vec WaitlistEntry; Err : text };
+type Result_36 = variant { Ok : text; Err : text };
+type Result_37 = variant { Ok : WaitlistEntry; Err : text };
+type Result_38 = variant { Ok : vec StartupCohort; Err : text };
+type Result_39 = variant { Ok : vec StartupStatus; Err : text };
 type Result_4 = variant { Ok : vec PaymentRecord; Err : text };
-type Result_40 = variant { Ok : InitializePaymentResponse; Err : text };
-type Result_41 = variant { Ok : TransactionDetails; Err : text };
-type Result_42 = variant { Ok : User; Err : text };
-type Result_43 = variant { Ok : ApiMessage; Err : text };
-type Result_44 = variant { Ok; Err : vec text };
+type Result_40 = variant { Ok : vec Startup; Err : text };
+type Result_41 = variant { Ok : vec TeamMember; Err : text };
+type Result_42 = variant { Ok : InitializePaymentResponse; Err : text };
+type Result_43 = variant { Ok : TransactionDetails; Err : text };
+type Result_44 = variant { Ok : User; Err : text };
+type Result_45 = variant { Ok : ApiMessage; Err : text };
+type Result_46 = variant { Ok; Err : vec text };
 type Result_5 = variant { Ok : vec UserSubscription; Err : text };
 type Result_6 = variant {
   Ok : vec record { text; UserSubscription };
@@ -492,6 +519,16 @@ type UserActivityReport = record {
   total_api_messages : nat32;
   last_activity : nat64;
 };
+type UserAnalytics = record {
+  total_ai_interactions : nat32;
+  period_end : text;
+  total_requests : nat32;
+  period_start : text;
+  daily_data : vec AnalyticsDataPoint;
+  user_id : text;
+  total_lines_edited : nat32;
+  total_tasks_completed : nat32;
+};
 type UserIdentifier = variant {
   PlaygroundId : text;
   Principal : principal;
@@ -607,45 +644,48 @@ service : {
   get_token_info : (text) -> (opt DashboardToken) query;
   get_user_activity : (UserIdentifier) -> (UserActivity) query;
   get_user_activity_admin : (UserIdentifier) -> (Result_11) query;
+  get_user_analytics : (text, nat32) -> (Result_33) query;
+  get_user_analytics_summary : (text, nat32) -> (Result_34) query;
   get_user_connections : (principal) -> (opt ConnectedAccounts) query;
   get_user_issues : (UserIdentifier) -> (vec Issue) query;
   get_user_tasks : (UserIdentifier) -> (vec Task) query;
   get_users : () -> (Result_27) query;
-  get_waitlist : () -> (Result_33) query;
-  invite_team_member : (TeamMemberInviteWithId) -> (Result_34);
+  get_waitlist : () -> (Result_35) query;
+  invite_team_member : (TeamMemberInviteWithId) -> (Result_36);
   is_admin : () -> (bool) query;
   is_allowed_principal : () -> (bool) query;
   is_discord_user_registered : (text) -> (bool) query;
   is_registered : () -> (bool) query;
   is_slack_user_registered : (text) -> (bool) query;
-  join_waitlist : (text) -> (Result_35);
+  join_waitlist : (text) -> (Result_37);
   link_accounts : (principal, text) -> (Result);
   link_startup_principal : (text, text) -> (Result);
   link_token_to_principal : (text, principal) -> (Result);
-  list_startup_cohorts : () -> (Result_36) query;
+  list_startup_cohorts : () -> (Result_38) query;
   list_startup_invites : (text) -> (vec StartupInvite) query;
-  list_startup_statuses : () -> (Result_37) query;
-  list_startups : (opt StartupFilter) -> (Result_38) query;
-  list_team_members : () -> (Result_39) query;
+  list_startup_statuses : () -> (Result_39) query;
+  list_startups : (opt StartupFilter) -> (Result_40) query;
+  list_team_members : () -> (Result_41) query;
   payment_get : (text) -> (opt PaymentRecord) query;
   payment_get_config : () -> (PaystackConfig) query;
   payment_get_history : (text) -> (vec PaymentRecord) query;
   payment_get_invoices : (text) -> (vec Invoice) query;
-  payment_initialize : (InitializePaymentRequest) -> (Result_40);
-  payment_set_config : (PaystackConfig) -> (Result_34);
-  payment_verify : (text) -> (Result_41);
-  payment_webhook : (text, text) -> (Result_34);
+  payment_initialize : (InitializePaymentRequest) -> (Result_42);
+  payment_set_config : (PaystackConfig) -> (Result_36);
+  payment_verify : (text) -> (Result_43);
+  payment_webhook : (text, text) -> (Result_36);
+  record_analytics_data : (text, nat32, nat32, nat32, nat32) -> (Result);
   record_startup_activity : (text, StartupActivityType, text, opt text) -> (
       Result,
     );
-  register_startup : (text, text, text) -> (Result_42);
-  register_user : (text) -> (Result_42);
+  register_startup : (text, text, text) -> (Result_44);
+  register_user : (text) -> (Result_44);
   remove_admin : (principal) -> (Result);
   remove_team_member : (RemoveTeamMember) -> (Result);
   revoke_startup_invite : (text) -> (Result);
-  sign_up_accelerator : (AcceleratorSignUp) -> (Result_34);
+  sign_up_accelerator : (AcceleratorSignUp) -> (Result_36);
   store_api_message : (UserIdentifier, text, text, text, opt ApiMetadata) -> (
-      Result_43,
+      Result_45,
     );
   store_asana_connection : (
       UserIdentifier,
@@ -667,7 +707,8 @@ service : {
   update_startup_cohort : (text, StartupCohortInput) -> (Result);
   update_startup_status : (text, StartupStatusInput) -> (Result);
   update_team_member_role : (UpdateTeamMemberRole) -> (Result);
+  update_user_analytics : (text) -> (Result);
   validate_dashboard_token : (blob) -> (opt TokenValidationResult) query;
-  verify_connections : (principal) -> (Result_44) query;
+  verify_connections : (principal) -> (Result_46) query;
   verify_token : (text) -> (Result);
 }

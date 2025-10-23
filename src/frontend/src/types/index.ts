@@ -16,4 +16,7 @@ export type ButtonProps = {
 export interface CardProps {
   children: React.ReactNode;
   className?: string;
-} 
+}
+
+// Analytics types
+export * from './analytics'; 
