@@ -19,10 +19,19 @@ interface AreaChartProps {
   className?: string;
 }
 
-export function AreaChartComponent({ data, className }: AreaChartProps) {
+export function AreaChartComponent({ data, className = "h-48" }: AreaChartProps) {
+  // Ensure we have valid data
+  if (!data || data.length === 0) {
+    return (
+      <div className={`${className} flex items-center justify-center bg-gray-50 rounded-lg`}>
+        <p className="text-gray-500 text-sm">No data available</p>
+      </div>
+    );
+  }
+
   return (
     <div className={className}>
-      <ResponsiveContainer width="100%" height={200}>
+      <ResponsiveContainer width="100%" height="100%">
         <AreaChart
           data={data}
           margin={{
@@ -38,17 +47,19 @@ export function AreaChartComponent({ data, className }: AreaChartProps) {
               <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1}/>
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
           <XAxis 
             dataKey="name" 
-            className="text-xs fill-gray-500"
+            fontSize={12}
             tickLine={false}
             axisLine={false}
+            tick={{ fill: '#6b7280' }}
           />
           <YAxis 
-            className="text-xs fill-gray-500"
+            fontSize={12}
             tickLine={false}
             axisLine={false}
+            tick={{ fill: '#6b7280' }}
           />
           <Tooltip
             content={({ active, payload, label }) => {

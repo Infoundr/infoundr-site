@@ -47,22 +47,59 @@ const DashboardHome: React.FC<Props> = ({ actor, useMockData = true }) => {
                 const analyticsData = await analyticsService.getAnalyticsSummary(period);
                 setAnalytics(analyticsData);
             } else {
-                // Mock analytics data
-                setAnalytics({
-                    requests_made: 156,
-                    lines_of_agent_edits: 4353,
-                    ai_interactions: 89,
-                    tasks_completed: 12,
-                    chart_data: {
-                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                        datasets: [{
-                            label: 'Requests',
-                            data: [12, 19, 8, 15, 22, 18, 25],
-                            background_color: 'rgba(59, 130, 246, 0.1)',
-                            border_color: 'rgba(59, 130, 246, 1)'
-                        }]
+                // Mock analytics data - dynamic based on period
+                const generateMockData = (period: number) => {
+                    let labels: string[] = [];
+                    let data: number[] = [];
+                    let baseRequests = 0;
+                    let baseLines = 0;
+                    let baseInteractions = 0;
+                    let baseTasks = 0;
+
+                    if (period === 1) {
+                        // 1 day - hourly data
+                        labels = ['12AM', '3AM', '6AM', '9AM', '12PM', '3PM', '6PM', '9PM'];
+                        data = [2, 1, 0, 3, 8, 12, 15, 9];
+                        baseRequests = 50;
+                        baseLines = 1200;
+                        baseInteractions = 25;
+                        baseTasks = 3;
+                    } else if (period === 7) {
+                        // 7 days - daily data
+                        labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                        data = [12, 19, 8, 15, 22, 18, 25];
+                        baseRequests = 156;
+                        baseLines = 4353;
+                        baseInteractions = 89;
+                        baseTasks = 12;
+                    } else if (period === 30) {
+                        // 30 days - weekly data
+                        labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+                        data = [45, 52, 38, 61];
+                        baseRequests = 650;
+                        baseLines = 18500;
+                        baseInteractions = 350;
+                        baseTasks = 45;
                     }
-                });
+
+                    return {
+                        requests_made: baseRequests,
+                        lines_of_agent_edits: baseLines,
+                        ai_interactions: baseInteractions,
+                        tasks_completed: baseTasks,
+                        chart_data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Requests',
+                                data: data,
+                                background_color: 'rgba(59, 130, 246, 0.1)',
+                                border_color: 'rgba(59, 130, 246, 1)'
+                            }]
+                        }
+                    };
+                };
+
+                setAnalytics(generateMockData(period));
             }
         } catch (error) {
             console.error('Error fetching analytics:', error);
@@ -246,7 +283,7 @@ const DashboardHome: React.FC<Props> = ({ actor, useMockData = true }) => {
                 )}
 
                 {/* Usage Chart */}
-                {analytics && analytics.chart_data && (
+                {analytics && analytics.chart_data && analytics.chart_data.labels && analytics.chart_data.datasets && analytics.chart_data.datasets[0] && (
                     <div className="mt-6">
                         <h3 className="text-lg font-medium text-gray-800 mb-4">Usage Over Time</h3>
                         <div className="bg-white rounded-lg border border-gray-200 p-4">
