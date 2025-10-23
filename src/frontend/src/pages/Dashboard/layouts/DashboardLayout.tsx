@@ -10,6 +10,7 @@ import { CANISTER_ID } from '../../../config';
 
 import { Link, useNavigate, Outlet, useLocation, Routes, Route } from 'react-router-dom';
 import { logout, getCurrentUser } from '../../../services/auth';
+import { createSubscriptionService } from '../../../services/subscription';
 import Analytics from './Analytics';
 import Tasks from './Tasks';
 import { mockActor, useMockData } from '../../../mocks/mockData';
@@ -42,7 +43,7 @@ const DashboardLayout: React.FC = () => {
                 setUser({
                     name: "John Doe",
                     email: "john@example.com",
-                    plan: "Pro Plan"
+                    plan: "Free Plan" // Mock data shows Free Plan by default
                 });
                 return;
             }
@@ -60,10 +61,14 @@ const DashboardLayout: React.FC = () => {
                 // Get current user
                 const currentUser = await getCurrentUser();
                 if (currentUser && currentUser[0]) {
+                    // Check subscription status
+                    const subscriptionService = createSubscriptionService(actor as unknown as _SERVICE);
+                    const isPro = await subscriptionService.isUserPro();
+                    
                     setUser({
                         name: currentUser[0].name || "User",
                         email: currentUser[0].email || "user@example.com",
-                        plan: "Pro Plan"
+                        plan: isPro ? "Pro Plan" : "Free Plan"
                     });
                 }
             } catch (error) {
