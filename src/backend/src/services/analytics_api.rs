@@ -13,53 +13,45 @@ use crate::services::analytics_service::{
 
 /// Get analytics summary for a user
 #[ic_cdk::query]
-pub fn get_user_analytics_summary(user_id: String, days: u32) -> Result<AnalyticsSummary, String> {
+pub fn get_user_analytics_summary(days: u32) -> Result<AnalyticsSummary, String> {
     // Get the caller's principal and convert to string for comparison
     let caller_principal = caller();
     let caller_user_id = caller_principal.to_string();
+
+    let actual_user_id = caller_user_id;
     
-    // Ensure user can only access their own analytics
-    if caller_user_id != user_id {
-        return Err("Unauthorized: You can only access your own analytics data".to_string());
-    }
-    
-    analytics_get_summary(&user_id, days)
+    analytics_get_summary(&actual_user_id, days)
 }
 
 /// Get detailed analytics for a user
 #[ic_cdk::query]
-pub fn get_user_analytics(user_id: String, days: u32) -> Result<UserAnalytics, String> {
+pub fn get_user_analytics(days: u32) -> Result<UserAnalytics, String> {
     // Get the caller's principal and convert to string for comparison
     let caller_principal = caller();
     let caller_user_id = caller_principal.to_string();
     
-    // Ensure user can only access their own analytics
-    if caller_user_id != user_id {
-        return Err("Unauthorized: You can only access your own analytics data".to_string());
-    }
+    // Use the caller's principal directly to ensure we're using the authenticated user's data
+    let actual_user_id = caller_user_id;
     
-    analytics_get_user_data(&user_id, days)
+    analytics_get_user_data(&actual_user_id, days)
 }
 
 /// Update analytics data for a user (call this when user makes requests)
 #[ic_cdk::update]
-pub fn update_user_analytics(user_id: String) -> Result<(), String> {
+pub fn update_user_analytics() -> Result<(), String> {
     // Get the caller's principal and convert to string for comparison
     let caller_principal = caller();
     let caller_user_id = caller_principal.to_string();
     
-    // Ensure user can only update their own analytics
-    if caller_user_id != user_id {
-        return Err("Unauthorized: You can only update your own analytics data".to_string());
-    }
+    // Use the caller's principal directly to ensure we're using the authenticated user's data
+    let actual_user_id = caller_user_id;
     
-    analytics_update_user(&user_id)
+    analytics_update_user(&actual_user_id)
 }
 
 /// Record analytics data for a user
 #[ic_cdk::update]
 pub fn record_analytics_data(
-    user_id: String,
     requests_made: u32,
     lines_of_code_edited: u32,
     ai_interactions: u32,
@@ -69,13 +61,11 @@ pub fn record_analytics_data(
     let caller_principal = caller();
     let caller_user_id = caller_principal.to_string();
     
-    // Ensure user can only record their own analytics
-    if caller_user_id != user_id {
-        return Err("Unauthorized: You can only record your own analytics data".to_string());
-    }
+    // Use the caller's principal directly to ensure we're using the authenticated user's data
+    let actual_user_id = caller_user_id;
     
     analytics_record_data(
-        &user_id,
+        &actual_user_id,
         requests_made,
         lines_of_code_edited,
         ai_interactions,

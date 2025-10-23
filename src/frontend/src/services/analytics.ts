@@ -7,9 +7,9 @@ export class AnalyticsService {
     /**
      * Get analytics summary for a user
      */
-    async getAnalyticsSummary(userId: string, days: number): Promise<AnalyticsSummary> {
+    async getAnalyticsSummary(days: number): Promise<AnalyticsSummary> {
         try {
-            const result = await this.actor.get_user_analytics_summary(userId, days);
+            const result = await this.actor.get_user_analytics_summary(days);
             
             if ('Ok' in result) {
                 return {
@@ -39,9 +39,9 @@ export class AnalyticsService {
     /**
      * Get detailed analytics for a user
      */
-    async getUserAnalytics(userId: string, days: number): Promise<UserAnalytics> {
+    async getUserAnalytics(days: number): Promise<UserAnalytics> {
         try {
-            const result = await this.actor.get_user_analytics(userId, days);
+            const result = await this.actor.get_user_analytics(days);
             
             if ('Ok' in result) {
                 return {
@@ -73,9 +73,9 @@ export class AnalyticsService {
     /**
      * Update analytics data for a user
      */
-    async updateUserAnalytics(userId: string): Promise<void> {
+    async updateUserAnalytics(): Promise<void> {
         try {
-            const result = await this.actor.update_user_analytics(userId);
+            const result = await this.actor.update_user_analytics();
             
             if ('Err' in result) {
                 throw new Error(result.Err);
@@ -90,7 +90,6 @@ export class AnalyticsService {
      * Record analytics data for a user
      */
     async recordAnalyticsData(
-        userId: string,
         requestsMade: number,
         linesOfCodeEdited: number,
         aiInteractions: number,
@@ -98,7 +97,6 @@ export class AnalyticsService {
     ): Promise<void> {
         try {
             const result = await this.actor.record_analytics_data(
-                userId,
                 requestsMade,
                 linesOfCodeEdited,
                 aiInteractions,

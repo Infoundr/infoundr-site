@@ -15,6 +15,8 @@ const DashboardHome: React.FC<Props> = ({ actor, useMockData = true }) => {
     const [taskCount, setTaskCount] = useState(0);
     const [issueCount, setIssueCount] = useState(0);
     const [loading, setLoading] = useState(true);
+
+    let forceMockData = true;
     
     // Analytics state
     const [analytics, setAnalytics] = useState<AnalyticsSummary | null>(null);
@@ -26,7 +28,7 @@ const DashboardHome: React.FC<Props> = ({ actor, useMockData = true }) => {
     const fetchAnalytics = async (period: number) => {
         try {
             setAnalyticsLoading(true);
-            if (!useMockData && actor) {
+            if (!forceMockData && actor) {
                 const analyticsService = createAnalyticsService(actor);
                 
                 // Get current user to get the user ID
@@ -41,7 +43,7 @@ const DashboardHome: React.FC<Props> = ({ actor, useMockData = true }) => {
                 const userId = currentUser[0].principal.toString();
                 console.log('Fetching analytics for user:', userId);
                 
-                const analyticsData = await analyticsService.getAnalyticsSummary(userId, period);
+                const analyticsData = await analyticsService.getAnalyticsSummary(period);
                 setAnalytics(analyticsData);
             } else {
                 // Mock analytics data
@@ -73,7 +75,7 @@ const DashboardHome: React.FC<Props> = ({ actor, useMockData = true }) => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                if (useMockData) {
+                if (forceMockData) {
                     setChatCount(mockChatHistory.length);
                     setTaskCount(mockTasks.length);
                     setIssueCount(mockGithubIssues.length);
@@ -91,7 +93,7 @@ const DashboardHome: React.FC<Props> = ({ actor, useMockData = true }) => {
         };
 
         fetchData();
-    }, [actor, useMockData]);
+    }, [actor, forceMockData]);
 
     // Record analytics data (call this when user makes requests)
     const recordAnalytics = async (
@@ -101,14 +103,12 @@ const DashboardHome: React.FC<Props> = ({ actor, useMockData = true }) => {
         tasksCompleted: number = 0
     ) => {
         try {
-            if (!useMockData && actor) {
+            if (!forceMockData && actor) {
                 const analyticsService = createAnalyticsService(actor);
                 const currentUser = await getCurrentUser();
                 
                 if (currentUser && currentUser.length > 0 && currentUser[0]) {
-                    const userId = currentUser[0].principal.toString();
                     await analyticsService.recordAnalyticsData(
-                        userId,
                         requestsMade,
                         linesOfCodeEdited,
                         aiInteractions,
@@ -127,7 +127,7 @@ const DashboardHome: React.FC<Props> = ({ actor, useMockData = true }) => {
     // Fetch analytics when component mounts or period changes
     useEffect(() => {
         fetchAnalytics(selectedPeriod);
-    }, [actor, useMockData, selectedPeriod]);
+    }, [actor, forceMockData, selectedPeriod]);
 
     if (loading) {
         return (
@@ -145,7 +145,7 @@ const DashboardHome: React.FC<Props> = ({ actor, useMockData = true }) => {
                     <h2 className="text-xl font-semibold text-gray-800">Your Analytics</h2>
                     <div className="flex items-center space-x-2">
                         {/* Test button for recording analytics - remove in production */}
-                        {!useMockData && (
+                        {!forceMockData && (
                             <button
                                 onClick={() => recordAnalytics(1, 50, 1, 0)}
                                 className="px-3 py-1 text-xs bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"

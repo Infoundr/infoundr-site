@@ -644,8 +644,8 @@ service : {
   get_token_info : (text) -> (opt DashboardToken) query;
   get_user_activity : (UserIdentifier) -> (UserActivity) query;
   get_user_activity_admin : (UserIdentifier) -> (Result_11) query;
-  get_user_analytics : (text, nat32) -> (Result_33) query;
-  get_user_analytics_summary : (text, nat32) -> (Result_34) query;
+  get_user_analytics : (nat32) -> (Result_33) query;
+  get_user_analytics_summary : (nat32) -> (Result_34) query;
   get_user_connections : (principal) -> (opt ConnectedAccounts) query;
   get_user_issues : (UserIdentifier) -> (vec Issue) query;
   get_user_tasks : (UserIdentifier) -> (vec Task) query;
@@ -674,7 +674,7 @@ service : {
   payment_set_config : (PaystackConfig) -> (Result_36);
   payment_verify : (text) -> (Result_43);
   payment_webhook : (text, text) -> (Result_36);
-  record_analytics_data : (text, nat32, nat32, nat32, nat32) -> (Result);
+  record_analytics_data : (nat32, nat32, nat32, nat32) -> (Result);
   record_startup_activity : (text, StartupActivityType, text, opt text) -> (
       Result,
     );
@@ -707,7 +707,7 @@ service : {
   update_startup_cohort : (text, StartupCohortInput) -> (Result);
   update_startup_status : (text, StartupStatusInput) -> (Result);
   update_team_member_role : (UpdateTeamMemberRole) -> (Result);
-  update_user_analytics : (text) -> (Result);
+  update_user_analytics : () -> (Result);
   validate_dashboard_token : (blob) -> (opt TokenValidationResult) query;
   verify_connections : (principal) -> (Result_46) query;
   verify_token : (text) -> (Result);
