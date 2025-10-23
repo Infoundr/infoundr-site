@@ -621,6 +621,7 @@ service : {
   get_connection_status : (UserIdentifier) -> (ConnectionStatus) query;
   get_current_repo : (principal) -> (opt text) query;
   get_current_user : () -> (opt User) query;
+  get_current_user_subscription : () -> (opt UserSubscription) query;
   get_discord_user : (text) -> (opt DiscordUser) query;
   get_discord_user_by_principal : (principal) -> (opt DiscordUser) query;
   get_my_accelerator : () -> (Result_22);
@@ -657,6 +658,7 @@ service : {
   is_discord_user_registered : (text) -> (bool) query;
   is_registered : () -> (bool) query;
   is_slack_user_registered : (text) -> (bool) query;
+  is_user_pro : () -> (bool) query;
   join_waitlist : (text) -> (Result_37);
   link_accounts : (principal, text) -> (Result);
   link_startup_principal : (text, text) -> (Result);

@@ -4,6 +4,7 @@ import { mockChatHistory, mockTasks, mockGithubIssues, useMockData } from '../..
 import { AnalyticsSummary, UserAnalytics } from '../../../types/analytics';
 import { createAnalyticsService } from '../../../services/analytics';
 import { getCurrentUser } from '../../../services/auth';
+import { createSubscriptionService } from '../../../services/subscription';
 import { AreaChartComponent } from '../../../components/charts/AreaChart';
 
 interface Props {
@@ -24,6 +25,10 @@ const DashboardHome: React.FC<Props> = ({ actor, useMockData = true }) => {
     const [analyticsLoading, setAnalyticsLoading] = useState(true);
     const [selectedPeriod, setSelectedPeriod] = useState(7); // 7 days by default
     const [analyticsError, setAnalyticsError] = useState<string | null>(null);
+
+    // Subscription state
+    const [isPro, setIsPro] = useState(false);
+    const [subscriptionLoading, setSubscriptionLoading] = useState(true);
 
     // Fetch analytics data
     const fetchAnalytics = async (period: number) => {
@@ -162,10 +167,35 @@ const DashboardHome: React.FC<Props> = ({ actor, useMockData = true }) => {
         }
     };
 
+    // Fetch subscription status
+    const fetchSubscriptionStatus = async () => {
+        try {
+            setSubscriptionLoading(true);
+            if (!forceMockData && actor) {
+                const subscriptionService = createSubscriptionService(actor);
+                const proStatus = await subscriptionService.isUserPro();
+                setIsPro(proStatus);
+            } else {
+                // Mock subscription status
+                setIsPro(false); // Default to Free plan for mock data
+            }
+        } catch (error) {
+            console.error('Error fetching subscription status:', error);
+            setIsPro(false);
+        } finally {
+            setSubscriptionLoading(false);
+        }
+    };
+
     // Fetch analytics when component mounts or period changes
     useEffect(() => {
         fetchAnalytics(selectedPeriod);
     }, [actor, forceMockData, selectedPeriod]);
+
+    // Fetch subscription status when component mounts
+    useEffect(() => {
+        fetchSubscriptionStatus();
+    }, [actor, forceMockData]);
 
     if (loading) {
         return (
@@ -300,57 +330,46 @@ const DashboardHome: React.FC<Props> = ({ actor, useMockData = true }) => {
             </div>
 
             {/* Subscription Plans Section */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold text-gray-800">Pro+</h3>
-                        <span className="text-sm text-gray-500">$60/mo.</span>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-4">Get 3x more usage than Pro, unlock higher limits on Agent, and more.</p>
-                    <button className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors flex items-center justify-center">
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                        </svg>
-                        Upgrade to Pro+
-                    </button>
-                </div>
-
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold text-gray-800">Ultra</h3>
-                        <span className="text-sm text-gray-500">$200/mo.</span>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-4">Run parallel agents, get maximum value with 20x usage limits, and early access to advanced features.</p>
-                    <button className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors flex items-center justify-center">
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                        </svg>
-                        Upgrade to Ultra
-                    </button>
-                </div>
-
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Pro Plan */}
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-semibold text-gray-800">Pro</h3>
-                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">Current</span>
+                        {isPro ? (
+                            <span className="text-xs bg-green-100 text-green-600 px-2 py-1 rounded">Current</span>
+                        ) : (
+                            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">Free</span>
+                        )}
                     </div>
                     <div className="text-sm text-gray-500 mb-4">$20/mo.</div>
                     <p className="text-sm text-gray-600 mb-4">Entry-level plan with access to premium models, unlimited Tab completions, and more.</p>
-                    <button className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-200 transition-colors">
-                        Manage Subscription
-                    </button>
+                    {isPro ? (
+                        <button className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-200 transition-colors">
+                            Manage Subscription
+                        </button>
+                    ) : (
+                        <button className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors">
+                            Upgrade to Pro
+                        </button>
+                    )}
                 </div>
-            </div>
 
-            {/* On-Demand Usage */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h3 className="text-lg font-semibold text-gray-800">On-Demand Usage is Off</h3>
-                        <p className="text-sm text-gray-600 mt-1">Go beyond your plan's included quota with on-demand usage</p>
+                {/* Enterprise Plan */}
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold text-gray-800">Enterprise</h3>
+                        <span className="text-xs bg-purple-100 text-purple-600 px-2 py-1 rounded">Custom</span>
                     </div>
-                    <button className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors">
-                        Enable On-Demand Usage
+                    <div className="text-sm text-gray-500 mb-4">Contact us for pricing</div>
+                    <p className="text-sm text-gray-600 mb-4">Custom solutions for large teams with dedicated support, advanced features, and enterprise-grade security.</p>
+                    <button 
+                        onClick={() => window.open('mailto:hi@infoundr.com?subject=Enterprise Plan Inquiry', '_blank')}
+                        className="w-full bg-purple-500 text-white py-2 px-4 rounded-md hover:bg-purple-600 transition-colors flex items-center justify-center"
+                    >
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        Contact Us
                     </button>
                 </div>
             </div>
