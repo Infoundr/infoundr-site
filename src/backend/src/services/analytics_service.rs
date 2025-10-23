@@ -109,18 +109,58 @@ pub fn get_user_analytics(
 pub fn get_analytics_summary(user_id: &str, days: u32) -> Result<AnalyticsSummary, String> {
     let analytics = get_user_analytics(user_id, days)?;
     
-    // Create chart data
-    let labels: Vec<String> = analytics.daily_data.iter()
-        .map(|d| d.date.clone())
-        .collect();
-    
-    let requests_data: Vec<u32> = analytics.daily_data.iter()
-        .map(|d| d.requests_made)
-        .collect();
-    
-    let lines_data: Vec<u32> = analytics.daily_data.iter()
-        .map(|d| d.lines_of_code_edited)
-        .collect();
+    // Generate chart data based on period
+    let (labels, requests_data) = match days {
+        1 => {
+            // 1 day - show today's data only (most recent day)
+            if let Some(latest_day) = analytics.daily_data.last() {
+                (vec![latest_day.date.clone()], vec![latest_day.requests_made])
+            } else {
+                (vec!["Today".to_string()], vec![0])
+            }
+        },
+        7 => {
+            // 7 days - daily data
+            let labels: Vec<String> = analytics.daily_data.iter()
+                .map(|d| d.date.clone())
+                .collect();
+            let requests_data: Vec<u32> = analytics.daily_data.iter()
+                .map(|d| d.requests_made)
+                .collect();
+            (labels, requests_data)
+        },
+        30 => {
+            // 30 days - weekly data (group daily data into weeks)
+            let mut weekly_data: std::collections::HashMap<String, u32> = std::collections::HashMap::new();
+            let mut week_labels = Vec::new();
+            
+            // Group data into weeks
+            for (index, data_point) in analytics.daily_data.iter().enumerate() {
+                let week_num = (index / 7) + 1;
+                let week_label = format!("Week {}", week_num);
+                *weekly_data.entry(week_label.clone()).or_insert(0) += data_point.requests_made;
+                if !week_labels.contains(&week_label) {
+                    week_labels.push(week_label);
+                }
+            }
+            
+            let labels = week_labels;
+            let requests_data: Vec<u32> = labels.iter()
+                .map(|label| weekly_data.get(label).copied().unwrap_or(0))
+                .collect();
+            (labels, requests_data)
+        },
+        _ => {
+            // Default to daily data
+            let labels: Vec<String> = analytics.daily_data.iter()
+                .map(|d| d.date.clone())
+                .collect();
+            let requests_data: Vec<u32> = analytics.daily_data.iter()
+                .map(|d| d.requests_made)
+                .collect();
+            (labels, requests_data)
+        }
+    };
 
     let datasets = vec![
         ChartDataset {
@@ -128,12 +168,6 @@ pub fn get_analytics_summary(user_id: &str, days: u32) -> Result<AnalyticsSummar
             data: requests_data,
             border_color: "#3B82F6".to_string(), // Blue
             background_color: "rgba(59, 130, 246, 0.1)".to_string(),
-        },
-        ChartDataset {
-            label: "Lines of Code Edited".to_string(),
-            data: lines_data,
-            border_color: "#8B5CF6".to_string(), // Purple
-            background_color: "rgba(139, 92, 246, 0.1)".to_string(),
         },
     ];
 
