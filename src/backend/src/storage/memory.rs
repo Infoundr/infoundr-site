@@ -18,6 +18,7 @@ use crate::models::startup_invite::StartupInvite;
 use crate::models::startup::{Startup, StartupStatus, StartupCohort, StartupActivity};
 use crate::models::usage_service::UserSubscription;
 use crate::models::payment::{PaymentRecord, Invoice};
+use crate::models::analytics::AnalyticsDataPoint;
 
 pub type Memory = VirtualMemory<DefaultMemoryImpl>;
 
@@ -158,6 +159,13 @@ thread_local! {
     pub static INVOICES: RefCell<StableBTreeMap<StableString, Invoice, Memory>> = RefCell::new(
         StableBTreeMap::init(
             MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(21)))
+        )
+    );
+
+    // --- ANALYTICS STORAGE ---
+    pub static USER_ANALYTICS: RefCell<StableBTreeMap<(StableString, u64), AnalyticsDataPoint, Memory>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(22)))
         )
     );
 }

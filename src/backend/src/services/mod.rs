@@ -13,3 +13,5 @@ pub mod accelerator_service;
 pub mod startup_service;
 pub mod pricing_services;
 pub mod payment_service;
+pub mod analytics_service;
+pub mod analytics_api;

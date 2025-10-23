@@ -38,7 +38,7 @@ use crate::services::account_service::{UserActivity, UserIdentifier,  UserIdenti
 use crate::storage::memory::{
     API_MESSAGES, CHAT_HISTORY, CONNECTED_ACCOUNTS, DASHBOARD_TOKENS, OPENCHAT_USERS, SLACK_USERS, DISCORD_USERS, TASKS, USERS, WAITLIST, GITHUB_ISSUES,
     STARTUPS, STARTUP_STATUSES, STARTUP_COHORTS, STARTUP_ACTIVITIES, ACCELERATORS, STARTUP_INVITES, ADMINS, USER_SUBSCRIPTIONS, USER_DAILY_USAGE,
-    PAYMENT_RECORDS, INVOICES,
+    PAYMENT_RECORDS, INVOICES, USER_ANALYTICS,
 };
 use candid::Principal;
 use ic_cdk::storage::{stable_restore, stable_save};
@@ -50,6 +50,7 @@ use crate::services::accelerator_service::TeamInvite;
 use crate::services::accelerator_service::{GenerateStartupInviteInput, StartupRegistrationInput};
 pub use crate::models::usage_service::{UsageStats, UserTier, UserSubscription};
 pub use crate::services::admin::{UserActivityReport, PaymentStats};
+pub use crate::models::analytics::{AnalyticsSummary, UserAnalytics, AnalyticsChartData};
 use crate::models::admin::PlaygroundStats;
 use crate::migrations::{CurrentStableState, migrate_from_bytes};
 use crate::services::payment_service::{InitializePaymentRequest, InitializePaymentResponse};
@@ -85,6 +86,7 @@ fn pre_upgrade() {
     let user_daily_usage = USER_DAILY_USAGE.with(|u| u.borrow().iter().collect::<Vec<_>>());
     let payment_records = PAYMENT_RECORDS.with(|p| p.borrow().iter().collect::<Vec<_>>());
     let invoices = INVOICES.with(|i| i.borrow().iter().collect::<Vec<_>>());
+    let user_analytics = USER_ANALYTICS.with(|a| a.borrow().iter().collect::<Vec<_>>());
 
     let state = StableState {
         users,
@@ -109,6 +111,7 @@ fn pre_upgrade() {
         user_daily_usage,
         payment_records,
         invoices,
+        user_analytics,
     };
 
     // Serialize with bincode for better performance and compatibility
@@ -149,6 +152,7 @@ fn post_upgrade() {
                         user_daily_usage: vec![],
                         payment_records: vec![],
                         invoices: vec![],
+                        user_analytics: vec![],
                     }
                 }
             }
@@ -178,6 +182,7 @@ fn post_upgrade() {
                 user_daily_usage: vec![],
                 payment_records: vec![],
                 invoices: vec![],
+                user_analytics: vec![],
             }
         }
     };
@@ -357,6 +362,16 @@ fn post_upgrade() {
             i.insert(k, v);
         }
     });
+
+    // Restore user analytics
+    USER_ANALYTICS.with(|a| {
+        let mut a = a.borrow_mut();
+        for (k, v) in state.user_analytics {
+            a.insert(k, v);
+        }
+    });
 }
+
+
 
 ic_cdk::export_candid!();
