@@ -4,6 +4,7 @@ import { mockChatHistory, mockTasks, mockGithubIssues, useMockData } from '../..
 import { AnalyticsSummary, UserAnalytics } from '../../../types/analytics';
 import { createAnalyticsService } from '../../../services/analytics';
 import { getCurrentUser } from '../../../services/auth';
+import { AreaChartComponent } from '../../../components/charts/AreaChart';
 
 interface Props {
     actor: _SERVICE;
@@ -248,25 +249,14 @@ const DashboardHome: React.FC<Props> = ({ actor, useMockData = true }) => {
                 {analytics && analytics.chart_data && (
                     <div className="mt-6">
                         <h3 className="text-lg font-medium text-gray-800 mb-4">Usage Over Time</h3>
-                        <div className="h-48 bg-gray-50 rounded-lg p-4">
-                            <div className="flex items-end justify-between h-full space-x-2">
-                                {analytics.chart_data.datasets[0]?.data.map((value, index) => (
-                                    <div key={index} className="flex flex-col items-center flex-1">
-                                        <div 
-                                            className="bg-blue-500 rounded-t w-full mb-2 transition-all duration-300 hover:bg-blue-600"
-                                            style={{ 
-                                                height: `${Math.max((value / Math.max(...analytics.chart_data.datasets[0].data)) * 100, 10)}%` 
-                                            }}
-                                        ></div>
-                                        <span className="text-xs text-gray-500">
-                                            {analytics.chart_data.labels[index]}
-                                        </span>
-                                        <span className="text-xs text-gray-700 font-medium">
-                                            {value}
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
+                        <div className="bg-white rounded-lg border border-gray-200 p-4">
+                            <AreaChartComponent 
+                                data={analytics.chart_data.labels.map((label, index) => ({
+                                    name: label,
+                                    value: analytics.chart_data.datasets[0]?.data[index] || 0
+                                }))}
+                                className="h-48"
+                            />
                         </div>
                     </div>
                 )}
