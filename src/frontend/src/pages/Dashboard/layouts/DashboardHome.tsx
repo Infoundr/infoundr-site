@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { _SERVICE } from "../../../../../declarations/backend/backend.did";
 import { mockChatHistory, mockTasks, mockGithubIssues, useMockData } from '../../../mocks/mockData';
 import { AnalyticsSummary, UserAnalytics } from '../../../types/analytics';
@@ -13,12 +14,13 @@ interface Props {
 }
 
 const DashboardHome: React.FC<Props> = ({ actor, useMockData = true }) => {
+    const navigate = useNavigate();
     const [chatCount, setChatCount] = useState(0);
     const [taskCount, setTaskCount] = useState(0);
     const [issueCount, setIssueCount] = useState(0);
     const [loading, setLoading] = useState(true);
 
-    let forceMockData = true;
+    let forceMockData = false;
     
     // Analytics state
     const [analytics, setAnalytics] = useState<AnalyticsSummary | null>(null);
@@ -348,7 +350,10 @@ const DashboardHome: React.FC<Props> = ({ actor, useMockData = true }) => {
                             Manage Subscription
                         </button>
                     ) : (
-                        <button className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors">
+                        <button 
+                            onClick={() => navigate('/payment/checkout')}
+                            className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors"
+                        >
                             Upgrade to Pro
                         </button>
                     )}
