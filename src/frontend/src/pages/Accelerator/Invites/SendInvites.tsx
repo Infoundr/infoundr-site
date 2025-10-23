@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MoreVertical, Copy, X, Check } from "lucide-react";
+import { MoreVertical, Copy, X, Check, Loader2 } from "lucide-react";
 import { generateStartupInvite, listStartupInvites } from '../../../services/startup-invite';
 import { InviteType, InviteStatus, StartupInvite } from '../../../types/startup-invites';
 import { getMyAccelerator } from '../../../services/accelerator';
@@ -120,6 +120,9 @@ const SendInvites = () => {
   const [generatedInvite, setGeneratedInvite] = useState<StartupInvite | null>(null);
   const [invites, setInvites] = useState<StartupInvite[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isBulkMode, setIsBulkMode] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+
 
   useEffect(() => {
     const fetchAcceleratorAndInvites = async () => {
@@ -296,8 +299,32 @@ const SendInvites = () => {
       </p>
 
       {/* Generate Invite Form */}
+      {!isBulkMode && (
       <div className="bg-white p-6 rounded-lg shadow-md mb-10">
-        <h2 className="text-lg font-medium mb-4">Generate New Invite</h2>
+        {/* Toggle between Single and Bulk Invite */}
+      <div className="flex justify-center mb-6">
+      <button
+      onClick={() => setIsBulkMode(false)}
+      className={`px-6 py-2 rounded-l-lg font-medium transition ${
+      !isBulkMode
+        ? "bg-purple-600 text-white"
+        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+      }`}
+      >
+      Single Invite
+  </button>
+  <button
+    onClick={() => setIsBulkMode(true)}
+    className={`px-6 py-2 rounded-r-lg font-medium transition ${
+      isBulkMode
+        ? "bg-purple-600 text-white"
+        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+    }`}
+  >
+    Bulk Invite Upload
+  </button>
+</div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="flex flex-col">
             <label className="text-sm text-gray-700 mb-1">Startup Name</label>
@@ -365,59 +392,81 @@ const SendInvites = () => {
               loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-purple-700'
             }`}
           >
-            {loading ? 'Generating...' : 'Generate Invite'}
+            {loading ? (
+          <span className="flex items-center gap-2">
+          <span className="animate-spin border-t-2 border-white rounded-full w-4 h-4"></span>
+          Generating...
+          </span>
+          ) : (
+          'Generate Invite'
+          )}
           </button>
         </div>
       </div>
-      <div className="mt-6 flex justify-end">
-  <button 
-    onClick={handleGenerateInvite}
-    disabled={loading} 
-    className={`bg-purple-600 text-white px-6 py-2 rounded-md transition ${
-      loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-purple-700'
-    }`}
-    >
-    {loading ? 'Generating...' : 'Generate Invite'}
-    </button>
-    </div>
+      )}
+
      {/* ✅ Fixed Bulk Invite Upload Section */}
-      <div className="mt-10 border-t pt-6">
-        <h2 className="text-lg font-medium mb-4">Bulk Invite Upload</h2>
-        <p className="text-sm text-gray-600 mb-4">
-          Upload a CSV file to generate multiple invites at once. The file should include columns: 
-          <code>startup_name</code>, <code>email</code>, and <code>expiry_days</code>.
-        </p>
+    {isBulkMode && (
+    <div className="text-center space-y-6 mt-4">
+    <h2 className="text-lg font-semibold text-gray-800">Bulk Invite Upload</h2>
+    <p className="text-sm text-gray-600">
+      Drag & drop or upload a CSV file with <code>startup_name</code>, <code>email</code>, and <code>expiry_days</code>.
+    </p>
 
-        {accelerator && (
-          <BulkInviteUpload
-            acceleratorId={accelerator.id.toString()}
-            programName={program}
-            inviteType="Link"
-            onInvitesParsed={async (parsedInvites: StartupInviteRow[]) => {
+    {accelerator && (
+      <div
+        className="border-2 border-dashed border-purple-400 rounded-xl p-10 bg-purple-50 hover:bg-purple-100 transition cursor-pointer"
+      >
+        <BulkInviteUpload
+          acceleratorId={accelerator.id.toString()}
+          programName={program}
+          inviteType="Link"
+          onInvitesParsed={async (parsedInvites: StartupInviteRow[]) => {
+            setIsUploading(true);
+            try {
               for (const row of parsedInvites) {
-                try {
-                  const input = {
-                    accelerator_id: accelerator.id.toString(),
-                    program_name: program,
-                    invite_type: { Link: null },
-                    startup_name: row.startup_name,
-                    email: [row.email] as [string],
-                    expiry_days: row.expiry_days
-                      ? [BigInt(row.expiry_days)] as [bigint]
-                      : ([BigInt(30)] as [bigint]),
-                  };
-
-                  await generateStartupInvite(input);
-                } catch (err) {
-                  console.error("Error generating bulk invite for", row.startup_name, err);
-                }
+                const input = {
+                  accelerator_id: accelerator.id.toString(),
+                  program_name: program,
+                  invite_type: { Link: null },
+                  startup_name: row.startup_name,
+                  email: [row.email] as [string],
+                  expiry_days: row.expiry_days
+                    ? [BigInt(row.expiry_days)] as [bigint]
+                    : ([BigInt(30)] as [bigint]),
+                };
+                await generateStartupInvite(input);
               }
               toast.success("Bulk invites processed successfully!");
               await fetchInvitesForAccelerator(accelerator.id.toString());
-            }}
-          />
-        )}
+            } catch (err) {
+              toast.error("Some invites failed to send. Check console for details.");
+              console.error(err);
+            } finally {
+              setIsUploading(false);
+            }
+          }}
+        />
       </div>
+    )}
+
+    <button
+      disabled={isUploading}
+      className={`bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition flex items-center justify-center mx-auto ${
+        isUploading ? "opacity-50 cursor-not-allowed" : ""
+      }`}
+    >
+      {isUploading ? (
+        <>
+          <span className="animate-spin mr-2 border-t-2 border-white rounded-full w-4 h-4"></span>
+          Uploading...
+        </>
+      ) : (
+        "Upload & Send Invites"
+      )}
+    </button>
+  </div>
+)}
 
       {/* Invites Table */}
       <div className="bg-white p-6 rounded-lg shadow-md">
