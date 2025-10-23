@@ -20,7 +20,7 @@ const DashboardHome: React.FC<Props> = ({ actor, useMockData = true }) => {
     const [issueCount, setIssueCount] = useState(0);
     const [loading, setLoading] = useState(true);
 
-    let forceMockData = false;
+    let forceMockData = true;
     
     // Analytics state
     const [analytics, setAnalytics] = useState<AnalyticsSummary | null>(null);

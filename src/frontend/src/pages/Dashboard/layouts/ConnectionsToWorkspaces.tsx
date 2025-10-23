@@ -4,22 +4,6 @@ const ConnectionsToWorkspaces: React.FC = () => {
     const [connections, setConnections] = useState([
         {
             id: 1,
-            name: 'GitHub',
-            description: 'Connect GitHub for Background Agents, Bugbot and enhanced codebase context',
-            icon: '🐙',
-            connected: false,
-            type: 'repository'
-        },
-        {
-            id: 2,
-            name: 'GitLab',
-            description: 'Connect GitLab for Bugbot and enhanced codebase context',
-            icon: '🦊',
-            connected: false,
-            type: 'repository'
-        },
-        {
-            id: 3,
             name: 'Slack',
             description: 'Work with Background Agents from Slack',
             icon: '💬',
@@ -27,28 +11,20 @@ const ConnectionsToWorkspaces: React.FC = () => {
             type: 'communication'
         },
         {
-            id: 4,
-            name: 'Linear',
-            description: 'Connect a Linear workspace to delegate issues to Background Agents',
-            icon: '📊',
-            connected: false,
-            type: 'project_management'
-        },
-        {
-            id: 5,
-            name: 'Notion',
-            description: 'Connect Notion for document management and knowledge base integration',
-            icon: '📝',
-            connected: false,
-            type: 'documentation'
-        },
-        {
-            id: 6,
+            id: 2,
             name: 'Discord',
             description: 'Integrate Discord for team communication and bot interactions',
             icon: '🎮',
             connected: false,
             type: 'communication'
+        },
+        {
+            id: 3,
+            name: 'OpenChat',
+            description: 'Connect OpenChat for enhanced AI interactions and workspace integration',
+            icon: '🤖',
+            connected: false,
+            type: 'ai_platform'
         }
     ]);
 
@@ -126,62 +102,6 @@ const ConnectionsToWorkspaces: React.FC = () => {
                         </div>
                     </div>
                 ))}
-            </div>
-
-            {/* API Keys Section */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h2 className="text-lg font-semibold text-gray-800 mb-2">Workspace API Keys</h2>
-                <p className="text-sm text-gray-600 mb-4">
-                    Workspace API Keys provide secure, programmatic access to your connected workspaces, 
-                    including the headless version of the Agent CLI and Background Agent API. 
-                    Treat them like passwords: keep them secure and never share them publicly.
-                </p>
-                
-                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <div className="text-center py-8">
-                        <div className="text-gray-400 text-4xl mb-2">🔑</div>
-                        <p className="text-gray-500 text-sm mb-1">No API Keys Yet</p>
-                        <p className="text-gray-400 text-xs">No API Keys have been created yet</p>
-                    </div>
-                    <div className="text-center mt-4">
-                        <button className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors flex items-center mx-auto">
-                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                            </svg>
-                            New API Key
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {/* Quick Actions */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h2 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <button className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                            </svg>
-                        </div>
-                        <div className="text-left">
-                            <h3 className="font-medium text-gray-800">Import Workspace</h3>
-                            <p className="text-sm text-gray-600">Import existing workspace configuration</p>
-                        </div>
-                    </button>
-                    
-                    <button className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                        <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
-                            <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                        <div className="text-left">
-                            <h3 className="font-medium text-gray-800">Sync All</h3>
-                            <p className="text-sm text-gray-600">Sync all connected workspaces</p>
-                        </div>
-                    </button>
-                </div>
             </div>
         </div>
     );
