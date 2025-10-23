@@ -274,8 +274,17 @@ fn calculate_amount(tier: &str, billing_period: &str, currency: &str) -> Result<
 /// Generate unique payment reference
 fn generate_payment_reference(user_id: &str) -> String {
     let timestamp = time();
-    let random_suffix = timestamp % 10000;
-    format!("INF-{}-{}", user_id.chars().take(8).collect::<String>(), random_suffix)
+    // Use full timestamp in nanoseconds for uniqueness
+    let user_prefix = user_id.chars().take(6).collect::<String>();
+    
+    // Add a counter to ensure uniqueness even for rapid successive calls
+    static mut COUNTER: u64 = 0;
+    let counter = unsafe {
+        COUNTER += 1;
+        COUNTER
+    };
+    
+    format!("INF-{}-{}-{}", user_prefix, timestamp, counter)
 }
 
 /// Store payment record
