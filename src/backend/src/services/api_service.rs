@@ -9,6 +9,7 @@ use ic_cdk::{query, update};
 use crate::services::pricing_services::{
     get_usage_stats, get_user_tier, can_make_request, increment_user_requests, upgrade_user_tier, get_user_subscription,
 };
+use crate::services::token_service::generate_dashboard_token;
 use crate::models::usage_service::{UsageStats,UserTier,UserSubscription};
 
 
@@ -105,7 +106,7 @@ pub fn store_api_message(
     };
     
     
-        // ✅ Usage validation before storing the request
+    // ✅ Usage validation before storing the request
     if !can_make_request(&user_id) {
         return Err(format!(
             "Daily limit reached. Upgrade to Pro for unlimited access. \
@@ -411,4 +412,89 @@ pub fn api_upgrade_user_tier(user_id: String, tier: UserTier, expires_at_ns: Opt
 #[query]
 pub fn api_get_user_subscription(user_id: String) -> Option<UserSubscription> {
     get_user_subscription(&user_id)
+}
+
+// -------------------- WORKSPACE LINKING LOGIC --------------------
+
+// Check if a specific platform ID is linked to any principal
+#[query]
+pub fn api_is_platform_id_linked(platform: String, platform_id: String) -> bool {
+    has_platform_id_linked(&platform, &platform_id)
+}
+
+// Independent function to check if a user identifier has linked workspace
+pub async fn check_workspace_linking(identifier: &UserIdentifier) -> Result<(), String> {
+    let platform_linked = match identifier {
+        UserIdentifier::Principal(_) => {
+            // For principal-based requests, we don't require workspace linking
+            // as the principal itself is the authentication
+            true
+        }
+        UserIdentifier::SlackId(slack_id) => {
+            has_platform_id_linked("slack", slack_id)
+        }
+        UserIdentifier::DiscordId(discord_id) => {
+            has_platform_id_linked("discord", discord_id)
+        }
+        UserIdentifier::OpenChatId(openchat_id) => {
+            has_platform_id_linked("openchat", openchat_id)
+        }
+        UserIdentifier::PlaygroundId(_) => {
+            // Playground requests don't require workspace linking
+            true
+        }
+    };
+    
+    if !platform_linked {
+        // Generate auth token for workspace linking
+        let platform_id = match identifier {
+            UserIdentifier::SlackId(id) => id.clone(),
+            UserIdentifier::DiscordId(id) => id.clone(),
+            UserIdentifier::OpenChatId(id) => id.clone(),
+            _ => return Err("Invalid identifier for workspace linking".to_string()),
+        };
+        
+        let auth_token = generate_dashboard_token(platform_id).await;
+        
+        return Err(auth_token);
+    }
+    
+    Ok(())
+}
+
+/// Check if a specific platform ID has been linked to any principal
+pub fn has_platform_id_linked(platform: &str, platform_id: &str) -> bool {
+    match platform {
+        "slack" => {
+            SLACK_USERS.with(|users| {
+                let users = users.borrow();
+                if let Some(user) = users.get(&StableString::from(platform_id.to_string())) {
+                    user.site_principal.is_some()
+                } else {
+                    false
+                }
+            })
+        }
+        "discord" => {
+            DISCORD_USERS.with(|users| {
+                let users = users.borrow();
+                if let Some(user) = users.get(&StableString::from(platform_id.to_string())) {
+                    user.site_principal.is_some()
+                } else {
+                    false
+                }
+            })
+        }
+        "openchat" => {
+            OPENCHAT_USERS.with(|users| {
+                let users = users.borrow();
+                if let Some(user) = users.get(&StableString::from(platform_id.to_string())) {
+                    user.site_principal.is_some()
+                } else {
+                    false
+                }
+            })
+        }
+        _ => false,
+    }
 }

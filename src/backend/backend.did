@@ -590,10 +590,12 @@ service : {
   admin_update_accelerator : (principal, AcceleratorUpdate) -> (Result);
   admin_upgrade_user_tier : (text, UserTier, opt nat64) -> (Result);
   api_can_make_request : (text) -> (bool) query;
+  api_check_workspace_linking : (UserIdentifier) -> (Result) query;
   api_get_usage_stats : (text) -> (UsageStats) query;
   api_get_user_subscription : (text) -> (opt UserSubscription) query;
   api_get_user_tier : (text) -> (UserTier) query;
   api_increment_user_requests : (text) -> (Result);
+  api_is_platform_id_linked : (text, text) -> (bool) query;
   api_upgrade_user_tier : (text, UserTier, opt nat64) -> (Result);
   calculate_engagement_score : (text) -> (Result_13) query;
   check_auth : () -> (bool) query;
