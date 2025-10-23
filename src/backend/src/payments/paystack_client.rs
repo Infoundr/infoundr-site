@@ -10,7 +10,7 @@ use serde_json;
 
 const PAYSTACK_API_BASE: &str = "https://api.paystack.co";
 const MAX_RESPONSE_BYTES: u64 = 2_000_000; // 2MB
-const CYCLES_PER_CALL: u128 = 13_000_000_000; // ~13B cycles per HTTP call
+const CYCLES_PER_CALL: u128 = 25_000_000_000; // ~25B cycles per HTTP call
 
 /// Initialize a payment transaction with Paystack
 pub async fn initialize_transaction(
