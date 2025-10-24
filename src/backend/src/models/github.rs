@@ -1,8 +1,9 @@
 use candid::{CandidType, Deserialize};
+use serde::Serialize;
 use ic_stable_structures::{BoundedStorable, Storable};
 use std::borrow::Cow;
 
-#[derive(CandidType, Deserialize, Clone, Debug)]
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
 pub struct Issue {
     pub id: String,
     pub title: String,
@@ -12,7 +13,7 @@ pub struct Issue {
     pub status: IssueStatus,
 }
 
-#[derive(CandidType, Deserialize, Clone, Debug)]
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
 pub enum IssueStatus {
     Open,
     Closed,

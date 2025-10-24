@@ -8,7 +8,7 @@ const SlackIntegration: React.FC = () => {
       description: 'Access your AI co-founder directly in Slack channels and direct messages for seamless workflow integration.'
     },
     {
-      icon: '🚀',
+      icon: '🔧',
       title: 'Easy Setup',
       description: 'Simple installation process that brings AI-powered automation to your existing Slack workspace.'
     },

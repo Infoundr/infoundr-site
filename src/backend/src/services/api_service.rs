@@ -5,7 +5,12 @@ use crate::services::slack_service::ensure_slack_user;
 use crate::services::discord_service::ensure_discord_user;
 use crate::storage::memory::{API_MESSAGES, OPENCHAT_USERS, SLACK_USERS, DISCORD_USERS};
 use candid::Principal;
-use ic_cdk::update;
+use ic_cdk::{query, update};
+use crate::services::pricing_services::{
+    get_usage_stats, get_user_tier, can_make_request, increment_user_requests, upgrade_user_tier, get_user_subscription,
+};
+use crate::models::usage_service::{UsageStats,UserTier,UserSubscription};
+
 
 // API Message Storage Management
 #[update]
@@ -15,7 +20,7 @@ pub fn store_api_message(
     response: String,
     bot_name: String,
     metadata: Option<ApiMetadata>,
-) {
+)  -> Result<ApiMessage, String>{
     let _store_principal = match &identifier {
         UserIdentifier::Principal(principal) => *principal,
         UserIdentifier::OpenChatId(openchat_id) => {
@@ -77,6 +82,17 @@ pub fn store_api_message(
                     })
             })
         }
+        UserIdentifier::PlaygroundId(playground_id) => {
+            // Create a special principal for Playground messages
+            // This is a deterministic way to create a principal from a Playground ID
+            let mut bytes = [0u8; 29];
+            bytes[0] = 7; // Special type for Playground
+            // Use the first 28 bytes of the Playground ID
+            let playground_bytes = playground_id.as_bytes();
+            let len = std::cmp::min(playground_bytes.len(), 28);
+            bytes[1..1+len].copy_from_slice(&playground_bytes[..len]);
+            Principal::from_slice(&bytes)
+        }
     };
 
     let timestamp = ic_cdk::api::time();
@@ -85,7 +101,23 @@ pub fn store_api_message(
         UserIdentifier::OpenChatId(openchat_id) => openchat_id.clone(),
         UserIdentifier::SlackId(slack_id) => slack_id.clone(),
         UserIdentifier::DiscordId(discord_id) => discord_id.clone(),
+        UserIdentifier::PlaygroundId(playground_id) => playground_id.clone(),
     };
+    
+    
+        // ✅ Usage validation before storing the request
+    if !can_make_request(&user_id) {
+        return Err(format!(
+            "Daily limit reached. Upgrade to Pro for unlimited access. \
+             Usage: {:?}",
+            get_usage_stats(&user_id)
+        ));
+    }
+
+    if let Err(err) = increment_user_requests(&user_id) {
+        return Err(err);
+    }
+
 
     // Create unique message ID
     let message_id = format!("{}_{}", user_id, timestamp);
@@ -106,12 +138,15 @@ pub fn store_api_message(
         messages.insert((StableString::from(message_id), timestamp), api_message.clone());
     });
 
+    Ok(api_message)
+
     // Add debug logging
     // ic_cdk::println!("Stored API message with ID {} for principal {:?}", message_id, store_principal);
 }
 
 // Get API message history for a user
-// #[query]
+
+#[query]
 pub fn get_api_message_history(identifier: UserIdentifier) -> Vec<ApiMessage> {
     let principals_to_check = match &identifier {
         UserIdentifier::Principal(principal) => {
@@ -240,6 +275,19 @@ pub fn get_api_message_history(identifier: UserIdentifier) -> Vec<ApiMessage> {
 
             principals
         }
+        UserIdentifier::PlaygroundId(playground_id) => {
+            let mut principals = vec![];
+
+            // Create special Playground principal
+            let mut bytes = [0u8; 29];
+            bytes[0] = 7; // Special type for Playground
+            let playground_bytes = playground_id.as_bytes();
+            let len = std::cmp::min(playground_bytes.len(), 28);
+            bytes[1..1+len].copy_from_slice(&playground_bytes[..len]);
+            principals.push(Principal::from_slice(&bytes));
+
+            principals
+        }
     };
 
     // Collect all API messages across all relevant principals
@@ -267,6 +315,7 @@ pub fn get_api_message_history(identifier: UserIdentifier) -> Vec<ApiMessage> {
         UserIdentifier::OpenChatId(openchat_id) => openchat_id.clone(),
         UserIdentifier::SlackId(slack_id) => slack_id.clone(),
         UserIdentifier::DiscordId(discord_id) => discord_id.clone(),
+        UserIdentifier::PlaygroundId(playground_id) => playground_id.clone(),
     };
 
     API_MESSAGES.with(|messages| {
@@ -298,7 +347,8 @@ pub fn get_api_message_history(identifier: UserIdentifier) -> Vec<ApiMessage> {
 }
 
 // Get API messages by bot name
-// #[query]
+
+#[query]
 pub fn get_api_messages_by_bot(identifier: UserIdentifier, bot_name: String) -> Vec<ApiMessage> {
     let all_messages = get_api_message_history(identifier);
     all_messages
@@ -308,10 +358,10 @@ pub fn get_api_messages_by_bot(identifier: UserIdentifier, bot_name: String) -> 
 }
 
 // Get recent API messages (last N messages)
-// #[query]    
+#[query]    
 pub fn get_recent_api_messages(identifier: UserIdentifier, limit: u32) -> Vec<ApiMessage> {
     let mut all_messages = get_api_message_history(identifier);
-    all_messages.truncate(limit as usize);
+    all_messages.truncate(limit.min(all_messages.len() as u32)as usize);
     all_messages
 }
 
@@ -322,4 +372,43 @@ pub enum UserIdentifier {
     OpenChatId(String),
     SlackId(String),
     DiscordId(String),
+    PlaygroundId(String),
 } 
+
+// -------------------- USAGE & PRICING API --------------------
+
+// Get current usage stats for a user
+#[query]
+pub fn api_get_usage_stats(user_id: String) -> UsageStats {
+    get_usage_stats(&user_id)
+}
+
+// Get current tier for a user
+#[query]
+pub fn api_get_user_tier(user_id: String) -> UserTier {
+    get_user_tier(&user_id)
+}
+
+// Check if user can make a request
+#[query]
+pub fn api_can_make_request(user_id: String) -> bool {
+    can_make_request(&user_id)
+}
+
+// Increment requests counter for a user
+#[update]
+pub fn api_increment_user_requests(user_id: String) -> Result<(), String> {
+    increment_user_requests(&user_id)
+}
+
+// Upgrade user tier (Free -> Pro)
+#[update]
+pub fn api_upgrade_user_tier(user_id: String, tier: UserTier, expires_at_ns: Option<u64>) -> Result<(), String> {
+    upgrade_user_tier(&user_id, tier, expires_at_ns)
+}
+
+// Get full subscription details (tier, expiry, active status, etc.)
+#[query]
+pub fn api_get_user_subscription(user_id: String) -> Option<UserSubscription> {
+    get_user_subscription(&user_id)
+}
