@@ -1,0 +1,361 @@
+[33me9c2317[m[33m ([m[1;36mHEAD -> [m[1;32mstartup-profile[m[33m)[m Adding  a section for users to provide details about their startups
+[33m100bccc[m Add a section for users to provide details about their startups
+[33m4718985[m Adding .csv import to accelerator startup invite
+[33md240305[m[33m ([m[1;31morigin/winnie[m[33m, [m[1;32mwinnie[m[33m)[m accepting team invite logic section - final update
+[33m8db0eb4[m linking welcome auth to team accept invite auth
+[33maa3d718[m switching to unauthenticated actor
+[33m1d12ab6[m switching to accelerator dashboard
+[33m4768e8f[m resolving conflicts
+[33m931690d[m integrating TeamAcceptInvite logic
+[33mb2e8bda[m integrating TeamAcceptInvite logic
+[33m9025c12[m Merge branch 'main' into recent-activity
+[33m9a095dd[m changes
+[33m9dfb46b[m integrating teamacceptinvite logic
+[33mf3a00a7[m Fixing conflicts
+[33mb5c9618[m Accept startup invite logic #56
+[33m5560b4b[m Admin updates #59
+[33mc038de6[m[33m ([m[1;31morigin/admin-updates[m[33m)[m fixing messages displaying in the platform users section
+[33m81b6c11[m fixing admin management and api messages section
+[33m1e2bd02[m fixing Platform User Management
+[33m268a124[m fixing dashboard display
+[33m0152212[m fixing admin landing and dashboard
+[33m9b11590[m working admin panel changes
+[33m4da6cc2[m first admin layout
+[33m6a57293[m Landing page update #58
+[33m18e2e0a[m[33m ([m[1;31morigin/landing-page-update[m[33m)[m adding documentation to the navbar
+[33ma7a998c[m navbar and documentation update
+[33mfc5b6e0[m updating info on landing page
+[33m34b4ab3[m new changes to the landing page
+[33m40e2da1[m Usage documentation #49
+[33m6e6e790[m adding coming soon section to the documentation bit
+[33m1c05ad0[m adding new image for email agent
+[33m6c662d8[m finalizing on discord documentation
+[33mfeefdf1[m making github agent link sharable
+[33mde69d41[m documentation on github agent
+[33mfd55d23[m modifying command 2 part of the bot
+[33m48bfa6a[m modifying getting started part for discord
+[33me7b261c[m starter code for discord documentation
+[33macd0133[m integrating TeamAcceptInvite logic
+[33m0893e45[m Merge branch 'main' into usage-documentation
+[33mcff76ad[m[33m ([m[1;31morigin/dev-joe[m[33m)[m confirming config is steve kimoi
+[33m72e8ea7[m linking startup principal to user
+[33me79aac7[m succesfully authenticating/registering a startup from invite link
+[33md51260d[m adding code to just modify the .env, not erase the whole of it
+[33mbc7a1d7[m fixing borrowing errors from accept_startup_invite and get_startup_invite_by_code functions
+[33m81f5a19[m acceptStartup invite function to use an unauthenticated actor
+[33mba19323[m displaying invited startup details on the using link page
+[33mfdd16ec[m removing code part, adding email service
+[33m3fdbba3[m Merge branch 'main' into dev-joe
+[33m0b6cb7b[m merging with main
+[33mf95e222[m Accomodating new AI Conversational Agents #51
+[33ma77e58a[m[33m ([m[1;31morigin/storage-bot-updates[m[33m)[m Fixing conflicts on deps
+[33m11bac3c[m changes to the admin panel
+[33mf8a4345[m  displaying messages from backend canister
+[33m44772f3[m Email service #55
+[33ma9ee900[m[33m ([m[1;31morigin/email-service[m[33m)[m adding updates for url & api key to frontend
+[33m1ab1d22[m adding API key protection
+[33mf746be7[m remove check run as root error
+[33m007daf9[m updating port to 3002
+[33m917d236[m fixing error in team member invite section
+[33m9590772[m first working prototype of email service
+[33m3080d65[m Fixing buld error #54
+[33mc6ad3f8[m fixing buld error
+[33m92b774c[m New accelerator roles invite logic #52
+[33md8341a6[m new accelerator roles invite logic
+[33mb12a2e8[m viewing AI conversation data from frontend
+[33ma73c6e9[m integrate accelerator invites
+[33m95bdb58[m adding admin functionality
+[33mc97ee54[m removing pagination
+[33ma2d5aaa[m removing serialize
+[33md529b66[m new storage service
+[33m4d464df[m Roles & permissions #48 solves #45
+[33m10a9186[m Integrating the roles and permisions page
+[33m6a2b60a[m integrated roles and permisions
+[33m8f8ee1d[m integrated roles and permisions
+[33mf4ae08a[m Updated backend with name field for TeamMember
+[33mfa7cef1[m integrated roles and permisions and Updated backend with name field for TeamMember
+[33mb5ada73[m integrated roles and permisions and Updated backend with name field for TeamMember
+[33m22d5125[m starter code for documentation section
+[33mbb00d03[m Displaying Recent Invites from backend #47
+[33mafc83a6[m implement pagination to the recent invites table to display 5 invites per page
+[33m5f4fdf2[m implement autorefresh logic in the recent invites table after succesfull invite link/code generation
+[33ma4a200b[m display all statup invites on the recent invites table
+[33m50bf4fe[m Removing accelerator ID text from functions and structs #46
+[33mf211885[m removing accelerator ID text from functions and structs
+[33mcf44559[m Startups Management #42 Solves #33
+[33md6ae63a[m Startup invite section 1 #41 solves #36
+[33m79b3df7[m adding skeleton struct for StartupInviteAccept component
+[33mad217eb[m updating your domain link with infoundr link
+[33m72661fa[m updating startup invite backend logic to update recent activity & increament invites sent
+[33m9e6f62e[m fixing email invites issue
+[33ma5eaebb[m[33m ([m[1;31morigin/recent-activity[m[33m, [m[1;32mrecent-activity[m[33m)[m integrating te startup manangement page
+[33mdc43c96[m implement modal to display invite code/link for accelerator to copy and share with startups
+[33m44a8e49[m implement startup invite form integration with the backend to succesfully generate invite codes
+[33m3fb12ed[m properly extracting role value #40
+[33m35507b2[m properly extracting role value
+[33m73fea9d[m enhanced error handling & robust rendering #39
+[33m189a0c1[m enhanced error handling & robust rendering
+[33me3eef48[m adding UI for displaying user activity #38
+[33mc788c35[m adding UI for displaying user activity
+[33md48875b[m updating admin section
+[33m28a818c[m managing user activity on admin panel
+[33mbb8d1a7[m frontend functionality for admin section
+[33m44c26f6[m new backend functionality for admin
+[33mb25c1c5[m workflow handlingzipped wasm file
+[33mf728d1c[m installing candid generator
+[33m9323c30[m adding installation for wasm32-unknown-unknown target
+[33ma70877e[m fixing gzip
+[33m8071857[m adding gzip
+[33m963e350[m discord storage #37
+[33m3f7b3a2[m[33m ([m[1;31morigin/discord-storage[m[33m)[m discord message storage
+[33m89b72d7[m Merge branch 'main' into recent-activity
+[33m1f98183[m startups integration
+[33m96e0a3c[m Update on landing page UI  #35
+[33m1cf702e[m[33m ([m[1;31morigin/ui-updates[m[33m)[m adding openchat link for infoundr
+[33m0d2555f[m redirecting get started button
+[33m6b29720[m modifying structure & adding discord bot url
+[33m1ed61ee[m Recent Activity #34 solves #32
+[33mb4d5815[m Random merge
+[33mbe48354[m removing string as accelerator ID
+[33m9dccaaf[m integrated recent activity
+[33mc4a74b5[m changing get my accelerator input
+[33m8f58f71[m changing II port on localhost
+[33mb12d7e4[m changing II port
+[33mea6e261[m commenting out unused code
+[33m33b1693[m final failing tests
+[33mfd5f430[m commenting out failing tests in the invite tests tests
+[33m70375d6[m commenting out unused functions
+[33m3f400f8[m remove failing tests
+[33me9cae14[m connet backend frontend functiond #30
+[33m4c8bd52[m[33m ([m[1;31morigin/connect-backend-frontend[m[33m)[m Merge branch 'main' of https://github.com/Infoundr/infoundr-site into connect-backend-frontend
+[33m32dfe7f[m commenting out failing test permission check
+[33m1b9d5e0[m startup details  #31
+[33ma1d278d[m send invites ui #25
+[33mba90fe6[m updating url
+[33m4b702f7[m Merge branch 'winnie' of https://github.com/Infoundr/infoundr-site into winnie
+[33mc4371fc[m Merge branch 'connect-backend-frontend' of https://github.com/Infoundr/infoundr-site into connect-backend-frontend
+[33m93867d7[m start cards section
+[33m453538f[m[33m ([m[1;31morigin/startup-details-ui-update[m[33m, [m[1;32mstartup-details-ui-update[m[33m)[m updated startup details page
+[33m3bce6ab[m updated send invites
+[33m0493fdd[m Merge branch 'main' of https://github.com/Infoundr/infoundr-site
+[33m50c0d4c[m Updated startup details UI
+[33m7fde46d[m fixing npm issues
+[33mb6b1343[m package json
+[33m5cbe246[m deps
+[33md69a1d9[m getting accelerator stats
+[33mdd209e3[m fixing cross platform error
+[33md3ea853[m fixing error in the stats card page
+[33ma90839d[m adding start cards
+[33m9fbbbf3[m logout functionality
+[33m967627d[m succesfully signing up backend
+[33m1bb06f5[m Fix: Enable redirect to /signup from Generate Invite button
+[33m3a5ac51[m register accelerator function
+[33m89ebc5e[m configuring script properly for local development
+[33m0ec55b5[m setup local script
+[33m1b897c4[m .nvmrc file to project root to automatically use the correct Node.js version
+[33md8f2322[m backend accelerator & startup management  #27
+[33m9ffe031[m Type error fix #28 solves #26
+[33m5e5f769[m fix type error in startup card grid
+[33mffc8d28[m[33m ([m[1;31morigin/accelerator-section[m[33m)[m small changes
+[33m3aedbf5[m tests that are not working
+[33mb919560[m fixing borrow mut error
+[33mc1c4c82[m including main accelerator & invite data structures in the upgrade hooks
+[33m8b29a03[m startup management system backend complete
+[33ma09641f[m succcefully testing invite generation, authentication, role based permission, validation of inputs, error handling & lifecycle management
+[33mea09219[m accelerator & main dashboard #24
+[33m41d53c7[m adding print statements to tests
+[33m313b90f[m succesfully testing registering accelerator, generating startup invite, accepting startup invite & verifying invite status
+[33m7b3009a[m cleanup - with error at the test folder
+[33m41c311c[m Merge branch 'main' into dev-joe
+[33m4279adf[m revoking startup invite
+[33m6a93850[m logic for listing startup invites
+[33m273ee08[m listing startup invites
+[33m2bfbc50[m implement startup invite flow with registration
+[33m7b78d5f[m Implement Send Invites page UI based on Figma
+[33m6578fea[m Roles & Permissions #23
+[33mbde7e23[m tests that are working
+[33m545920f[m Fully implement Roles & Permissions page
+[33m11d317a[m refactor accelerator/team member logic to use accelerator ID, add role-based permissions, and improve activity tracking
+[33m7fc9b81[m add secure token-based team member invitation and acceptance flow
+[33ma9a4987[m invite team member on accelerator logic
+[33m5b0d916[m removing unused variable warning
+[33mb9ec86d[m fixing github section
+[33m699ad1e[m fix: updating the config and setup scripts
+[33me911655[m changes to test and config file
+[33m61d15ab[m Add PocketIC integration tests for accelerator functionality
+[33m4eeaa7d[m Update accelerator sign-up to use caller's principal as ID automatically
+[33m081b255[m Add admin functionality for accelerators: display, delete, and edit
+[33mff3a101[m Add accelerator candid interface and expose sign-up functions
+[33mcf8dfe4[m Add secure accelerator service with authentication and authorization
+[33m86dbd99[m Add Accelerator and Activity models, and stable storage for Accelerator
+[33mfaa3423[m implement startups dashboard
+[33mb56a568[m implement accelerator dashboard components
+[33m8aab810[m Merge pull request #22 from Infoundr/accelerator-wireframes
+[33m914119f[m[33m ([m[1;31morigin/accelerator-wireframes[m[33m)[m feat(accelerator): Add analytics page and route
+[33m71a8163[m style(accelerator): Refine top navigation bar design
+[33m9fa5b10[m refactor(accelerator): Organize page components into subdirectories
+[33m3b17cec[m style(accelerator): Adjust sidebar logo alignment and border
+[33m661f55c[m feat(accelerator): Scaffold accelerator section with routing and auth
+[33m4dcdfa8[m Merge pull request #21 from Infoundr/dev-joe
+[33mead53d1[m few fixes
+[33m91fc904[m Merge pull request #20 from Infoundr/dev-joe
+[33m1d137ca[m change get started button function to allow users to scroll down to the features section
+[33m324703e[m Merge pull request #19 from Infoundr/dashboard-token-debugging
+[33mb74818e[m[33m ([m[1;31morigin/dashboard-token-debugging[m[33m)[m fixing github issue
+[33m91841e0[m Merge pull request #18 from Infoundr/slack-discord-storage
+[33m1961c4f[m[33m ([m[1;31morigin/slack-discord-storage[m[33m)[m intergrating slack and openchat users to login
+[33m25bb8c5[m succesfuly login in with bot token
+[33m2f850a7[m fixing bot login error
+[33m2100fa6[m allow /dashboard/home to be accessed without the protected route only after a successful bot login by using a session flag
+[33m64cef88[m removing account linked error
+[33mab46485[m succesfully using token deployed
+[33mdd30ce4[m Merge pull request #17 from Infoundr/dev-joe
+[33m11bdbcf[m add discord integration section
+[33m7a3e560[m changing deploy script
+[33m2ea4bb8[m succesfully storing github
+[33m2972a78[m succesfully storing and retrieving slack messages
+[33m9ed4cd4[m adding slack and discord to data persistence
+[33m222cc57[m slack intergration works
+[33ma389e62[m backend architecture
+[33m0ded1fc[m slack & discord linking, authentication and storage
+[33m3cfcea9[m Merge branch 'main' of https://github.com/Infoundr/infoundr-site
+[33m2f2c7a0[m adding url for backend canister
+[33mb80d06a[m Merge pull request #16 from Infoundr/dev-joe
+[33m1540559[m add slack and open chat to navbar menu
+[33m1c2dde1[m add openchat section
+[33mf0c95d7[m add redirect to slack bot and redirect to join waitlist modal when clicking on the get started button
+[33m143aa06[m Merge pull request #14 from Infoundr/dev-joe
+[33mdf7cb7a[m updating mock data section
+[33m924d396[m updating mock data section
+[33m7e73c8f[m updating mock data
+[33m033a2a4[m changing dev mode
+[33m3b2e5f6[m testing mock data update in the github actions
+[33m9704ae1[m testing mock data update in the github actions
+[33mb72edfc[m testing github actions
+[33maa4b511[m updating configuration error
+[33mfce14c2[m some progress i see
+[33m71b3524[m why isnt it working
+[33mb3c116f[m one last shot
+[33maeb3a0e[m i dont understand why it is not working
+[33me998383[m wah
+[33m3d1c31c[m wah I am just tired
+[33m3fa856c[m updating frontend build step to create a proper wasm file
+[33m618c5a5[m updated the identity authentication step
+[33m26fb0b2[m updating the identity authentication step
+[33m68b6273[m adding the --yes flag to the dfx canister install command
+[33m70e8815[m adding DFX_WARNING environment variable at the workflow level
+[33mdea0eea[m updating workflow to prepare frontend build
+[33mb30e719[m updated the dfx version switching command from dfxvm use to dfxvm default
+[33m0c26e95[m installing required dfx version after dfxvm install on workflows
+[33mf61926a[m using official dfinity setup for installation
+[33m13b641a[m terminal interaction error for dfxvm installation on github actions
+[33ma3c2ed3[m resolving dfx version error during github actions
+[33mac704ac[m updated node version to 20 & adding step to install dfx
+[33m30fb029[m Create wasm directory
+[33m1643480[m prefixing unused variables
+[33ma786f36[m github actions for deployment
+[33mc47efd7[m slack section
+[33ma2754a2[m fix nabar for mobile view, add scroll effect for when navbar items are clicked, fix navbar display for mobile display
+[33mc04a011[m update pricing page
+[33ma125a5f[m udapte hero message
+[33m6e29799[m add design updates to dashboard
+[33m2d6b29e[m local development mode
+[33m89a81a9[m Merge pull request #13 from Infoundr/deployment-configurations
+[33m8108ff4[m[33m ([m[1;31morigin/deployment-configurations[m[33m)[m docs: configuring for dev and production mode
+[33m7ac7e03[m configuring for dev and production mode
+[33m87425f1[m Merge pull request #12 from Infoundr/dev-joe
+[33mfe8a600[m fix icons in AI assistants section
+[33m619a129[m add photo collage to hero section
+[33mf53638f[m update hero image
+[33mc27c449[m minor updates
+[33m6c0597d[m docs: updating readme with new deployment
+[33ma951026[m local development updates
+[33mae129b0[m remove unused navbar and footer items
+[33m06ca179[m mainnet deployment 1.1.1
+[33m34eabfa[m Merge pull request #10 from Infoundr/new-dashboard-design
+[33m8e3e3a7[m[33m ([m[1;31morigin/new-dashboard-design[m[33m)[m adding loading effect
+[33m3c828b8[m good design for the dashboard
+[33m9e32453[m re arranging pages
+[33m9b3d8d0[m not working code
+[33mf8b7359[m[33m ([m[1;31morigin/dev-nigel[m[33m)[m disabling linting and skipping checks
+[33m29a021f[m formatting rust code for proper builds
+[33m6780870[m adding github actions and workflows
+[33mf533ba5[m adding custom domain
+[33mabad102[m adding config file
+[33m42eae6a[m mainnet deployment and using one canister id
+[33m2ddf020[m Merge pull request #6 from Infoundr/openchatbot-intergrations
+[33mdfc6bee[m[33m ([m[1;31morigin/openchatbot-intergrations[m[33m)[m connecting github
+[33me4b0652[m Merge branch 'main' into openchatbot-intergrations
+[33m46d5320[m fixing the type errors
+[33m3f0e535[m dependencies and ensuring standard
+[33m0ce20cb[m added dependencies stuff
+[33mc3cb8b7[m Merge pull request #7 from Infoundr/dev-nigel
+[33meda3139[m Merge branch 'main' into dev-nigel
+[33m2357c89[m Merge pull request #8 from Infoundr/dev-joe
+[33m76645ac[m update icons
+[33me4c706e[m mobile views for the pages created and dashboard layout
+[33m1fe1c01[m AI assistants page
+[33md9a8935[m ui tweaks to the dashboard and ideation page
+[33me91fbb8[m add Task automation page
+[33m2db1d3a[m dashboard and ideation page initial implementation
+[33m7f5bf1d[m modifying function for authentication section
+[33mbe2c65b[m succesfully adding issues, tasks and ai history to dashboard
+[33m7da1f74[m implement dynamic performace charts
+[33me1f9b5a[m implement Business analytics dashboard
+[33m0aeed61[m adding question asked to the chat message struct
+[33mf78c7e6[m succesfully adding functions for storing user data in open chat
+[33m756be69[m Fix Button component variant issue and add setup script
+[33mda9d1a4[m implement script to automatically update current year in footer
+[33m31e11f9[m succesfully loggin in open chat user
+[33mfef6a9f[m succesfully registering user directly from open chat
+[33m6c87453[m succesfully cleaning the token and sedning it to the backend caister
+[33md8fec92[m intergrating token to frontend section
+[33m41a39c8[m succesfully generating open chat token for dashboard
+[33m2521bf1[m succesgfully registering user from open chat to backend canister
+[33m229bd76[m adding functions for interacting with open chat bot
+[33m87249e8[m Merge pull request #5 from Infoundr/admin-section-intergrations
+[33m757712a[m[33m ([m[1;31morigin/admin-section-intergrations[m[33m)[m adding home buttons to dashboard and admin panel
+[33m4a6f194[m adding a logout button
+[33mbaa1f31[m updating admin panel to use authenticated actor instead of direct backend calls
+[33md20bd9b[m Merge pull request #4 from Infoundr/dashboard-section
+[33m2a680e3[m[33m ([m[1;31morigin/dashboard-section[m[33m)[m adding joining waitlist section
+[33m332a99c[m fixing dashboard section
+[33m5d8a9a7[m fixing dashboard routes issue
+[33mab849d8[m succefully creating and logging in
+[33m2d7ed33[m adding size of stable principal to 128
+[33m5ce5be0[m function for getting registered users
+[33m94aeb0e[m succesfully registering a user
+[33mf1a7d86[m succesfully removing the authentication error
+[33m0929b83[m adding error for when user is not registered and tries to log in
+[33m3d95cfc[m intergrating signing in and signing up with backend
+[33mbd09f56[m including both sign up and loin into the dashboard section
+[33me0d8a3b[m starter code for dashboard section
+[33m34ccc66[m admin section (still not working)
+[33m891778e[m updating admin landing section
+[33m4202b9e[m fixing deploy script errors
+[33m742da60[m Merge branch 'main' into admin-section-intergrations
+[33ma087272[m cargo lock stuff
+[33m47ccc76[m Merge pull request #3 from Infoundr/backend-intergrations
+[33mf7492ae[m[33m ([m[1;31morigin/backend-intergrations[m[33m)[m Merge branch 'main' into backend-intergrations
+[33me73de27[m Merge branch 'main' of https://github.com/Infoundr/infoundr-site
+[33m67da0d8[m adding setup script
+[33mf68e984[m comments on admin checking
+[33ma07c1f4[m adding admin section frontend intergration with backend
+[33m1978a0d[m backend admin functions
+[33m8de7afd[m Merge pull request #1 from Infoundr/dev-joe
+[33mce692d3[m fixing internet identity issue
+[33m27fff3c[m udpating waitlist modal
+[33m9c45fec[m implemement bouncing on hover feature in pricing section
+[33m7f89824[m succesfully adding join waitlist functionality
+[33mc5fe541[m replacing email with principal id
+[33m876d3b9[m final ui updates on waitlist popup
+[33mec98eb7[m ui for waitlist modal
+[33mbaf85d7[m updates to the website
+[33m605a20e[m backend file structures, join waitlist & register user functionality
+[33mba63259[m mobile styles for hero component
+[33m1efbf88[m desktop view of hero section
+[33m093516a[m completing the nav bar
+[33mac2e8c5[m desktop version of navbar
+[33me5dd382[m setting up project directories
+[33m10f472f[m setting up frontend section
+[33m277c4f4[m Initial commit.
