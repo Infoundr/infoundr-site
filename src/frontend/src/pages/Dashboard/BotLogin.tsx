@@ -1,19 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { loginWithBotToken, isOpenChatUserRegistered, loginWithII, loginWithNFID } from '../../services/auth';
+import { loginWithII, loginWithNFID } from '../../services/auth';
 import Button from '../../components/common/Button';
-import { HttpAgent } from '@dfinity/agent';
 import { createActor } from '../../../../declarations/backend';
 import { AuthClient } from '@dfinity/auth-client';
 
-const BotLogin: React.FC = () => {
+const WorkspaceLinking: React.FC = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [showAuthOptions, setShowAuthOptions] = useState(false);
     const [token, setToken] = useState<string | null>(null);
-    const [openchatId, setOpenchatId] = useState<string | null>(null);
+    const [platform, setPlatform] = useState<string | null>(null);
 
     const handleAuthAndLink = async (method: 'ii' | 'nfid') => {
         console.log('handleAuthAndLink called', method);
@@ -35,28 +34,29 @@ const BotLogin: React.FC = () => {
             const identity = authClient.getIdentity();
             const principal = identity.getPrincipal();
 
-            // Link the authenticated identity with the platform ID using the token
+            // Link the authenticated identity with the platform using the token
             if (!token) {
-                setError('No token found in session. Please request a new login link.');
+                setError('No token found. Please request a new linking link.');
                 setIsLoading(false);
                 return;
             }
             const result = await actor.link_token_to_principal(token, principal);
+            console.log('result from token linking', result);
             if (result && 'Ok' in result) {
                 // Success: set session as authenticated and redirect
                 sessionStorage.setItem('is_authenticated', 'true');
-                if (openchatId) sessionStorage.setItem('openchat_id', openchatId);
                 sessionStorage.setItem('user_principal', principal.toText());
-                sessionStorage.setItem('bot_login_success', 'true');
+                sessionStorage.setItem('workspace_linking_success', 'true');
+                sessionStorage.setItem('linked_platform', platform || 'unknown');
                 window.location.replace('/dashboard/home');
             } else if (result && 'Err' in result) {
-                setError(result.Err || 'Failed to link account. Please try again.');
+                setError(result.Err || 'Failed to link workspace. Please try again.');
             } else {
-                setError('Failed to link account. Please try again.');
+                setError('Failed to link workspace. Please try again.');
             }
         } catch (error) {
             console.error('Authentication/linking error:', error);
-            setError('Failed to authenticate or link account. Please try again.');
+            setError('Failed to authenticate or link workspace. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -64,53 +64,31 @@ const BotLogin: React.FC = () => {
 
     useEffect(() => {
         const urlToken = searchParams.get('token');
-        setToken(urlToken);
-        if (!urlToken) {
+        const urlPlatform = searchParams.get('platform');
+        
+        // Properly decode the token to handle base64 + characters
+        const decodedToken = urlToken ? decodeURIComponent(urlToken) : null;
+        
+        setToken(decodedToken);
+        setPlatform(urlPlatform);
+        
+        if (!decodedToken) {
             setError('No token provided');
             setIsLoading(false);
             return;
         }
 
-        const validateToken = async () => {
-            try {
-                console.log("Starting token validation in BotLogin.tsx");
-                console.log("URL token:", urlToken);
-                
-                const validationResult = await loginWithBotToken(urlToken);
-                console.log("Validation result:", validationResult);
-                
-                if (!validationResult.isValid) {
-                    console.log("Token validation failed - invalid token");
-                    setError('Invalid or expired token. Please request a new login link from the bot.');
-                    setIsLoading(false);
-                    return;
-                }
+        if (!urlPlatform) {
+            setError('No platform specified');
+            setIsLoading(false);
+            return;
+        }
 
-                // Store the platform ID based on the platform type
-                if (validationResult.platform === 'slack' && validationResult.slackId) {
-                    console.log("Token validated for Slack user:", validationResult.slackId);
-                    setOpenchatId(null); // Slack users don't have an OpenChat ID
-                } else if (validationResult.platform === 'openchat' && validationResult.openchatId) {
-                    console.log("Token validated for OpenChat user:", validationResult.openchatId);
-                    setOpenchatId(validationResult.openchatId);
-                } else {
-                    console.log("Unknown platform or missing ID");
-                    setError('Unknown platform or missing ID. Please try again.');
-                    setIsLoading(false);
-                    return;
-                }
-
-                // Token is valid, prompt for auth method
-                console.log("Token validation successful, showing auth options");
-                setShowAuthOptions(true);
-            } catch (err) {
-                console.error('Validation error:', err);
-                setError('Failed to validate token. Please try again.');
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        validateToken();
+        // For workspace linking, we don't need to validate the token upfront
+        // The backend will validate it when we try to link
+        console.log("Workspace linking initiated for platform:", urlPlatform);
+        setShowAuthOptions(true);
+        setIsLoading(false);
     }, [searchParams, navigate]);
 
     if (isLoading) {
@@ -118,7 +96,7 @@ const BotLogin: React.FC = () => {
             <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
                 <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-xl">
                     <h2 className="text-2xl font-bold mb-4 text-center">
-                        Authenticating...
+                        Linking Workspace...
                     </h2>
                     <div className="flex justify-center">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500" />
@@ -133,9 +111,9 @@ const BotLogin: React.FC = () => {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
                 <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-xl">
-                    <h2 className="text-3xl font-bold mb-2 text-center">Choose Login Method</h2>
+                    <h2 className="text-3xl font-bold mb-2 text-center">Link Your Workspace</h2>
                     <p className="text-gray-500 text-center mb-8">
-                        Select how you'd like to access your dashboard
+                        Connect your {platform} workspace to your InFoundr account
                     </p>
 
                     <div className="space-y-4">
@@ -176,7 +154,7 @@ const BotLogin: React.FC = () => {
             <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
                 <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-xl">
                     <h2 className="text-2xl font-bold text-red-600 mb-4 text-center">
-                        Authentication Error
+                        Workspace Linking Error
                     </h2>
                     <p className="text-gray-600 text-center">{error}</p>
                 </div>
@@ -187,4 +165,4 @@ const BotLogin: React.FC = () => {
     return null;
 };
 
-export default BotLogin; 
+export default WorkspaceLinking; 

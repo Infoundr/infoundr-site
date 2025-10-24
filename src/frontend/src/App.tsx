@@ -29,7 +29,7 @@ import PaymentManagement from './pages/Admin/PaymentManagement';
 import Auth from './pages/Dashboard/Auth';
 import DashboardLayout from './pages/Dashboard/layouts/DashboardLayout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
-import BotLogin from './pages/Dashboard/BotLogin';
+import WorkspaceLinking from './pages/Dashboard/BotLogin';
 import Ideation from './pages/Dashboard/layouts/Ideation';
 import AIAssistantsPage from './pages/Dashboard/layouts/AIAssistantsPage';
 import GithubIssues from './pages/Dashboard/layouts/GithubIssues';
@@ -192,7 +192,7 @@ const App: React.FC = () => {
           <Route path="/accelerator/login" element={<AcceleratorLogin />} />
 
           {/* BotLogin route outside of dashboard */}
-          <Route path="/bot-login" element={<BotLogin />} />
+          <Route path="/auth/link" element={<WorkspaceLinking />} />
 
           {/* Team invite accept route - accessible without authentication */}
           <Route path="/accelerator/roles/invite/:token" element={<TeamInviteAccept />} />
