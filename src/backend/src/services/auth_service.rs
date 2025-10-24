@@ -31,14 +31,45 @@ pub fn link_token_to_principal(token: String, principal: Principal) -> Result<()
 
     DASHBOARD_TOKENS.with(|tokens| {
         let mut tokens = tokens.borrow_mut();
+        ic_cdk::println!("Linking token to principal: {}", token);
         if let Some(token_record) = tokens.get(&StableString::from(token.clone())) {
             // Link the account using the centralized function
-            let result = link_accounts(principal, token_record.openchat_id.clone());
+            ic_cdk::println!("Linking account to principal: {}", principal);
+            ic_cdk::println!("Token record platform_id: {}", token_record.openchat_id);
             
+            // Decode the platform the user is coming from
+            let platform_id = token_record.openchat_id.clone();
+            let platform = if platform_id.starts_with('U') {
+                Platform::Slack
+            } else if platform_id.chars().all(|c| c.is_numeric()) {
+                Platform::Discord
+            } else {
+                Platform::OpenChat
+            };
+            
+            ic_cdk::println!("Detected platform: {:?}", platform);
+            
+            // Ensure user exists before linking
+            match platform {
+                Platform::Slack => {
+                    crate::services::slack_service::ensure_slack_user(platform_id.clone());
+                }
+                Platform::Discord => {
+                    crate::services::discord_service::ensure_discord_user(platform_id.clone());
+                }
+                Platform::OpenChat => {
+                    crate::services::openchat_service::ensure_openchat_user(platform_id.clone());
+                }
+            }
+            
+            let result = link_accounts(principal, platform_id);
+            ic_cdk::println!("Link result: {:?}", result);
             // Remove the token after linking
             tokens.remove(&StableString::from(token));
+            ic_cdk::println!("Token removed successfully");
             result
         } else {
+            ic_cdk::println!("Token not found in storage.");
             Err("Invalid token".to_string())
         }
     })
@@ -49,6 +80,19 @@ pub fn get_token_info(token: String) -> Option<DashboardToken> {
     DASHBOARD_TOKENS.with(|tokens| {
         let tokens = tokens.borrow();
         tokens.get(&StableString::from(token))
+    })
+}
+
+// Debug function to list all tokens (remove this before production)
+#[query]
+pub fn list_all_tokens() -> Vec<(String, DashboardToken)> {
+    DASHBOARD_TOKENS.with(|tokens| {
+        let tokens = tokens.borrow();
+        let mut result = Vec::new();
+        for (key, token_record) in tokens.iter() {
+            result.push((key.to_string(), token_record.clone()));
+        }
+        result
     })
 }
 

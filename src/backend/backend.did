@@ -665,6 +665,7 @@ service : {
   link_accounts : (principal, text) -> (Result);
   link_startup_principal : (text, text) -> (Result);
   link_token_to_principal : (text, principal) -> (Result);
+  list_all_tokens : () -> (vec record { text; DashboardToken }) query;
   list_startup_cohorts : () -> (Result_39) query;
   list_startup_invites : (text) -> (vec StartupInvite) query;
   list_startup_statuses : () -> (Result_40) query;
