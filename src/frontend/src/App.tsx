@@ -115,14 +115,10 @@ const App: React.FC = () => {
           <Route path="/dashboard/*" element={
             <ProtectedRoute>
               <DashboardLayout />
+              <Route path="profile" element={<BusinessProfilePage />} />
             </ProtectedRoute>
           } >
-  {/* Default Dashboard Home */}
-  <Route index element={<Ideation />} />
-
-  {/* Business Profile Page */}
-  <Route path="profile" element={<BusinessProfilePage />} />
-  </Route>
+          </Route>
   
           {/* Accelerator Routes */}
           <Route path="/accelerator" element={
