@@ -15,3 +15,4 @@ pub mod pricing_services;
 pub mod payment_service;
 pub mod analytics_service;
 pub mod analytics_api;
+pub mod workspace_connection_service;

@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import WorkspaceConnectionModal from '../../../components/WorkspaceConnectionModal';
+import { getLinkedWorkspaceAccounts } from '../../../services/workspace-connection';
 
 const ConnectionsToWorkspaces: React.FC = () => {
     const [connections, setConnections] = useState([
@@ -7,7 +9,7 @@ const ConnectionsToWorkspaces: React.FC = () => {
             name: 'Slack',
             description: 'Work with Background Agents from Slack',
             icon: '💬',
-            connected: true,
+            connected: false,
             type: 'communication'
         },
         {
@@ -27,18 +29,52 @@ const ConnectionsToWorkspaces: React.FC = () => {
             type: 'ai_platform'
         }
     ]);
+    
+    const [isLoading, setIsLoading] = useState(true);
+    const [modalOpen, setModalOpen] = useState(false);
+    const [selectedPlatform, setSelectedPlatform] = useState('');
+
+    // Check for linked workspace accounts on component load
+    useEffect(() => {
+        const checkLinkedAccounts = async () => {
+            try {
+                const linkedAccounts = await getLinkedWorkspaceAccounts();
+                
+                setConnections(prev => 
+                    prev.map(conn => ({
+                        ...conn,
+                        connected: linkedAccounts.includes(conn.name.toLowerCase())
+                    }))
+                );
+            } catch (error) {
+                console.error('Error checking linked accounts:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        
+        checkLinkedAccounts();
+    }, []);
 
     const handleConnect = (id: number) => {
-        setConnections(prev => 
-            prev.map(conn => 
-                conn.id === id 
-                    ? { ...conn, connected: !conn.connected }
-                    : conn
-            )
-        );
+        const connection = connections.find(conn => conn.id === id);
+        if (connection && !connection.connected) {
+            setSelectedPlatform(connection.name);
+            setModalOpen(true);
+        }
     };
 
     const connectedCount = connections.filter(conn => conn.connected).length;
+
+    if (isLoading) {
+        return (
+            <div className="p-6 space-y-6">
+                <div className="flex items-center justify-center h-64">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="p-6 space-y-6">
@@ -103,6 +139,13 @@ const ConnectionsToWorkspaces: React.FC = () => {
                     </div>
                 ))}
             </div>
+            
+            {/* Workspace Connection Modal */}
+            <WorkspaceConnectionModal
+                isOpen={modalOpen}
+                onClose={() => setModalOpen(false)}
+                platform={selectedPlatform}
+            />
         </div>
     );
 };

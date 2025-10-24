@@ -626,6 +626,7 @@ service : {
   get_current_user_subscription : () -> (opt UserSubscription) query;
   get_discord_user : (text) -> (opt DiscordUser) query;
   get_discord_user_by_principal : (principal) -> (opt DiscordUser) query;
+  get_linked_workspace_accounts : () -> (vec text) query;
   get_my_accelerator : () -> (Result_23);
   get_openchat_user : (text) -> (opt OpenChatUser) query;
   get_openchat_user_by_principal : (principal) -> (opt OpenChatUser) query;
@@ -654,6 +655,7 @@ service : {
   get_user_tasks : (UserIdentifier) -> (vec Task) query;
   get_users : () -> (Result_28) query;
   get_waitlist : () -> (Result_36) query;
+  has_linked_workspace_accounts : () -> (bool) query;
   invite_team_member : (TeamMemberInviteWithId) -> (Result_37);
   is_admin : () -> (bool) query;
   is_allowed_principal : () -> (bool) query;
