@@ -166,6 +166,12 @@ type ConnectionStatus = record {
   asana_connected : bool;
   asana_workspace : opt text;
 };
+type Currency = variant { GHS; KES; NGN; USD; ZAR };
+type CustomField = record {
+  variable_name : text;
+  value : text;
+  display_name : text;
+};
 type DashboardToken = record {
   token : blob;
   created_at : nat64;
@@ -195,6 +201,18 @@ type InviteError = record {
 };
 type InviteStatus = variant { Used; Revoked; Expired; Pending };
 type InviteType = variant { Code; Link };
+type Invoice = record {
+  id : text;
+  invoice_number : text;
+  paid : bool;
+  created_at : nat64;
+  user_id : text;
+  billing_period_start : nat64;
+  currency : Currency;
+  billing_period_end : nat64;
+  payment_id : text;
+  amount : nat64;
+};
 type Issue = record {
   id : text;
   status : IssueStatus;
@@ -211,6 +229,65 @@ type OpenChatUser = record {
   last_interaction : nat64;
   openchat_id : text;
   first_interaction : nat64;
+};
+type PaymentChannel = variant {
+  Qr;
+  BankAccount;
+  Card;
+  Ussd;
+  BankTransfer;
+  MobileMoney;
+};
+type PaymentMetadata = record {
+  phone_number : opt text;
+  custom_fields : vec CustomField;
+  customer_name : opt text;
+};
+type PaymentRecord = record {
+  id : text;
+  status : PaymentStatus;
+  updated_at : nat64;
+  authorization_url : opt text;
+  metadata : PaymentMetadata;
+  tier : text;
+  paystack_reference : text;
+  created_at : nat64;
+  billing_period : text;
+  user_id : text;
+  email : text;
+  currency : Currency;
+  paid_at : opt nat64;
+  amount : nat64;
+  paystack_transaction_id : opt nat64;
+  access_code : opt text;
+  payment_channel : opt PaymentChannel;
+};
+type PaymentStats = record {
+  monthly_revenue : nat64;
+  successful_payments : nat32;
+  total_payments : nat32;
+  total_revenue : nat64;
+  failed_payments : nat32;
+  yearly_revenue : nat64;
+};
+type PaymentStatus = variant {
+  Queued;
+  Abandoned;
+  Failed;
+  Reversed;
+  Success;
+  Pending;
+};
+type PaystackConfig = record {
+  public_key : text;
+  secret_key : text;
+  environment : PaystackEnvironment;
+};
+type PaystackEnvironment = variant { Live; Test };
+type PlaygroundStats = record {
+  bot_usage : vec record { text; nat32 };
+  unique_users : nat32;
+  total_messages : nat32;
 };
 type RemoveTeamMember = record { email : text };
 type Result = variant { Ok; Err : text };
@@ -436,7 +513,28 @@ type TeamSize = variant {
   Size2to5;
 };
 type TokenValidationResult = record { platform_id : text; platform : text };
+type TransactionDetails = record {
+  transaction_id : opt nat64;
+  status : PaymentStatus;
+  fees : opt nat64;
+  reference : text;
+  currency : Currency;
+  paid_at : opt text;
+  customer_email : text;
+  channel : opt PaymentChannel;
+  amount : nat64;
+  customer_name : opt text;
+};
+type TransformArgs = record { context : blob; response : HttpResponse };
 type UpdateTeamMemberRole = record { email : text; new_role : Role };
+type UsageStats = record {
+  tier : UserTier;
+  day_bucket : nat64;
+  user_id : text;
+  requests_used : nat32;
+  reset_time_rfc3339 : text;
+  requests_limit : opt nat32;
+};
 type User = record {
   "principal" : principal;
   name : text;
@@ -453,12 +551,30 @@ type UserActivity = record {
   issues : vec Issue;
   chat_history : vec ChatMessage;
 };
+type UserActivityReport = record {
+  usage_stats : UsageStats;
+  subscription : opt UserSubscription;
+  can_make_more_requests : bool;
+  user_id : text;
+  total_api_messages : nat32;
+  last_activity : nat64;
+};
 type UserIdentifier = variant {
+  PlaygroundId : text;
   Principal : principal;
   SlackId : text;
   DiscordId : text;
   OpenChatId : text;
 };
+type UserSubscription = record {
+  started_at_ns : opt nat64;
+  renewed_at_ns : opt nat64;
+  tier : UserTier;
+  user_id : text;
+  is_active : bool;
+  expires_at_ns : opt nat64;
+};
+type UserTier = variant { Pro; Free };
 type WaitlistEntry = record {
   status : WaitlistStatus;
   name : text;
@@ -472,21 +588,48 @@ service : {
   add_admin : (principal) -> (Result);
   add_chat_message : (text, BotType) -> (Result_1);
   admin_get_all_api_messages : () -> (Result_2) query;
+  admin_get_all_invoices : () -> (Result_3) query;
+  admin_get_all_payments : () -> (Result_4) query;
+  admin_get_all_subscriptions : () -> (Result_5) query;
+  admin_get_all_user_subscriptions : () -> (Result_6) query;
+  admin_get_all_user_usage_stats : () -> (Result_7) query;
   admin_get_api_messages_by_bot : (text) -> (Result_2) query;
   admin_get_api_messages_for_user : (UserIdentifier) -> (Result_2) query;
   admin_get_api_messages_for_user_by_bot : (UserIdentifier, text) -> (
       Result_2,
     ) query;
+  admin_get_daily_usage_summary : () -> (Result_8) query;
+  admin_get_payment_stats : () -> (Result_9) query;
+  admin_get_playground_messages : () -> (Result_2) query;
+  admin_get_playground_messages_by_bot : (text) -> (Result_2) query;
+  admin_get_playground_stats : () -> (Result_10) query;
+  admin_get_playground_user_activity : (text) -> (Result_11) query;
+  admin_get_playground_users : () -> (Result_12) query;
   admin_get_recent_api_messages : (nat32) -> (Result_2) query;
   admin_get_recent_api_messages_for_user : (UserIdentifier, nat32) -> (
       Result_2,
     ) query;
+  admin_get_recent_playground_messages : (nat32) -> (Result_2) query;
+  admin_get_top_users_by_requests : (nat32) -> (Result_8) query;
+  admin_get_total_users_count : () -> (Result_13) query;
+  admin_get_usage_by_tier : () -> (Result_14) query;
+  admin_get_user_activity_report : (text) -> (Result_15) query;
+  admin_get_user_subscription : (text) -> (Result_16) query;
+  admin_get_user_usage_stats : (text) -> (Result_17) query;
+  admin_get_users_at_limit : () -> (Result_8) query;
   admin_update_accelerator : (principal, AcceleratorUpdate) -> (Result);
-  calculate_engagement_score : (text) -> (Result_3) query;
+  admin_upgrade_user_tier : (text, UserTier, opt nat64) -> (Result);
+  api_can_make_request : (text) -> (bool) query;
+  api_get_usage_stats : (text) -> (UsageStats) query;
+  api_get_user_subscription : (text) -> (opt UserSubscription) query;
+  api_get_user_tier : (text) -> (UserTier) query;
+  api_increment_user_requests : (text) -> (Result);
+  api_upgrade_user_tier : (text, UserTier, opt nat64) -> (Result);
+  calculate_engagement_score : (text) -> (Result_13) query;
   check_auth : () -> (bool) query;
-  create_startup : (StartupInput) -> (Result_4);
-  create_startup_cohort : (StartupCohortInput) -> (Result_5);
-  create_startup_status : (StartupStatusInput) -> (Result_6);
+  create_startup : (StartupInput) -> (Result_18);
+  create_startup_cohort : (StartupCohortInput) -> (Result_19);
+  create_startup_status : (StartupStatusInput) -> (Result_20);
   decline_invitation : (text) -> (Result);
   delete_accelerator : (principal) -> (Result);
   delete_business_profile : (principal) -> (Result_7);
@@ -575,6 +718,7 @@ service : {
   store_chat_message : (UserIdentifier, ChatMessage) -> ();
   store_github_connection : (UserIdentifier, text, opt text) -> ();
   store_github_issue : (UserIdentifier, Issue) -> (Result);
+  transform_payment_http_response : (TransformArgs) -> (HttpResponse) query;
   unlink_accounts : (text) -> (Result);
   update_accelerator : (principal, AcceleratorUpdate) -> (Result);
   update_business_profile_field : (text, text) -> (Result_7);

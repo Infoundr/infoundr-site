@@ -17,6 +17,8 @@ use std::cell::RefCell;
 use crate::models::accelerator::Accelerator;
 use crate::models::startup_invite::StartupInvite;
 use crate::models::startup::{Startup, StartupStatus, StartupCohort, StartupActivity};
+use crate::models::usage_service::UserSubscription;
+use crate::models::payment::{PaymentRecord, Invoice};
 
 pub type Memory = VirtualMemory<DefaultMemoryImpl>;
 

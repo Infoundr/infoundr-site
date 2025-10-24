@@ -22,7 +22,17 @@ const AdminDashboard: React.FC = () => {
         totalSlackUsers: 0,
         totalDiscordUsers: 0,
         totalOpenchatUsers: 0,
-        totalApiMessages: 0
+        totalApiMessages: 0,
+        playgroundStats: {
+            totalMessages: 0,
+            uniqueUsers: 0
+        },
+        paymentStats: {
+            total_payments: 0,
+            successful_payments: 0,
+            total_revenue: 0,
+            monthly_revenue: 0
+        }
     });
 
     useEffect(() => {
@@ -44,7 +54,9 @@ const AdminDashboard: React.FC = () => {
                 acceleratorsResult,
                 slackResult,
                 discordResult,
-                openchatResult
+                openchatResult,
+                playgroundStatsResult,
+                paymentStatsResult
             ] = await Promise.all([
                 authenticatedActor.get_users(),
                 authenticatedActor.get_waitlist(),
@@ -52,7 +64,9 @@ const AdminDashboard: React.FC = () => {
                 authenticatedActor.get_all_accelerators(),
                 authenticatedActor.get_registered_slack_users_admin(),
                 authenticatedActor.get_registered_discord_users_admin(),
-                authenticatedActor.get_registered_openchat_users_admin()
+                authenticatedActor.get_registered_openchat_users_admin(),
+                authenticatedActor.admin_get_playground_stats(),
+                authenticatedActor.admin_get_payment_stats()
             ]);
 
             console.log(usersResult);
@@ -65,7 +79,17 @@ const AdminDashboard: React.FC = () => {
                 totalSlackUsers: 'Ok' in slackResult ? slackResult.Ok.length : 0,
                 totalDiscordUsers: 'Ok' in discordResult ? discordResult.Ok.length : 0,
                 totalOpenchatUsers: 'Ok' in openchatResult ? openchatResult.Ok.length : 0,
-                totalApiMessages: 0 // We'll need to implement this endpoint
+                totalApiMessages: 0, // We'll need to implement this endpoint
+                playgroundStats: 'Ok' in playgroundStatsResult ? {
+                    totalMessages: playgroundStatsResult.Ok.total_messages,
+                    uniqueUsers: playgroundStatsResult.Ok.unique_users
+                } : { totalMessages: 0, uniqueUsers: 0 },
+                paymentStats: 'Ok' in paymentStatsResult ? {
+                    total_payments: paymentStatsResult.Ok.total_payments,
+                    successful_payments: paymentStatsResult.Ok.successful_payments,
+                    total_revenue: Number(paymentStatsResult.Ok.total_revenue),
+                    monthly_revenue: Number(paymentStatsResult.Ok.monthly_revenue)
+                } : { total_payments: 0, successful_payments: 0, total_revenue: 0, monthly_revenue: 0 }
             });
         } catch (error) {
             console.error('Error fetching dashboard stats:', error);
@@ -107,7 +131,7 @@ const AdminDashboard: React.FC = () => {
         {
             title: 'Accelerators',
             value: stats.totalAccelerators,
-            icon: '🚀',
+            icon: '👥',
             color: 'bg-green-500',
             path: '/admin/accelerators'
         },
@@ -131,6 +155,41 @@ const AdminDashboard: React.FC = () => {
             icon: '📱',
             color: 'bg-pink-500',
             path: '/admin/platform-users'
+        },
+        {
+            title: 'Playground Messages',
+            value: stats.playgroundStats.totalMessages,
+            icon: '📊',
+            color: 'bg-orange-500',
+            path: '/admin/playground'
+        },
+        {
+            title: 'Playground Users',
+            value: stats.playgroundStats.uniqueUsers,
+            icon: '👥',
+            color: 'bg-teal-500',
+            path: '/admin/playground'
+        },
+        {
+            title: 'Total Payments',
+            value: stats.paymentStats.total_payments,
+            icon: '💳',
+            color: 'bg-green-500',
+            path: '/admin/payments'
+        },
+        {
+            title: 'Successful Payments',
+            value: stats.paymentStats.successful_payments,
+            icon: '✅',
+            color: 'bg-emerald-500',
+            path: '/admin/payments'
+        },
+        {
+            title: 'Total Revenue',
+            value: `Ksh ${(Number(stats.paymentStats.total_revenue) / 100).toLocaleString()}`,
+            icon: '💰',
+            color: 'bg-yellow-500',
+            path: '/admin/payments'
         }
     ];
 
@@ -206,6 +265,17 @@ const AdminDashboard: React.FC = () => {
                     </button>
 
                     <button
+                        onClick={() => navigate('/admin/user-usage')}
+                        className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-colors"
+                    >
+                        <span className="text-2xl">📈</span>
+                        <div className="text-left">
+                            <p className="font-medium text-gray-900">User Usage & Requests</p>
+                            <p className="text-sm text-gray-600">Monitor user activity and limits</p>
+                        </div>
+                    </button>
+
+                    <button
                         onClick={() => navigate('/admin/api-messages')}
                         className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-colors"
                     >
@@ -220,7 +290,7 @@ const AdminDashboard: React.FC = () => {
                         onClick={() => navigate('/admin/accelerators')}
                         className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-colors"
                     >
-                        <span className="text-2xl">🚀</span>
+                        <span className="text-2xl">👥</span>
                         <div className="text-left">
                             <p className="font-medium text-gray-900">Accelerators</p>
                             <p className="text-sm text-gray-600">Manage accelerator programs</p>

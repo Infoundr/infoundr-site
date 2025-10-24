@@ -1,11 +1,19 @@
 use candid::{CandidType, Deserialize};
+use serde::Serialize;
 use ic_stable_structures::{BoundedStorable, Storable};
 use std::borrow::Cow;
 
-#[derive(CandidType, Deserialize, Clone, Debug)]
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
 pub struct Admin {
     pub principal_id: String,
     pub created_at: u64,
+}
+
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
+pub struct PlaygroundStats {
+    pub total_messages: u32,
+    pub unique_users: u32,
+    pub bot_usage: std::collections::HashMap<String, u32>,
 }
 
 impl Storable for Admin {
