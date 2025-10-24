@@ -47,7 +47,7 @@ use crate::services::accelerator_service::{AcceleratorSignUp, TeamMemberInviteWi
 use crate::models::accelerator::{Accelerator, TeamMember};
 use crate::models::startup_invite::StartupInvite;
 use crate::services::accelerator_service::TeamInvite;
-use crate::services::accelerator_service::{GenerateStartupInviteInput, StartupRegistrationInput};
+use crate::services::accelerator_service::{GenerateStartupInviteInput, StartupRegistrationInput, BulkStartupInviteInput, BulkInviteResult};
 pub use crate::models::usage_service::{UsageStats, UserTier, UserSubscription};
 pub use crate::services::admin::{UserActivityReport, PaymentStats};
 use crate::models::admin::PlaygroundStats;

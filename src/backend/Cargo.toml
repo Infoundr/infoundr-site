@@ -19,6 +19,7 @@ serde_json = "1.0"  # For JSON serialization/deserialization with Paystack API
 base64 = "0.21"
 rand = { version = "0.8", features = ["getrandom"] }
 getrandom = { version = "0.2", features = ["custom"] }
+regex = "1.12.2"
 chrono = { version = "0.4.41", default-features = false, features = ["serde", "clock"] }
 sha2 = "0.10"  # For webhook signature verification (HMAC SHA512)
 hex = "0.4"  # For hex encoding of signatures

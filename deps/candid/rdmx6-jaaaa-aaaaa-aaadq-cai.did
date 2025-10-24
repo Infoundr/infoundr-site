@@ -289,8 +289,6 @@ type InternetIdentityInit = record {
     is_production : opt bool;
     // Configuration for dummy authentication used in e2e tests.
     dummy_auth : opt opt DummyAuthConfig;
-    // Feature flags
-    feature_flag_continue_from_another_device : opt bool;
 };
 
 type ChallengeKey = text;
@@ -518,6 +516,7 @@ type AuthnMethodConfirmationCode = record {
 
 type AuthnMethodSessionInfo = record {
     name : opt text;
+    created_at : opt Timestamp;
 };
 
 type RegistrationId = text;
@@ -574,6 +573,8 @@ type IdentityInfo = record {
     // Authentication method independent metadata
     metadata : MetadataMapV2;
     name : opt text;
+    // The timestamp at which the anchor was created
+    created_at : opt Timestamp;
 };
 
 type IdentityInfoError = variant {
@@ -654,7 +655,7 @@ type SetDefaultAccountError = variant {
     };
     NoSuchAccount : record {
         anchor_number : UserNumber;
-        account_number : opt AccountNumber;
+        origin : FrontendHostname;
     };
 };
 
@@ -1012,7 +1013,7 @@ service : (opt InternetIdentityInit) -> {
     get_default_account : (
         anchor_number : UserNumber,
         origin : FrontendHostname,
-    ) -> (variant { Ok : AccountInfo; Err: GetDefaultAccountError });
+    ) -> (variant { Ok : AccountInfo; Err: GetDefaultAccountError }) query;
 
     set_default_account : (
         anchor_number : UserNumber,
