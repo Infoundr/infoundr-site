@@ -65,8 +65,7 @@ import GitHubAgent from './pages/documentation/discord/GitHubAgent';
 import ProjectManagementAgent from './pages/documentation/discord/ProjectManagementAgent';
 import CalendarAgent from './pages/documentation/discord/CalendarAgent';
 import EmailAgent from './pages/documentation/discord/EmailAgent';
-import PaymentCallback from './pages/PaymentCallback';
-import PaymentCheckout from './pages/PaymentCheckout';
+import BusinessProfilePage from './pages/Dashboard/layouts/BusinessProfile';
 
 
 const App: React.FC = () => {
@@ -152,9 +151,11 @@ const App: React.FC = () => {
           <Route path="/dashboard/*" element={
             <ProtectedRoute>
               <DashboardLayout />
+              <Route path="profile" element={<BusinessProfilePage />} />
             </ProtectedRoute>
-          } />
-
+          } >
+          </Route>
+  
           {/* Accelerator Routes */}
           <Route path="/accelerator" element={
             <ProtectedRoute>

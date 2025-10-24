@@ -1,5 +1,6 @@
 use crate::models::admin::Admin;
 use crate::models::api_message::ApiMessage;
+use crate::models::business_profile::BusinessProfile;
 use crate::models::connected_accounts::ConnectedAccounts;
 use crate::models::dashboard_token::DashboardToken;
 use crate::models::github::Issue;
@@ -134,30 +135,21 @@ thread_local! {
             MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(15)))
         )
     );
-
-    // --- NEW USAGE TRACKING STORAGE ---
-    pub static USER_DAILY_USAGE: RefCell<StableBTreeMap<(StableString, u64), u32, Memory>> = RefCell::new(
-        StableBTreeMap::init(
-            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(18)))
-        )
+    //addition of business profile
+    pub static BUSINESS_PROFILES: RefCell<
+    StableBTreeMap<StablePrincipal, BusinessProfile, Memory>
+> = RefCell::new(
+    StableBTreeMap::init(
+        MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(18))) // ✅ unique memory ID
+    )
     );
 
-    pub static USER_SUBSCRIPTIONS: RefCell<StableBTreeMap<StableString, UserSubscription, Memory>> = RefCell::new(
-        StableBTreeMap::init(
-            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(19)))
-        )
+    // Optional: profile completion cache or metadata (if you’ll need analytics later)
+    pub static BUSINESS_PROFILE_METADATA: RefCell<
+    StableBTreeMap<StablePrincipal, f64, Memory>
+> = RefCell::new(
+    StableBTreeMap::init(
+        MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(19)))
+    )
     );
-
-    // --- PAYMENT STORAGE ---
-    pub static PAYMENT_RECORDS: RefCell<StableBTreeMap<StableString, PaymentRecord, Memory>> = RefCell::new(
-        StableBTreeMap::init(
-            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(20)))
-        )
-    );
-
-    pub static INVOICES: RefCell<StableBTreeMap<StableString, Invoice, Memory>> = RefCell::new(
-        StableBTreeMap::init(
-            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(21)))
-        )
-    );
-}
+    }

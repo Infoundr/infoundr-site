@@ -33,12 +33,12 @@ use crate::models::{
     waitlist::WaitlistEntry,
 };
 use crate::models::startup::{Startup, StartupStatus, StartupCohort, StartupActivity, StartupInput, StartupUpdate, StartupStatusInput, StartupCohortInput, StartupFilter, StartupStats, StartupActivityType};
+use crate::models::business_profile::BusinessProfile;
 use crate::services::account_service::ConnectionStatus;
 use crate::services::account_service::{UserActivity, UserIdentifier,  UserIdentifier as AccountUserIdentifier};
 use crate::storage::memory::{
     API_MESSAGES, CHAT_HISTORY, CONNECTED_ACCOUNTS, DASHBOARD_TOKENS, OPENCHAT_USERS, SLACK_USERS, DISCORD_USERS, TASKS, USERS, WAITLIST, GITHUB_ISSUES,
-    STARTUPS, STARTUP_STATUSES, STARTUP_COHORTS, STARTUP_ACTIVITIES, ACCELERATORS, STARTUP_INVITES, ADMINS, USER_SUBSCRIPTIONS, USER_DAILY_USAGE,
-    PAYMENT_RECORDS, INVOICES,
+    STARTUPS, STARTUP_STATUSES, STARTUP_COHORTS, STARTUP_ACTIVITIES, ACCELERATORS, STARTUP_INVITES, ADMINS, BUSINESS_PROFILES,
 };
 use candid::Principal;
 use ic_cdk::storage::{stable_restore, stable_save};
@@ -54,12 +54,28 @@ use crate::models::admin::PlaygroundStats;
 use crate::migrations::{CurrentStableState, migrate_from_bytes};
 use crate::services::payment_service::{InitializePaymentRequest, InitializePaymentResponse};
 
-// Use the stable state from migrations module
-type StableState = CurrentStableState;
-
-// Payment API endpoints and types
-pub use crate::models::payment::{PaymentRecord, Invoice, TransactionDetails};
-pub use crate::payments::PaystackConfig;
+#[derive(candid::CandidType, candid::Deserialize)]
+struct StableState {
+    users: Vec<(StablePrincipal, User)>,
+    waitlist: Vec<(StableString, WaitlistEntry)>,
+    chat_history: Vec<((StablePrincipal, u64), ChatMessage)>,
+    api_messages: Vec<((StableString, u64), ApiMessage)>,
+    connected_accounts: Vec<(StablePrincipal, ConnectedAccounts)>,
+    tasks: Vec<((StablePrincipal, StableString), Task)>,
+    github_issues: Vec<((StablePrincipal, StableString), Issue)>,
+    openchat_users: Vec<(StableString, OpenChatUser)>,
+    slack_users: Vec<(StableString, SlackUser)>,
+    discord_users: Vec<(StableString, DiscordUser)>,
+    dashboard_tokens: Vec<(StableString, DashboardToken)>,
+    accelerators: Vec<(StablePrincipal, Accelerator)>,
+    startup_invites: Vec<(StableString, StartupInvite)>,
+    startups: Vec<(StableString, Startup)>,
+    startup_statuses: Vec<(StableString, StartupStatus)>,
+    startup_cohorts: Vec<(StableString, StartupCohort)>,
+    startup_activities: Vec<((StableString, u64), StartupActivity)>,
+    admins: Vec<(StablePrincipal, crate::models::admin::Admin)>,
+    business_profiles: Vec<(StablePrincipal, BusinessProfile)>,
+}
 
 #[ic_cdk::pre_upgrade]
 fn pre_upgrade() {
@@ -81,10 +97,7 @@ fn pre_upgrade() {
     let startup_cohorts = STARTUP_COHORTS.with(|c| c.borrow().iter().collect::<Vec<_>>());
     let startup_activities = STARTUP_ACTIVITIES.with(|a| a.borrow().iter().collect::<Vec<_>>());
     let admins = ADMINS.with(|a| a.borrow().iter().collect::<Vec<_>>());
-    let user_subscriptions = USER_SUBSCRIPTIONS.with(|s| s.borrow().iter().collect::<Vec<_>>());
-    let user_daily_usage = USER_DAILY_USAGE.with(|u| u.borrow().iter().collect::<Vec<_>>());
-    let payment_records = PAYMENT_RECORDS.with(|p| p.borrow().iter().collect::<Vec<_>>());
-    let invoices = INVOICES.with(|i| i.borrow().iter().collect::<Vec<_>>());
+    let business_profiles = BUSINESS_PROFILES.with(|b| b.borrow().iter().collect::<Vec<_>>());
 
     let state = StableState {
         users,
@@ -105,10 +118,7 @@ fn pre_upgrade() {
         startup_cohorts,
         startup_activities,
         admins,
-        user_subscriptions,
-        user_daily_usage,
-        payment_records,
-        invoices,
+        business_profiles, 
     };
 
     // Serialize with bincode for better performance and compatibility
@@ -118,68 +128,29 @@ fn pre_upgrade() {
 
 #[ic_cdk::post_upgrade]
 fn post_upgrade() {
-    let state = match stable_restore::<(Vec<u8>,)>() {
-        Ok((serialized,)) => {
-            match migrate_from_bytes(&serialized) {
-                Ok(state) => state,
-                Err(e) => {
-                    ic_cdk::println!("Failed to migrate state: {}", e);
-                    // Fallback to empty state with all required fields
-                    // Fallback to empty state
-                    StableState {
-                        users: vec![],
-                        waitlist: vec![],
-                        chat_history: vec![],
-                        api_messages: vec![],
-                        connected_accounts: vec![],
-                        tasks: vec![],
-                        github_issues: vec![],
-                        openchat_users: vec![],
-                        slack_users: vec![],
-                        discord_users: vec![],
-                        dashboard_tokens: vec![],
-                        accelerators: vec![],
-                        startup_invites: vec![],
-                        startups: vec![],
-                        startup_statuses: vec![],
-                        startup_cohorts: vec![],
-                        startup_activities: vec![],
-                        admins: vec![],
-                        user_subscriptions: vec![],
-                        user_daily_usage: vec![],
-                        payment_records: vec![],
-                        invoices: vec![],
-                    }
-                }
-            }
-        }
-        Err(_) => {
-            // No existing state, start fresh
-            StableState {
-                users: vec![],
-                waitlist: vec![],
-                chat_history: vec![],
-                api_messages: vec![],
-                connected_accounts: vec![],
-                tasks: vec![],
-                github_issues: vec![],
-                openchat_users: vec![],
-                slack_users: vec![],
-                discord_users: vec![],
-                dashboard_tokens: vec![],
-                accelerators: vec![],
-                startup_invites: vec![],
-                startups: vec![],
-                startup_statuses: vec![],
-                startup_cohorts: vec![],
-                startup_activities: vec![],
-                admins: vec![],
-                user_subscriptions: vec![],
-                user_daily_usage: vec![],
-                payment_records: vec![],
-                invoices: vec![],
-            }
-        }
+    let (state,): (StableState,) = match stable_restore() {
+        Ok(data) => data,
+        Err(_) => (StableState {
+            users: vec![],
+            waitlist: vec![],
+            chat_history: vec![],
+            api_messages: vec![],
+            connected_accounts: vec![],
+            tasks: vec![],
+            github_issues: vec![],
+            openchat_users: vec![],
+            slack_users: vec![],
+            discord_users: vec![],
+            dashboard_tokens: vec![],
+            accelerators: vec![],
+            startup_invites: vec![],
+            startups: vec![],
+            startup_statuses: vec![],
+            startup_cohorts: vec![],
+            startup_activities: vec![],
+            admins: vec![],
+            business_profiles: vec![],
+        },),
     };
 
     // Restore users
@@ -326,37 +297,14 @@ fn post_upgrade() {
         }
     });
 
-    // Restore user subscriptions
-    USER_SUBSCRIPTIONS.with(|s| {
-        let mut s = s.borrow_mut();
-        for (k, v) in state.user_subscriptions {
-            s.insert(k, v);
-        }
+    // Restore business profiles
+    BUSINESS_PROFILES.with(|b| {
+    let mut b = b.borrow_mut();
+    for (k, v) in state.business_profiles {
+        b.insert(k, v);
+    }
     });
 
-    // Restore user daily usage
-    USER_DAILY_USAGE.with(|u| {
-        let mut u = u.borrow_mut();
-        for (k, v) in state.user_daily_usage {
-            u.insert(k, v);
-        }
-    });
-
-    // Restore payment records
-    PAYMENT_RECORDS.with(|p| {
-        let mut p = p.borrow_mut();
-        for (k, v) in state.payment_records {
-            p.insert(k, v);
-        }
-    });
-
-    // Restore invoices
-    INVOICES.with(|i| {
-        let mut i = i.borrow_mut();
-        for (k, v) in state.invoices {
-            i.insert(k, v);
-        }
-    });
 }
 
 ic_cdk::export_candid!();

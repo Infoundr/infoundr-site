@@ -9,4 +9,11 @@ const Card: React.FC<CardProps> = ({ children, className = '' }) => {
   );
 };
 
+export const CardContent: React.FC<{ children: React.ReactNode; className?: string }> = ({
+  children,
+  className = '',
+}) => {
+  return <div className={`mt-2 ${className}`}>{children}</div>;
+};
+
 export default Card;
