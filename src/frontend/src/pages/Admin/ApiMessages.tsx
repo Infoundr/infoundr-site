@@ -3,6 +3,8 @@ import { useNavigate, useOutletContext } from 'react-router-dom';
 import { ActorSubclass } from '@dfinity/agent';
 import { _SERVICE } from '../../../../declarations/backend/backend.did.d';
 import Button from '../../components/common/Button';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface AdminContext {
     actor: ActorSubclass<_SERVICE> | null;
@@ -390,13 +392,47 @@ const AdminApiMessages: React.FC = () => {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-sm text-gray-700 max-w-xs">
-                                            <div className="max-h-20 overflow-y-auto">
-                                                {truncateText(message.message || 'No message', 150)}
+                                            <div className="max-h-20 overflow-y-auto prose prose-sm max-w-none">
+                                                <ReactMarkdown 
+                                                    remarkPlugins={[remarkGfm]}
+                                                    components={{
+                                                        a: ({ href, children, ...props }) => (
+                                                            <a 
+                                                                href={href} 
+                                                                target="_blank" 
+                                                                rel="noopener noreferrer"
+                                                                className="text-blue-600 hover:text-blue-800 underline"
+                                                                {...props}
+                                                            >
+                                                                {children}
+                                                            </a>
+                                                        )
+                                                    }}
+                                                >
+                                                    {truncateText(message.message || 'No message', 150)}
+                                                </ReactMarkdown>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-sm text-gray-700 max-w-xs">
-                                            <div className="max-h-20 overflow-y-auto">
-                                                {truncateText(message.response || 'No response', 150)}
+                                            <div className="max-h-20 overflow-y-auto prose prose-sm max-w-none">
+                                                <ReactMarkdown 
+                                                    remarkPlugins={[remarkGfm]}
+                                                    components={{
+                                                        a: ({ href, children, ...props }) => (
+                                                            <a 
+                                                                href={href} 
+                                                                target="_blank" 
+                                                                rel="noopener noreferrer"
+                                                                className="text-blue-600 hover:text-blue-800 underline"
+                                                                {...props}
+                                                            >
+                                                                {children}
+                                                            </a>
+                                                        )
+                                                    }}
+                                                >
+                                                    {truncateText(message.response || 'No response', 150)}
+                                                </ReactMarkdown>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

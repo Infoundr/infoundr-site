@@ -8,6 +8,9 @@ import DiscordIntegration from './components/home/DiscordIntegration';
 import Pricing from './components/home/Pricing';
 import Footer from './components/layout/Footer';
 import WaitlistModal from './components/common/WaitlistModal';
+import GetStartedModal from './components/common/GetStartedModal';
+import PlaygroundChatModal from './components/common/PlaygroundChatModal';
+import PlaygroundChatButton from './components/common/PlaygroundChatButton';
 import { checkIsAuthenticated } from './services/auth';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
@@ -16,10 +19,13 @@ import AdminLayout from './pages/Admin/AdminLayout';
 import AdminDashboard from './pages/Admin/Dashboard';
 import AdminUsers from './pages/Admin/Users';
 import AdminWaitlist from './pages/Admin/Waitlist';
+import UserUsage from './pages/Admin/UserUsage';
 import AdminAdmins from './pages/Admin/Admins';
 import AdminAccelerators from './pages/Admin/Accelerators';
 import AdminPlatformUsers from './pages/Admin/PlatformUsers';
 import AdminApiMessages from './pages/Admin/ApiMessages';
+import AdminPlaygroundMonitoring from './pages/Admin/PlaygroundMonitoring';
+import PaymentManagement from './pages/Admin/PaymentManagement';
 import Auth from './pages/Dashboard/Auth';
 import DashboardLayout from './pages/Dashboard/layouts/DashboardLayout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -47,7 +53,12 @@ import { useMockData as mockDataBoolean } from './mocks/mockData';
 import { Actor } from '@dfinity/agent';
 import StartupInviteAccept from './pages/Accelerator/Invites/StartupSignup';
 import Documentation from './pages/documentation/Documentation';
-import SlackDoc from './pages/documentation/SlackDoc';
+import SlackDoc from './pages/documentation/slack/SlackDoc';
+import SlackLayout from "./pages/documentation/slack/SlackLayout";
+import SlackGithubAgent from "./pages/documentation/slack/SlackGithubAgent";
+import SlackProjectManagementAgent from "./pages/documentation/slack/SlackProjectManagementAgent";
+import SlackCalendarAgent from "./pages/documentation/slack/SlackCalendarAgent";
+import SlackEmailAgent from "./pages/documentation/slack/SlackEmailAgent";
 import OpenChatDoc from './pages/documentation/OpenChatDoc';
 import DiscordLayout from './pages/documentation/DiscordLayout';
 import GitHubAgent from './pages/documentation/discord/GitHubAgent';
@@ -59,6 +70,8 @@ import BusinessProfilePage from './pages/Dashboard/layouts/BusinessProfile';
 
 const App: React.FC = () => {
   const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
+  const [isGetStartedModalOpen, setIsGetStartedModalOpen] = useState(false);
+  const [isPlaygroundModalOpen, setIsPlaygroundModalOpen] = useState(false);
   const [isUserAuthenticated, setIsUserAuthenticated] = useState(false);
   const [actor, setActor] = useState<Actor | null>(null);
 
@@ -75,6 +88,21 @@ const App: React.FC = () => {
     setIsUserAuthenticated(status);
   };
 
+  const handleGetStartedClick = () => {
+    setIsGetStartedModalOpen(true);
+  };
+
+  const handleTryPlayground = () => {
+    setIsGetStartedModalOpen(false);
+    setIsPlaygroundModalOpen(true);
+  };
+
+  const handleViewDocumentation = () => {
+    setIsGetStartedModalOpen(false);
+    // Navigate to documentation page
+    window.location.href = '/documentation';
+  };
+
   return (
     <BrowserRouter>
       <div className="relative">
@@ -84,17 +112,17 @@ const App: React.FC = () => {
           <Route path="/" element={
             <>
               <NavBar 
-                onGetStartedClick={() => setIsWaitlistModalOpen(true)} 
+                onGetStartedClick={handleGetStartedClick} 
                 isAuthenticated={isUserAuthenticated}
                 onAuthChange={handleAuthenticationChange}
               />
               <main>
-                <Hero onGetStartedClick={() => setIsWaitlistModalOpen(true)} />
+                <Hero onGetStartedClick={handleGetStartedClick} />
                 <Features />
                 <SlackIntegration />
                 <DiscordIntegration />
                 {/* <AIAssistants /> */}
-                <Pricing onGetStartedClick={() => setIsWaitlistModalOpen(true)} />
+                <Pricing onGetStartedClick={handleGetStartedClick} />
               </main>
               <Footer />
             </>
@@ -102,6 +130,14 @@ const App: React.FC = () => {
 
           {/* Auth Route */}
           <Route path="/dashboard" element={<Auth />} />
+
+          {/* Payment Routes */}
+          <Route path="/payment/callback" element={<PaymentCallback />} />
+          <Route path="/payment/checkout" element={
+            <ProtectedRoute>
+              <PaymentCheckout />
+            </ProtectedRoute>
+          } />
 
           {/* Public invite accept route (not protected) - must be before other /accelerator routes */}
           <Route path="/accelerator/invite/:inviteCode/*" element={<StartupInviteAccept />} />
@@ -168,15 +204,24 @@ const App: React.FC = () => {
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="users" element={<AdminUsers />} />
             <Route path="waitlist" element={<AdminWaitlist />} />
+            <Route path="user-usage" element={<UserUsage />} />
+            <Route path="payments" element={<PaymentManagement />} />
             <Route path="admins" element={<AdminAdmins />} />
             <Route path="accelerators" element={<AdminAccelerators />} />
             <Route path="platform-users" element={<AdminPlatformUsers />} />
             <Route path="api-messages" element={<AdminApiMessages />} />
+            <Route path="playground" element={<AdminPlaygroundMonitoring />} />
           </Route>
           
           {/* Documentation Routes */}
           <Route path="/documentation" element={<Documentation />} />
-          <Route path="/documentation/slack" element={<SlackDoc />} />
+          <Route path="/documentation/slack" element={<SlackLayout />} >
+          <Route index element={<Navigate to="/documentation/slack/github" replace />} />
+            <Route path="github" element={<SlackGithubAgent />} />
+            <Route path="project-management" element={<SlackProjectManagementAgent />} />
+            <Route path="calendar" element={<SlackCalendarAgent />} />
+            <Route path="email" element={<SlackEmailAgent />} />
+            </Route>
           <Route path="/documentation/discord" element={<DiscordLayout />}>
             <Route index element={<Navigate to="/documentation/discord/github" replace />} />
             <Route path="github" element={<GitHubAgent />} />
@@ -185,13 +230,25 @@ const App: React.FC = () => {
             <Route path="email" element={<EmailAgent />} />
           </Route>
           <Route path="/documentation/openchat" element={<OpenChatDoc />} />
-
-        </Routes>
-
+           </Routes>
         <WaitlistModal 
           isOpen={isWaitlistModalOpen}
           onClose={() => setIsWaitlistModalOpen(false)}
           onAuthSuccess={() => setIsUserAuthenticated(true)}
+        />
+        
+        <GetStartedModal 
+          isOpen={isGetStartedModalOpen}
+          onClose={() => setIsGetStartedModalOpen(false)}
+          onTryPlayground={handleTryPlayground}
+          onViewDocumentation={handleViewDocumentation}
+        />
+        
+        {/* Playground Chat Components */}
+        <PlaygroundChatButton onClick={() => setIsPlaygroundModalOpen(true)} />
+        <PlaygroundChatModal 
+          isOpen={isPlaygroundModalOpen}
+          onClose={() => setIsPlaygroundModalOpen(false)}
         />
       </div>
     </BrowserRouter>

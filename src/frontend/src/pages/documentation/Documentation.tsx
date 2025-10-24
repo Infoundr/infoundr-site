@@ -4,10 +4,10 @@ import { Link } from 'react-router-dom';
 const docs = [
   {
     name: 'Slack Bot',
-    url: '#',
+    url: '/documentation/slack',
     icon: '/icons/slack_logo.png',
     description: 'Automate tasks, get instant advice, and streamline your workspace with our Slack bot.',
-    comingSoon: true
+    comingSoon: false
   },
   {
     name: 'Discord Bot',
@@ -18,7 +18,7 @@ const docs = [
   },
   {
     name: 'OpenChat Bot',
-    url: '#',
+    url: '/documentation/openchat',
     icon: '/icons/openchat.png',
     description: 'Chat with AI advisors, manage tasks, and track progress in OpenChat.',
     comingSoon: true

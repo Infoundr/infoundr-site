@@ -163,6 +163,17 @@ pub fn store_chat_message(identifier: UserIdentifier, message: ChatMessage) {
                     })
             })
         }
+        UserIdentifier::PlaygroundId(playground_id) => {
+            // Create a special principal for Playground messages
+            // This is a deterministic way to create a principal from a Playground ID
+            let mut bytes = [0u8; 29];
+            bytes[0] = 7; // Special type for Playground
+            // Use the first 28 bytes of the Playground ID
+            let playground_bytes = playground_id.as_bytes();
+            let len = std::cmp::min(playground_bytes.len(), 28);
+            bytes[1..1+len].copy_from_slice(&playground_bytes[..len]);
+            Principal::from_slice(&bytes)
+        }
     };
 
     // Store the message under the principal
@@ -340,6 +351,15 @@ pub fn store_asana_task(identifier: UserIdentifier, task: Task) -> Result<(), St
                     })
             })
         }
+        UserIdentifier::PlaygroundId(playground_id) => {
+            // Create a special principal for Playground messages
+            let mut bytes = [0u8; 29];
+            bytes[0] = 7; // Special type for Playground
+            let playground_bytes = playground_id.as_bytes();
+            let len = std::cmp::min(playground_bytes.len(), 28);
+            bytes[1..1+len].copy_from_slice(&playground_bytes[..len]);
+            Principal::from_slice(&bytes)
+        }
     };
 
     // Store the task under the principal
@@ -459,6 +479,15 @@ pub fn store_github_issue(identifier: UserIdentifier, issue: Issue) -> Result<()
                         Principal::from_slice(&bytes)
                     })
             })
+        }
+        UserIdentifier::PlaygroundId(playground_id) => {
+            // Create a special principal for Playground messages
+            let mut bytes = [0u8; 29];
+            bytes[0] = 7; // Special type for Playground
+            let playground_bytes = playground_id.as_bytes();
+            let len = std::cmp::min(playground_bytes.len(), 28);
+            bytes[1..1+len].copy_from_slice(&playground_bytes[..len]);
+            Principal::from_slice(&bytes)
         }
     };
 
@@ -614,7 +643,16 @@ fn get_principal_from_identifier(identifier: &UserIdentifier) -> Principal {
                     bytes[1..1+len].copy_from_slice(&discord_bytes[..len]);
                     Principal::from_slice(&bytes)
                 })
-        })
+        }),
+        UserIdentifier::PlaygroundId(playground_id) => {
+            // Create a special principal for Playground messages
+            let mut bytes = [0u8; 29];
+            bytes[0] = 7; // Special type for Playground
+            let playground_bytes = playground_id.as_bytes();
+            let len = std::cmp::min(playground_bytes.len(), 28);
+            bytes[1..1+len].copy_from_slice(&playground_bytes[..len]);
+            Principal::from_slice(&bytes)
+        }
     }
 }
 
@@ -625,6 +663,7 @@ pub enum UserIdentifier {
     OpenChatId(String),
     SlackId(String),
     DiscordId(String),
+    PlaygroundId(String),
 }
 
 // Struct to hold all user activity
@@ -771,6 +810,19 @@ pub fn get_user_activity(identifier: UserIdentifier) -> UserActivity {
             // Add debug logging
             ic_cdk::println!("Discord ID: {}", discord_id);
             ic_cdk::println!("Principals to check: {:?}", principals);
+
+            principals
+        }
+        UserIdentifier::PlaygroundId(playground_id) => {
+            let mut principals = vec![];
+
+            // Create special Playground principal
+            let mut bytes = [0u8; 29];
+            bytes[0] = 7; // Special type for Playground
+            let playground_bytes = playground_id.as_bytes();
+            let len = std::cmp::min(playground_bytes.len(), 28);
+            bytes[1..1+len].copy_from_slice(&playground_bytes[..len]);
+            principals.push(Principal::from_slice(&bytes));
 
             principals
         }

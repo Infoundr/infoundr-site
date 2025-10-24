@@ -1,6 +1,9 @@
-mod models;
-mod services;
-mod storage;
+pub mod models;
+pub mod services;
+pub mod storage;
+pub mod migrations;
+pub mod payments;
+
 
 // Custom getrandom implementation - for pocket ic testing only
 use getrandom::register_custom_getrandom;
@@ -26,7 +29,7 @@ use crate::models::discord_user::DiscordUser;
 use crate::models::slack_user::SlackUser;
 use crate::models::task::Task;
 use crate::models::{
-    api_message::{ApiMessage, ApiMetadata}, chat::ChatMessage, stable_principal::StablePrincipal, stable_string::StableString, user::User,
+    api_message::{ApiMessage, ApiMetadata}, chat::ChatMessage, stable_principal::StablePrincipal, user::User,
     waitlist::WaitlistEntry,
 };
 use crate::models::startup::{Startup, StartupStatus, StartupCohort, StartupActivity, StartupInput, StartupUpdate, StartupStatusInput, StartupCohortInput, StartupFilter, StartupStats, StartupActivityType};
@@ -45,6 +48,11 @@ use crate::models::accelerator::{Accelerator, TeamMember};
 use crate::models::startup_invite::StartupInvite;
 use crate::services::accelerator_service::TeamInvite;
 use crate::services::accelerator_service::{GenerateStartupInviteInput, StartupRegistrationInput};
+pub use crate::models::usage_service::{UsageStats, UserTier, UserSubscription};
+pub use crate::services::admin::{UserActivityReport, PaymentStats};
+use crate::models::admin::PlaygroundStats;
+use crate::migrations::{CurrentStableState, migrate_from_bytes};
+use crate::services::payment_service::{InitializePaymentRequest, InitializePaymentResponse};
 
 #[derive(candid::CandidType, candid::Deserialize)]
 struct StableState {
@@ -113,7 +121,9 @@ fn pre_upgrade() {
         business_profiles, 
     };
 
-    stable_save((state,)).expect("Failed to save stable state");
+    // Serialize with bincode for better performance and compatibility
+    let serialized = bincode::serialize(&state).expect("Failed to serialize state");
+    stable_save((serialized,)).expect("Failed to save stable state");
 }
 
 #[ic_cdk::post_upgrade]
