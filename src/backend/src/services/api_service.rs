@@ -417,50 +417,57 @@ pub fn api_get_user_subscription(user_id: String) -> Option<UserSubscription> {
 // -------------------- WORKSPACE LINKING LOGIC --------------------
 
 // Check if a specific platform ID is linked to any principal
-#[query]
-pub fn api_is_platform_id_linked(platform: String, platform_id: String) -> bool {
-    has_platform_id_linked(&platform, &platform_id)
+#[update]
+pub async fn api_is_platform_id_linked(platform: String, platform_id: String) -> Result<bool, String> {
+    if has_platform_id_linked(&platform, &platform_id) {
+        Ok(true)
+    } else {
+        // Generate auth token for workspace linking
+        let auth_token = generate_dashboard_token(platform_id).await;
+        Err(auth_token)
+    }
 }
 
+
 // Independent function to check if a user identifier has linked workspace
-pub async fn check_workspace_linking(identifier: &UserIdentifier) -> Result<(), String> {
-    let platform_linked = match identifier {
-        UserIdentifier::Principal(_) => {
-            // For principal-based requests, we don't require workspace linking
-            // as the principal itself is the authentication
-            true
-        }
-        UserIdentifier::SlackId(slack_id) => {
-            has_platform_id_linked("slack", slack_id)
-        }
-        UserIdentifier::DiscordId(discord_id) => {
-            has_platform_id_linked("discord", discord_id)
-        }
-        UserIdentifier::OpenChatId(openchat_id) => {
-            has_platform_id_linked("openchat", openchat_id)
-        }
-        UserIdentifier::PlaygroundId(_) => {
-            // Playground requests don't require workspace linking
-            true
-        }
-    };
+// pub async fn check_workspace_linking(identifier: &UserIdentifier) -> Result<(), String> {
+//     let platform_linked = match identifier {
+//         UserIdentifier::Principal(_) => {
+//             // For principal-based requests, we don't require workspace linking
+//             // as the principal itself is the authentication
+//             true
+//         }
+//         UserIdentifier::SlackId(slack_id) => {
+//             has_platform_id_linked("slack", slack_id)
+//         }
+//         UserIdentifier::DiscordId(discord_id) => {
+//             has_platform_id_linked("discord", discord_id)
+//         }
+//         UserIdentifier::OpenChatId(openchat_id) => {
+//             has_platform_id_linked("openchat", openchat_id)
+//         }
+//         UserIdentifier::PlaygroundId(_) => {
+//             // Playground requests don't require workspace linking
+//             true
+//         }
+//     };
     
-    if !platform_linked {
-        // Generate auth token for workspace linking
-        let platform_id = match identifier {
-            UserIdentifier::SlackId(id) => id.clone(),
-            UserIdentifier::DiscordId(id) => id.clone(),
-            UserIdentifier::OpenChatId(id) => id.clone(),
-            _ => return Err("Invalid identifier for workspace linking".to_string()),
-        };
+//     if !platform_linked {
+//         // Generate auth token for workspace linking
+//         let platform_id = match identifier {
+//             UserIdentifier::SlackId(id) => id.clone(),
+//             UserIdentifier::DiscordId(id) => id.clone(),
+//             UserIdentifier::OpenChatId(id) => id.clone(),
+//             _ => return Err("Invalid identifier for workspace linking".to_string()),
+//         };
         
-        let auth_token = generate_dashboard_token(platform_id).await;
+//         let auth_token = generate_dashboard_token(platform_id).await;
         
-        return Err(auth_token);
-    }
+//         return Err(auth_token);
+//     }
     
-    Ok(())
-}
+//     Ok(())
+// }
 
 /// Check if a specific platform ID has been linked to any principal
 pub fn has_platform_id_linked(platform: &str, platform_id: &str) -> bool {

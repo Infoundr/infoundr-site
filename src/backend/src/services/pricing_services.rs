@@ -3,7 +3,7 @@
 use ic_cdk::api::time;
 use chrono::{DateTime, Utc, TimeZone};
 
-use crate::storage::memory::{USER_DAILY_USAGE, USER_SUBSCRIPTIONS, OPENCHAT_USERS, SLACK_USERS, DISCORD_USERS};
+use crate::storage::memory::{USER_DAILY_USAGE, USER_SUBSCRIPTIONS};
 use crate::models::stable_string::StableString;
 use crate::models::usage_service::{UsageStats, UserSubscription, UserTier};
 
@@ -195,41 +195,4 @@ pub fn get_user_subscription(user_id: &str) -> Option<UserSubscription> {
             .get(&StableString::from(user_id.to_string()))
             .map(|s| s.clone())
     })
-}
-
-/// Check if a specific platform ID has been linked to any principal
-pub fn has_platform_id_linked(platform: &str, platform_id: &str) -> bool {
-    match platform {
-        "slack" => {
-            SLACK_USERS.with(|users| {
-                let users = users.borrow();
-                if let Some(user) = users.get(&StableString::from(platform_id.to_string())) {
-                    user.site_principal.is_some()
-                } else {
-                    false
-                }
-            })
-        }
-        "discord" => {
-            DISCORD_USERS.with(|users| {
-                let users = users.borrow();
-                if let Some(user) = users.get(&StableString::from(platform_id.to_string())) {
-                    user.site_principal.is_some()
-                } else {
-                    false
-                }
-            })
-        }
-        "openchat" => {
-            OPENCHAT_USERS.with(|users| {
-                let users = users.borrow();
-                if let Some(user) = users.get(&StableString::from(platform_id.to_string())) {
-                    user.site_principal.is_some()
-                } else {
-                    false
-                }
-            })
-        }
-        _ => false,
-    }
 }
