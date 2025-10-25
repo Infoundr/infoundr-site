@@ -156,7 +156,7 @@ const DashboardLayout: React.FC = () => {
     };
 
     return (
-        <div className="flex h-screen bg-gray-900 overflow-hidden">
+        <div className="flex h-screen bg-gray-50 overflow-hidden">
             {/* Mobile sidebar backdrop */}
             {sidebarOpen && (
                 <div 
@@ -167,8 +167,9 @@ const DashboardLayout: React.FC = () => {
 
             {/* Sidebar - Cursor Style */}
             <div className={`
-                fixed inset-y-0 left-0 z-30 w-64 bg-purple-700 text-white transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto lg:z-auto
+                fixed inset-y-0 left-0 z-30 w-64 bg-purple-700 text-white transform transition-transform duration-300 ease-in-out
                 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+                ${activeTab === 'chat' ? 'lg:-translate-x-full' : 'lg:translate-x-0 lg:static lg:inset-auto lg:z-auto'}
             `}>
                 {/* Logo
                 <div className="flex justify-start p-4">
@@ -334,16 +335,20 @@ const DashboardLayout: React.FC = () => {
             <div className="flex-1 flex flex-col overflow-hidden bg-gray-50">
                 {/* Top Navigation */}
                 <header className="bg-white shadow-sm border-b border-gray-200">
-                    <div className="px-6 py-4 flex items-center justify-between">
+                    <div className={`px-6 py-4 flex items-center transition-all duration-300 ${
+                        activeTab === 'chat' ? 'justify-center' : 'justify-between'
+                    }`}>
                         <div className="flex items-center space-x-4">
-                            <button
-                                onClick={() => setSidebarOpen(true)}
-                                className="text-gray-500 focus:outline-none focus:text-gray-700 lg:hidden"
-                            >
-                                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                                </svg>
-                            </button>
+                            {activeTab === 'dashboard' && (
+                                <button
+                                    onClick={() => setSidebarOpen(true)}
+                                    className="text-gray-500 focus:outline-none focus:text-gray-700 lg:hidden"
+                                >
+                                    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                                    </svg>
+                                </button>
+                            )}
                             
                             {/* Tab Navigation */}
                             <div className="flex items-center space-x-1 bg-gray-100 rounded-lg p-1">
@@ -369,13 +374,15 @@ const DashboardLayout: React.FC = () => {
                                 </button>
                             </div>
                         </div>
-                        <div className="flex items-center space-x-4">
-                            <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-                                <span className="text-white text-sm font-medium">
-                                    {user ? user.name.split(' ').map((n: string) => n[0]).join('') : 'U'}
-                                </span>
+                        {activeTab === 'dashboard' && (
+                            <div className="flex items-center space-x-4">
+                                <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                                    <span className="text-white text-sm font-medium">
+                                        {user ? user.name.split(' ').map((n: string) => n[0]).join('') : 'U'}
+                                    </span>
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </header>
 
