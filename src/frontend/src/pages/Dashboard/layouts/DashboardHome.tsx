@@ -205,7 +205,7 @@ const DashboardHome: React.FC<Props> = ({ actor, useMockData = true }) => {
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
             </div>
         );
     }
@@ -218,19 +218,19 @@ const DashboardHome: React.FC<Props> = ({ actor, useMockData = true }) => {
                     <h2 className="text-xl font-semibold text-gray-800">Your Analytics</h2>
                     <div className="flex items-center space-x-2">
                         {/* Test button for recording analytics - remove in production */}
-                        {!forceMockData && (
+                        {/* {!forceMockData && (
                             <button
                                 onClick={() => recordAnalytics(1, 50, 1, 0)}
                                 className="px-3 py-1 text-xs bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
                             >
                                 Test Record
                             </button>
-                        )}
+                        )} */}
                         <button 
                             onClick={() => setSelectedPeriod(1)}
                             className={`px-3 py-1 text-sm rounded-md ${
                                 selectedPeriod === 1 
-                                    ? 'bg-blue-500 text-white' 
+                                    ? 'bg-purple-500 text-white' 
                                     : 'bg-gray-100 text-gray-600'
                             }`}
                         >
@@ -240,7 +240,7 @@ const DashboardHome: React.FC<Props> = ({ actor, useMockData = true }) => {
                             onClick={() => setSelectedPeriod(7)}
                             className={`px-3 py-1 text-sm rounded-md ${
                                 selectedPeriod === 7 
-                                    ? 'bg-blue-500 text-white' 
+                                    ? 'bg-purple-500 text-white' 
                                     : 'bg-gray-100 text-gray-600'
                             }`}
                         >
@@ -250,7 +250,7 @@ const DashboardHome: React.FC<Props> = ({ actor, useMockData = true }) => {
                             onClick={() => setSelectedPeriod(30)}
                             className={`px-3 py-1 text-sm rounded-md ${
                                 selectedPeriod === 30 
-                                    ? 'bg-blue-500 text-white' 
+                                    ? 'bg-purple-500 text-white' 
                                     : 'bg-gray-100 text-gray-600'
                             }`}
                         >
@@ -261,7 +261,7 @@ const DashboardHome: React.FC<Props> = ({ actor, useMockData = true }) => {
                 
                 {analyticsLoading ? (
                     <div className="flex items-center justify-center h-32">
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500"></div>
                     </div>
                 ) : analytics ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -355,7 +355,7 @@ const DashboardHome: React.FC<Props> = ({ actor, useMockData = true }) => {
                     ) : (
                         <button 
                             onClick={() => navigate('/payment/checkout')}
-                            className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors"
+                            className="w-full bg-purple-500 text-white py-2 px-4 rounded-md hover:bg-purple-600 transition-colors"
                         >
                             Upgrade to Pro
                         </button>

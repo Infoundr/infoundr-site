@@ -96,7 +96,7 @@ const Settings: React.FC = () => {
                                     />
                                     <button
                                         onClick={handleSaveName}
-                                        className="bg-blue-500 text-white py-2 px-3 rounded-md hover:bg-blue-600 transition-colors text-sm"
+                                        className="bg-purple-500 text-white py-2 px-3 rounded-md hover:bg-purple-600 transition-colors text-sm"
                                     >
                                         Save
                                     </button>
@@ -112,7 +112,7 @@ const Settings: React.FC = () => {
                                     <span className="text-sm text-gray-800 font-medium">{displayName}</span>
                                     <button
                                         onClick={handleEditName}
-                                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                                        className="text-purple-600 hover:text-purple-800 text-sm font-medium"
                                     >
                                         Edit
                                     </button>
@@ -153,7 +153,7 @@ const Settings: React.FC = () => {
                 
                 {isLoadingWorkspaces ? (
                     <div className="flex items-center justify-center py-8">
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500"></div>
                     </div>
                 ) : (
                     <div className="space-y-3">
@@ -187,7 +187,7 @@ const Settings: React.FC = () => {
                         ))}
                         
                         <div className="text-center pt-2">
-                            <a href="/dashboard/connections" className="text-sm text-blue-600 hover:text-blue-800">
+                            <a href="/dashboard/connections" className="text-sm text-purple-600 hover:text-purple-800">
                                 Manage all connections →
                             </a>
                         </div>

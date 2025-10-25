@@ -53,7 +53,7 @@ const UsageAnalytics: React.FC = () => {
             {/* Analytics Overview */}
             {isLoading ? (
                 <div className="flex items-center justify-center py-12">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
                 </div>
             ) : error ? (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-6">
@@ -72,8 +72,8 @@ const UsageAnalytics: React.FC = () => {
                                 <p className="text-sm font-medium text-gray-600">Requests Made</p>
                                 <p className="text-2xl font-bold text-gray-900">{analyticsData.requests_made}</p>
                             </div>
-                            <div className="p-3 bg-blue-100 rounded-full">
-                                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div className="p-3 bg-purple-100 rounded-full">
+                                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                                 </svg>
                             </div>
@@ -136,7 +136,7 @@ const UsageAnalytics: React.FC = () => {
                                     onClick={() => setSelectedPeriod(period)}
                                     className={`px-3 py-1 text-sm rounded-md ${
                                         selectedPeriod === period
-                                            ? 'bg-blue-500 text-white'
+                                            ? 'bg-purple-500 text-white'
                                             : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                     }`}
                                 >
@@ -183,7 +183,7 @@ const UsageAnalytics: React.FC = () => {
                                     <p className="text-sm font-medium text-gray-600">Total Requests</p>
                                     <p className="text-2xl font-bold text-gray-900">{analyticsData.requests_made}</p>
                                 </div>
-                                <div className="text-blue-600">
+                                <div className="text-purple-600">
                                     <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                                     </svg>

@@ -101,7 +101,7 @@ const WorkspaceConnectionModal: React.FC<WorkspaceConnectionModalProps> = ({
                         <div className="space-y-3">
                             {instructions.steps.map((step, index) => (
                                 <div key={index} className="flex items-start space-x-3">
-                                    <div className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-semibold">
+                                    <div className="flex-shrink-0 w-6 h-6 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-xs font-semibold">
                                         {index + 1}
                                     </div>
                                     <p className="text-sm text-gray-700 leading-relaxed">{step}</p>
@@ -120,7 +120,7 @@ const WorkspaceConnectionModal: React.FC<WorkspaceConnectionModalProps> = ({
                         </button>
                         <button
                             onClick={onClose}
-                            className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all duration-200 font-medium hover:shadow-md"
+                            className="px-6 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-all duration-200 font-medium hover:shadow-md"
                         >
                             Got it!
                         </button>

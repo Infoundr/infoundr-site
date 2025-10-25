@@ -161,15 +161,15 @@ const DashboardLayout: React.FC = () => {
 
             {/* Sidebar - Cursor Style */}
             <div className={`
-                fixed inset-y-0 left-0 z-30 w-64 bg-gray-800 text-white transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto lg:z-auto
+                fixed inset-y-0 left-0 z-30 w-64 bg-purple-700 text-white transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto lg:z-auto
                 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
             `}>
-                {/* Logo */}
+                {/* Logo
                 <div className="flex justify-start p-4">
                     <div className="w-8 h-8 bg-white rounded flex items-center justify-center">
                         <span className="text-gray-800 font-bold text-sm">I</span>
                     </div>
-                </div>
+                </div> */}
 
                 {/* User Profile Section */}
                 {user && (
@@ -195,7 +195,7 @@ const DashboardLayout: React.FC = () => {
                 <nav className="mt-4">
                     <Link 
                         to="/dashboard/home" 
-                        className={`flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors ${isActive('/dashboard/home') ? 'bg-gray-700 text-white border-r-2 border-blue-500' : ''}`}
+                        className={`flex items-center px-4 py-3 text-gray-300 hover:bg-purple-800 hover:text-white transition-colors ${isActive('/dashboard/home') ? 'bg-purple-700 text-white border-r-2 border-purple-300' : ''}`}
                         onClick={() => setSidebarOpen(false)}
                     >
                         <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -206,7 +206,7 @@ const DashboardLayout: React.FC = () => {
 
                     <Link 
                         to="/dashboard/connections" 
-                        className={`flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors ${isActive('/dashboard/connections') ? 'bg-gray-700 text-white border-r-2 border-blue-500' : ''}`}
+                        className={`flex items-center px-4 py-3 text-gray-300 hover:bg-purple-800 hover:text-white transition-colors ${isActive('/dashboard/connections') ? 'bg-purple-700 text-white border-r-2 border-purple-300' : ''}`}
                         onClick={() => setSidebarOpen(false)}
                     >
                         <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -228,7 +228,7 @@ const DashboardLayout: React.FC = () => {
 
                     <Link 
                         to="/dashboard/tasks" 
-                        className={`flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors ${isActive('/dashboard/tasks') ? 'bg-gray-700 text-white border-r-2 border-blue-500' : ''}`}
+                        className={`flex items-center px-4 py-3 text-gray-300 hover:bg-purple-700 hover:text-white transition-colors ${isActive('/dashboard/tasks') ? 'bg-purple-700 text-white border-r-2 border-purple-300' : ''}`}
                         onClick={() => setSidebarOpen(false)}
                     >
                         <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -239,7 +239,7 @@ const DashboardLayout: React.FC = () => {
 
                     <Link 
                         to="/dashboard/github" 
-                        className={`flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors ${isActive('/dashboard/github') ? 'bg-gray-700 text-white border-r-2 border-blue-500' : ''}`}
+                        className={`flex items-center px-4 py-3 text-gray-300 hover:bg-purple-700 hover:text-white transition-colors ${isActive('/dashboard/github') ? 'bg-purple-700 text-white border-r-2 border-purple-300' : ''}`}
                         onClick={() => setSidebarOpen(false)}
                     >
                         <svg className="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 24 24">
@@ -250,7 +250,7 @@ const DashboardLayout: React.FC = () => {
 
                     <Link 
                         to="/dashboard/settings" 
-                        className={`flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors ${isActive('/dashboard/settings') ? 'bg-gray-700 text-white border-r-2 border-blue-500' : ''}`}
+                        className={`flex items-center px-4 py-3 text-gray-300 hover:bg-purple-800 hover:text-white transition-colors ${isActive('/dashboard/settings') ? 'bg-purple-700 text-white border-r-2 border-purple-300' : ''}`}
                         onClick={() => setSidebarOpen(false)}
                     >
                         <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -262,7 +262,7 @@ const DashboardLayout: React.FC = () => {
 
                     <Link 
                         to="/dashboard/analytics" 
-                        className={`flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors ${isActive('/dashboard/analytics') ? 'bg-gray-700 text-white border-r-2 border-blue-500' : ''}`}
+                        className={`flex items-center px-4 py-3 text-gray-300 hover:bg-purple-800 hover:text-white transition-colors ${isActive('/dashboard/analytics') ? 'bg-purple-700 text-white border-r-2 border-purple-300' : ''}`}
                         onClick={() => setSidebarOpen(false)}
                     >
                         <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -271,7 +271,7 @@ const DashboardLayout: React.FC = () => {
                         <span className="text-sm font-medium">Usage</span>
                     </Link>
 
-                    <div className="border-t border-gray-700 my-4"></div>
+                    <div className="border-t border-purple-500 my-4"></div>
 
                     {/* <Link 
                         to="/dashboard/billing" 
@@ -289,7 +289,7 @@ const DashboardLayout: React.FC = () => {
                             window.open('/documentation', '_blank');
                             setSidebarOpen(false);
                         }}
-                        className="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors w-full text-left"
+                        className="flex items-center px-4 py-3 text-gray-300 hover:bg-purple-800 hover:text-white transition-colors w-full text-left"
                     >
                         <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -297,11 +297,11 @@ const DashboardLayout: React.FC = () => {
                         <span className="text-sm font-medium">Docs</span>
                     </button>
 
-                    <div className="border-t border-gray-700 my-4"></div>
+                    <div className="border-t border-purple-500 my-4"></div>
 
                     <button 
                         onClick={() => setContactModalOpen(true)}
-                        className="flex items-center w-full px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+                        className="flex items-center w-full px-4 py-3 text-gray-300 hover:bg-purple-800 hover:text-white transition-colors"
                     >
                         <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -314,7 +314,7 @@ const DashboardLayout: React.FC = () => {
                 <div className="absolute bottom-0 left-0 right-0 p-4">
                     <button
                         onClick={handleLogout}
-                        className="flex items-center w-full px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors rounded"
+                        className="flex items-center w-full px-4 py-3 text-gray-300 hover:bg-purple-800 hover:text-white transition-colors rounded"
                     >
                         <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

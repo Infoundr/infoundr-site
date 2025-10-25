@@ -70,7 +70,7 @@ const ConnectionsToWorkspaces: React.FC = () => {
         return (
             <div className="p-6 space-y-6">
                 <div className="flex items-center justify-center h-64">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
                 </div>
             </div>
         );
@@ -131,7 +131,7 @@ const ConnectionsToWorkspaces: React.FC = () => {
                                 className={`w-full py-2.5 px-4 rounded-lg font-medium transition-all duration-200 ${
                                     connection.connected
                                         ? 'bg-green-100 text-green-700 hover:bg-green-200 cursor-default'
-                                        : 'bg-blue-500 text-white hover:bg-blue-600 hover:shadow-md transform hover:-translate-y-0.5'
+                                        : 'bg-purple-500 text-white hover:bg-purple-600 hover:shadow-md transform hover:-translate-y-0.5'
                                 }`}
                             >
                                 {connection.connected ? (
