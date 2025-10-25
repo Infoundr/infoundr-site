@@ -1,15 +1,41 @@
 import { _SERVICE } from "../../../declarations/backend/backend.did";
 import { AnalyticsDataPoint, AnalyticsSummary, UserAnalytics } from '../types/analytics';
+import { createAuthenticatedActor } from './auth';
 
 export class AnalyticsService {
-    constructor(private actor: _SERVICE) {}
+    private actor: _SERVICE | null = null;
+
+    constructor() {
+        this.initializeActor();
+    }
+
+    private async initializeActor() {
+        try {
+            this.actor = await createAuthenticatedActor();
+        } catch (error) {
+            console.error('Failed to create authenticated actor for analytics:', error);
+            throw error;
+        }
+    }
+
+    private async ensureActor(): Promise<_SERVICE> {
+        if (!this.actor) {
+            await this.initializeActor();
+        }
+        if (!this.actor) {
+            throw new Error('Failed to create authenticated actor');
+        }
+        return this.actor;
+    }
 
     /**
      * Get analytics summary for a user
      */
     async getAnalyticsSummary(days: number): Promise<AnalyticsSummary> {
         try {
-            const result = await this.actor.get_user_analytics_summary(days);
+            const actor = await this.ensureActor();
+            const result = await actor.get_user_analytics_summary(days);
+            console.log('Analytics summary:', result);
             
             if ('Ok' in result) {
                 return {
@@ -41,7 +67,8 @@ export class AnalyticsService {
      */
     async getUserAnalytics(days: number): Promise<UserAnalytics> {
         try {
-            const result = await this.actor.get_user_analytics(days);
+            const actor = await this.ensureActor();
+            const result = await actor.get_user_analytics(days);
             
             if ('Ok' in result) {
                 return {
@@ -75,7 +102,8 @@ export class AnalyticsService {
      */
     async updateUserAnalytics(): Promise<void> {
         try {
-            const result = await this.actor.update_user_analytics();
+            const actor = await this.ensureActor();
+            const result = await actor.update_user_analytics();
             
             if ('Err' in result) {
                 throw new Error(result.Err);
@@ -96,7 +124,8 @@ export class AnalyticsService {
         tasksCompleted: number
     ): Promise<void> {
         try {
-            const result = await this.actor.record_analytics_data(
+            const actor = await this.ensureActor();
+            const result = await actor.record_analytics_data(
                 requestsMade,
                 linesOfCodeEdited,
                 aiInteractions,
@@ -114,6 +143,6 @@ export class AnalyticsService {
 }
 
 // Factory function to create analytics service
-export const createAnalyticsService = (actor: _SERVICE): AnalyticsService => {
-    return new AnalyticsService(actor);
+export const createAnalyticsService = (): AnalyticsService => {
+    return new AnalyticsService();
 };

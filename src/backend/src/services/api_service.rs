@@ -9,6 +9,7 @@ use ic_cdk::{query, update};
 use crate::services::pricing_services::{
     get_usage_stats, get_user_tier, can_make_request, increment_user_requests, upgrade_user_tier, get_user_subscription,
 };
+use crate::services::analytics_service::update_user_analytics;
 use crate::services::token_service::generate_dashboard_token;
 use crate::models::usage_service::{UsageStats,UserTier,UserSubscription};
 
@@ -117,6 +118,12 @@ pub fn store_api_message(
 
     if let Err(err) = increment_user_requests(&user_id) {
         return Err(err);
+    }
+
+    // Update analytics data for dashboard tracking
+    if let Err(err) = update_user_analytics(&user_id) {
+        // Log error but don't fail the request - analytics is not critical
+        ic_cdk::println!("Failed to update analytics for user {}: {}", user_id, err);
     }
 
 
@@ -399,7 +406,15 @@ pub fn api_can_make_request(user_id: String) -> bool {
 // Increment requests counter for a user
 #[update]
 pub fn api_increment_user_requests(user_id: String) -> Result<(), String> {
-    increment_user_requests(&user_id)
+    increment_user_requests(&user_id)?;
+    
+    // Update analytics data for dashboard tracking
+    if let Err(err) = update_user_analytics(&user_id) {
+        // Log error but don't fail the request - analytics is not critical
+        ic_cdk::println!("Failed to update analytics for user {}: {}", user_id, err);
+    }
+    
+    Ok(())
 }
 
 // Upgrade user tier (Free -> Pro)

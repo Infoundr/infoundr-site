@@ -5,6 +5,7 @@ import GithubIssues from './GithubIssues';
 import { Actor } from '@dfinity/agent';
 import { createActor } from "../../../../../declarations/backend";
 import { HttpAgent } from "@dfinity/agent";
+import { AuthClient } from "@dfinity/auth-client";
 import { _SERVICE } from "../../../../../declarations/backend/backend.did";
 import { CANISTER_ID } from '../../../config';
 
@@ -49,7 +50,10 @@ const DashboardLayout: React.FC = () => {
             }
 
             try {
-                const agent = new HttpAgent({});
+                // Create authenticated agent
+                const authClient = await AuthClient.create();
+                const identity = authClient.getIdentity();
+                const agent = new HttpAgent({ identity });
                 
                 if (import.meta.env.VITE_DFX_NETWORK !== 'ic') {
                     await agent.fetchRootKey();

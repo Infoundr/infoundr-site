@@ -20,7 +20,7 @@ const DashboardHome: React.FC<Props> = ({ actor, useMockData = true }) => {
     const [issueCount, setIssueCount] = useState(0);
     const [loading, setLoading] = useState(true);
 
-    let forceMockData = true;
+    let forceMockData = false;
     
     // Analytics state
     const [analytics, setAnalytics] = useState<AnalyticsSummary | null>(null);
@@ -40,7 +40,7 @@ const DashboardHome: React.FC<Props> = ({ actor, useMockData = true }) => {
         try {
             setAnalyticsLoading(true);
             if (!forceMockData && actor) {
-                const analyticsService = createAnalyticsService(actor);
+                const analyticsService = createAnalyticsService();
                 
                 // Get current user to get the user ID
                 const currentUser = await getCurrentUser();
@@ -152,7 +152,7 @@ const DashboardHome: React.FC<Props> = ({ actor, useMockData = true }) => {
     ) => {
         try {
             if (!forceMockData && actor) {
-                const analyticsService = createAnalyticsService(actor);
+                const analyticsService = createAnalyticsService();
                 const currentUser = await getCurrentUser();
                 
                 if (currentUser && currentUser.length > 0 && currentUser[0]) {
