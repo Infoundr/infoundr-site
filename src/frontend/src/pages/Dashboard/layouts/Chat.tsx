@@ -18,10 +18,11 @@ interface ApiMessage {
 }
 
 const Chat: React.FC<ChatProps> = ({ actor }) => {
-    const [activeBot, setActiveBot] = useState<string>('InFoundr AI Co-founder');
+    const [activeBot, setActiveBot] = useState<string | null>(null);
     const [userMessages, setUserMessages] = useState<ApiMessage[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [showMainInterface, setShowMainInterface] = useState(true);
 
     const botSegments = [
         { name: 'InFoundr AI Co-founder', icon: '🤖', color: 'purple' },
@@ -128,7 +129,35 @@ const Chat: React.FC<ChatProps> = ({ actor }) => {
         return colors[color as keyof typeof colors] || colors.purple;
     };
 
-    const currentBotMessages = getBotMessages(activeBot);
+    const currentBotMessages = activeBot ? getBotMessages(activeBot) : [];
+
+    const handleExampleClick = (example: any) => {
+        setSearchTerm(example.title);
+        // Hide conversation history and scroll back to top
+        setActiveBot(null);
+        setTimeout(() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 100);
+    };
+
+    const handleChatInputClick = () => {
+        // Hide conversation history and scroll back to top
+        setActiveBot(null);
+        setTimeout(() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 100);
+    };
+
+    const handleBotClick = (botName: string) => {
+        setActiveBot(botName);
+        // Scroll to conversation history section
+        setTimeout(() => {
+            const conversationSection = document.getElementById('conversation-history');
+            if (conversationSection) {
+                conversationSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }, 100);
+    };
 
     return (
         <div className="flex flex-col h-full bg-gray-50">
@@ -143,6 +172,9 @@ const Chat: React.FC<ChatProps> = ({ actor }) => {
                                     type="text"
                                     placeholder="Ask InFoundr to build, fix bugs, explore"
                                     className="w-full px-4 py-3 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    onClick={handleChatInputClick}
                                 />
                             </div>
                             <div className="flex items-center space-x-2">
@@ -158,20 +190,36 @@ const Chat: React.FC<ChatProps> = ({ actor }) => {
                                 </button>
                             </div>
                         </div>
-                        
+                    </div>
+
+                    {/* Suggested Actions */}
+                    <div className="text-center mb-8">
+                        <p className="text-gray-600 mb-6">Try these examples to get started</p>
+                        <div className="flex flex-wrap justify-center gap-3">
+                            {examples.map((example, index) => (
+                                <button 
+                                    key={index}
+                                    onClick={() => handleExampleClick(example)}
+                                    className="flex items-center space-x-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                                >
+                                    <span className="text-lg">{example.icon}</span>
+                                    <span>{example.title}</span>
+                                </button>
+                            ))}
+                        </div>
                     </div>
 
                     {/* Bot Segments */}
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Your AI Assistants</h3>
-                        <div className="flex flex-wrap gap-3">
+                    <div id="conversation-history" className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">Your Conversation History</h3>
+                        <div className="flex flex-wrap gap-3 justify-center">
                             {botSegments.map((bot) => {
                                 const botMessages = getBotMessages(bot.name);
                                 return (
                                     <button
                                         key={bot.name}
-                                        onClick={() => setActiveBot(bot.name)}
-                                        className={`flex items-center space-x-2 px-4 py-2 rounded-lg border transition-colors ${
+                                        onClick={() => handleBotClick(bot.name)}
+                                        className={`flex items-center space-x-2 px-3 py-2 rounded-lg border transition-colors text-sm ${
                                             activeBot === bot.name
                                                 ? 'border-purple-500 bg-purple-50 text-purple-700'
                                                 : 'border-gray-200 hover:bg-gray-50 text-gray-700'
@@ -188,26 +236,26 @@ const Chat: React.FC<ChatProps> = ({ actor }) => {
                         </div>
                     </div>
 
-                    {/* Recent Messages for Active Bot */}
-                    {loading ? (
-                        <div className="flex items-center justify-center py-12">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
-                        </div>
-                    ) : (
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                            <div className="p-6 border-b border-gray-200">
-                                <div className="flex items-center justify-between">
-                                    <h3 className="text-lg font-semibold text-gray-800">
-                                        Recent Messages from {activeBot}
-                                    </h3>
-                                    <div className="text-sm text-gray-500">
-                                        {currentBotMessages.length} messages
+                    {/* Recent Messages - Show with smooth transitions */}
+                    <div className={`bg-white rounded-lg shadow-sm border border-gray-200 transition-all duration-500 ease-in-out ${
+                        activeBot && currentBotMessages.length > 0 
+                            ? 'opacity-100 transform translate-y-0' 
+                            : 'opacity-0 transform translate-y-4 pointer-events-none h-0 overflow-hidden'
+                    }`}>
+                        {activeBot && currentBotMessages.length > 0 && (
+                            <>
+                                <div className="p-6 border-b border-gray-200">
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="text-lg font-semibold text-gray-800 text-center">
+                                            Recent Messages from {activeBot}
+                                        </h3>
+                                        <div className="text-sm text-gray-500">
+                                            {currentBotMessages.length} messages
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            
-                            <div className="max-h-96 overflow-y-auto">
-                                {currentBotMessages.length > 0 ? (
+                                
+                                <div className="max-h-96 overflow-y-auto">
                                     <div className="divide-y divide-gray-200">
                                         {currentBotMessages.map((message, index) => (
                                             <div key={message.id || index} className="p-6 hover:bg-gray-50">
@@ -266,35 +314,9 @@ const Chat: React.FC<ChatProps> = ({ actor }) => {
                                             </div>
                                         ))}
                                     </div>
-                                ) : (
-                                    <div className="p-12 text-center">
-                                        <div className="text-gray-500">
-                                            <svg className="w-12 h-12 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                                            </svg>
-                                            <p className="text-lg font-medium text-gray-900 mb-2">No messages yet</p>
-                                            <p className="text-gray-600">Start a conversation with {activeBot} to see your messages here.</p>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Suggested Actions */}
-                    <div className="text-center mt-8">
-                        <p className="text-gray-600 mb-6">Try these examples to get started</p>
-                        <div className="flex flex-wrap justify-center gap-3">
-                            {examples.map((example, index) => (
-                                <button 
-                                    key={index}
-                                    className="flex items-center space-x-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                                >
-                                    <span className="text-lg">{example.icon}</span>
-                                    <span>{example.title}</span>
-                                </button>
-                            ))}
-                        </div>
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>
