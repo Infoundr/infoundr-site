@@ -12,18 +12,15 @@ import { CANISTER_ID } from '../../../config';
 import { Link, useNavigate, Outlet, useLocation, Routes, Route } from 'react-router-dom';
 import { logout, getCurrentUser } from '../../../services/auth';
 import { createSubscriptionService } from '../../../services/subscription';
-import Analytics from './Analytics';
 import Tasks from './Tasks';
 import { mockActor, useMockData } from '../../../mocks/mockData';
 import Ideation from './Ideation';
 import LoadingSpinner from '../../../components/LoadingSpinner';
-import AIAssistantsPage from './AIAssistantsPage';
 import ConnectionsToWorkspaces from './ConnectionsToWorkspaces';
 import DashboardHome from './DashboardHome';
 import UsageAnalytics from './UsageAnalytics';
 import Settings from './Settings';
 import BillingInvoices from './BillingInvoices';
-import Docs from './Docs';
 import ContactUs from './ContactUs';
 
 const DashboardLayout: React.FC = () => {
@@ -138,10 +135,6 @@ const DashboardLayout: React.FC = () => {
 
         if (path === '/dashboard/billing') {
             return <BillingInvoices />;
-        }
-
-        if (path === '/dashboard/docs') {
-            return <Docs />;
         }
 
         return null;
@@ -280,7 +273,7 @@ const DashboardLayout: React.FC = () => {
 
                     <div className="border-t border-gray-700 my-4"></div>
 
-                    <Link 
+                    {/* <Link 
                         to="/dashboard/billing" 
                         className={`flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors ${isActive('/dashboard/billing') ? 'bg-gray-700 text-white border-r-2 border-blue-500' : ''}`}
                         onClick={() => setSidebarOpen(false)}
@@ -289,18 +282,20 @@ const DashboardLayout: React.FC = () => {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                         </svg>
                         <span className="text-sm font-medium">Billing & Invoices</span>
-                    </Link>
+                    </Link> */}
 
-                    <Link 
-                        to="/dashboard/docs" 
-                        className={`flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors ${isActive('/dashboard/docs') ? 'bg-gray-700 text-white border-r-2 border-blue-500' : ''}`}
-                        onClick={() => setSidebarOpen(false)}
+                    <button 
+                        onClick={() => {
+                            window.open('/documentation', '_blank');
+                            setSidebarOpen(false);
+                        }}
+                        className="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors w-full text-left"
                     >
                         <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                         <span className="text-sm font-medium">Docs</span>
-                    </Link>
+                    </button>
 
                     <div className="border-t border-gray-700 my-4"></div>
 
