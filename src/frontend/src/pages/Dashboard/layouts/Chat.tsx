@@ -75,16 +75,20 @@ const Chat: React.FC<ChatProps> = ({ actor }) => {
         
         try {
             setLoading(true);
-            // Fetch recent messages for the current user
-            const result = await actor.admin_get_recent_api_messages(50);
+            // Fetch recent messages for the current user using the new user function
+            const result = await actor.get_user_recent_messages(50);
             
             if ('Ok' in result) {
                 setUserMessages(result.Ok);
             } else {
                 console.error('Error fetching user messages:', result.Err);
+                // Fallback to empty array if there's an error
+                setUserMessages([]);
             }
         } catch (error) {
             console.error('Error fetching user messages:', error);
+            // Fallback to empty array if there's an error
+            setUserMessages([]);
         } finally {
             setLoading(false);
         }

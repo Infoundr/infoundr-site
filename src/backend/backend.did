@@ -652,6 +652,8 @@ service : {
   get_user_analytics_summary : (nat32) -> (Result_35) query;
   get_user_connections : (principal) -> (opt ConnectedAccounts) query;
   get_user_issues : (UserIdentifier) -> (vec Issue) query;
+  get_user_messages_by_bot : (text) -> (Result_2) query;
+  get_user_recent_messages : (nat32) -> (Result_2) query;
   get_user_tasks : (UserIdentifier) -> (vec Task) query;
   get_users : () -> (Result_28) query;
   get_waitlist : () -> (Result_36) query;

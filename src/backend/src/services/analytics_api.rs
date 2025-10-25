@@ -1,4 +1,5 @@
 use crate::models::analytics::{AnalyticsSummary, UserAnalytics};
+use crate::models::api_message::ApiMessage;
 use ic_cdk::caller;
 use candid::Principal;
 use crate::services::analytics_service::{
@@ -7,6 +8,7 @@ use crate::services::analytics_service::{
     update_user_analytics as analytics_update_user,
     record_analytics_data as analytics_record_data
 };
+use crate::services::api_service::{get_recent_api_messages, get_api_messages_by_bot, UserIdentifier};
 use crate::storage::memory::{OPENCHAT_USERS, SLACK_USERS, DISCORD_USERS};
 
 // ============================
@@ -112,4 +114,66 @@ pub fn record_analytics_data(
         ai_interactions,
         tasks_completed,
     )
+}
+
+/// Get recent messages for the current user
+#[ic_cdk::query]
+pub fn get_user_recent_messages(limit: u32) -> Result<Vec<ApiMessage>, String> {
+    let caller_principal = caller();
+    
+    // Get the platform user ID for this principal
+    let platform_user_id = get_platform_user_id_for_principal(caller_principal)
+        .ok_or_else(|| "User not linked to any platform account".to_string())?;
+    
+    // We need to determine which platform this user belongs to
+    let user_identifier = if OPENCHAT_USERS.with(|users| {
+        users.borrow().iter().any(|(_, user)| user.openchat_id == platform_user_id)
+    }) {
+        UserIdentifier::OpenChatId(platform_user_id)
+    } else if SLACK_USERS.with(|users| {
+        users.borrow().iter().any(|(_, user)| user.slack_id == platform_user_id)
+    }) {
+        UserIdentifier::SlackId(platform_user_id)
+    } else if DISCORD_USERS.with(|users| {
+        users.borrow().iter().any(|(_, user)| user.discord_id == platform_user_id)
+    }) {
+        UserIdentifier::DiscordId(platform_user_id)
+    } else {
+        return Err("User not found in any platform".to_string());
+    };
+    
+    // Get recent messages for this user
+    let messages = get_recent_api_messages(user_identifier, limit);
+    Ok(messages)
+}
+
+/// Get messages for the current user by bot
+#[ic_cdk::query]
+pub fn get_user_messages_by_bot(bot_name: String) -> Result<Vec<ApiMessage>, String> {
+    let caller_principal = caller();
+    
+    // Get the platform user ID for this principal
+    let platform_user_id = get_platform_user_id_for_principal(caller_principal)
+        .ok_or_else(|| "User not linked to any platform account".to_string())?;
+    
+    // We need to determine which platform this user belongs to
+    let user_identifier = if OPENCHAT_USERS.with(|users| {
+        users.borrow().iter().any(|(_, user)| user.openchat_id == platform_user_id)
+    }) {
+        UserIdentifier::OpenChatId(platform_user_id)
+    } else if SLACK_USERS.with(|users| {
+        users.borrow().iter().any(|(_, user)| user.slack_id == platform_user_id)
+    }) {
+        UserIdentifier::SlackId(platform_user_id)
+    } else if DISCORD_USERS.with(|users| {
+        users.borrow().iter().any(|(_, user)| user.discord_id == platform_user_id)
+    }) {
+        UserIdentifier::DiscordId(platform_user_id)
+    } else {
+        return Err("User not found in any platform".to_string());
+    };
+    
+    // Get messages for this user by bot
+    let messages = get_api_messages_by_bot(user_identifier, bot_name);
+    Ok(messages)
 }
