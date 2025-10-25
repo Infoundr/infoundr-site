@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ChatHistory from './ChatHistory';
 import TaskList from './TaskList';
 import GithubIssues from './GithubIssues';
-import { Actor } from '@dfinity/agent';
+import { Actor, ActorSubclass } from '@dfinity/agent';
 import { createActor } from "../../../../../declarations/backend";
 import { HttpAgent } from "@dfinity/agent";
 import { AuthClient } from "@dfinity/auth-client";
@@ -22,6 +22,7 @@ import UsageAnalytics from './UsageAnalytics';
 import Settings from './Settings';
 import BillingInvoices from './BillingInvoices';
 import ContactUs from './ContactUs';
+import Chat from './Chat';
 
 const DashboardLayout: React.FC = () => {
     const navigate = useNavigate();
@@ -30,6 +31,7 @@ const DashboardLayout: React.FC = () => {
     const [actor, setActor] = useState<Actor | null>(null);
     const [user, setUser] = useState<any>(null);
     const [contactModalOpen, setContactModalOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState<'dashboard' | 'chat'>('dashboard');
 
     useEffect(() => {
         const initActor = async () => {
@@ -138,6 +140,10 @@ const DashboardLayout: React.FC = () => {
         }
 
         return null;
+    };
+
+    const renderChat = () => {
+        return <Chat actor={actor as unknown as ActorSubclass<_SERVICE>} />;
     };
 
     const isActive = (path: string) => {
@@ -326,7 +332,7 @@ const DashboardLayout: React.FC = () => {
 
             {/* Main Content */}
             <div className="flex-1 flex flex-col overflow-hidden bg-gray-50">
-                {/* Top Header */}
+                {/* Top Navigation */}
                 <header className="bg-white shadow-sm border-b border-gray-200">
                     <div className="px-6 py-4 flex items-center justify-between">
                         <div className="flex items-center space-x-4">
@@ -338,12 +344,33 @@ const DashboardLayout: React.FC = () => {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                                 </svg>
                             </button>
-                            <div className="flex items-center space-x-2">
-                                <span className="text-lg font-semibold text-gray-800">Dashboard</span>
+                            
+                            {/* Tab Navigation */}
+                            <div className="flex items-center space-x-1 bg-gray-100 rounded-lg p-1">
+                                <button
+                                    onClick={() => setActiveTab('dashboard')}
+                                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                                        activeTab === 'dashboard'
+                                            ? 'bg-white text-gray-900 shadow-sm'
+                                            : 'text-gray-600 hover:text-gray-900'
+                                    }`}
+                                >
+                                    Dashboard
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('chat')}
+                                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                                        activeTab === 'chat'
+                                            ? 'bg-white text-gray-900 shadow-sm'
+                                            : 'text-gray-600 hover:text-gray-900'
+                                    }`}
+                                >
+                                    Chat
+                                </button>
                             </div>
                         </div>
                         <div className="flex items-center space-x-4">
-                            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                            <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
                                 <span className="text-white text-sm font-medium">
                                     {user ? user.name.split(' ').map((n: string) => n[0]).join('') : 'U'}
                                 </span>
@@ -354,7 +381,7 @@ const DashboardLayout: React.FC = () => {
 
                 {/* Content Area */}
                 <main className="flex-1 overflow-auto bg-gray-50">
-                    {renderContent()}
+                    {activeTab === 'dashboard' ? renderContent() : renderChat()}
                 </main>
             </div>
 
