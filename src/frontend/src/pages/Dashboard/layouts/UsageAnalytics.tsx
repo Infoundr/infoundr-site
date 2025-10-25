@@ -1,8 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createAnalyticsService } from '../../../services/analytics';
+import { AnalyticsSummary } from '../../../types/analytics';
+import { AreaChartComponent } from '../../../components/charts/AreaChart';
 
 const UsageAnalytics: React.FC = () => {
     const [selectedPeriod, setSelectedPeriod] = useState('7d');
     const [selectedDateRange, setSelectedDateRange] = useState('Oct 15 - Oct 23');
+    const [analyticsData, setAnalyticsData] = useState<AnalyticsSummary | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    // Fetch analytics data
+    useEffect(() => {
+        const fetchAnalytics = async () => {
+            try {
+                setIsLoading(true);
+                setError(null);
+                
+                const analyticsService = createAnalyticsService();
+                const days = selectedPeriod === '1d' ? 1 : selectedPeriod === '7d' ? 7 : 30;
+                const data = await analyticsService.getAnalyticsSummary(days);
+                
+                setAnalyticsData(data);
+            } catch (err) {
+                console.error('Error fetching analytics:', err);
+                setError('Failed to load analytics data');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchAnalytics();
+    }, [selectedPeriod]);
 
     const usageEvents = [
         { date: 'Oct 23, 10:50 AM', model: 'auto', kind: 'Included', tokens: '1.2M', cost: '$0.31 Included' },
@@ -21,76 +50,85 @@ const UsageAnalytics: React.FC = () => {
                 <p className="text-gray-600">Track your usage patterns and optimize your workflow.</p>
             </div>
 
-            {/* Subscription Plans */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold text-gray-800">Pro+</h3>
-                        <span className="text-sm text-gray-500">$60/mo.</span>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-4">Get 3x more usage than Pro, unlock higher limits on Agent, and more.</p>
-                    <button className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors flex items-center justify-center">
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+            {/* Analytics Overview */}
+            {isLoading ? (
+                <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                </div>
+            ) : error ? (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+                    <div className="flex items-center">
+                        <svg className="w-5 h-5 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        Upgrade to Pro+
-                    </button>
+                        <p className="text-red-800">{error}</p>
+                    </div>
                 </div>
+            ) : analyticsData ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm font-medium text-gray-600">Requests Made</p>
+                                <p className="text-2xl font-bold text-gray-900">{analyticsData.requests_made}</p>
+                            </div>
+                            <div className="p-3 bg-blue-100 rounded-full">
+                                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
 
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm font-medium text-gray-600">Lines of Code Edited</p>
+                                <p className="text-2xl font-bold text-gray-900">{analyticsData.lines_of_agent_edits}</p>
+                            </div>
+                            <div className="p-3 bg-green-100 rounded-full">
+                                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm font-medium text-gray-600">AI Interactions</p>
+                                <p className="text-2xl font-bold text-gray-900">{analyticsData.ai_interactions}</p>
+                            </div>
+                            <div className="p-3 bg-purple-100 rounded-full">
+                                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm font-medium text-gray-600">Tasks Completed</p>
+                                <p className="text-2xl font-bold text-gray-900">{analyticsData.tasks_completed}</p>
+                            </div>
+                            <div className="p-3 bg-orange-100 rounded-full">
+                                <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            ) : null}
+
+            {/* Usage Chart */}
+            {analyticsData && (
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold text-gray-800">Ultra</h3>
-                        <span className="text-sm text-gray-500">$200/mo.</span>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-4">Run parallel agents, get maximum value with 20x usage limits, and early access to advanced features.</p>
-                    <button className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors flex items-center justify-center">
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                        </svg>
-                        Upgrade to Ultra
-                    </button>
-                </div>
-
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold text-gray-800">Pro</h3>
-                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">Current</span>
-                    </div>
-                    <div className="text-sm text-gray-500 mb-4">$20/mo.</div>
-                    <p className="text-sm text-gray-600 mb-4">Entry-level plan with access to premium models, unlimited Tab completions, and more.</p>
-                    <button className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-200 transition-colors">
-                        Manage Subscription
-                    </button>
-                </div>
-            </div>
-
-            {/* On-Demand Usage */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h3 className="text-lg font-semibold text-gray-800">On-Demand Usage is Off</h3>
-                        <p className="text-sm text-gray-600 mt-1">Go beyond your plan's included quota with on-demand usage</p>
-                    </div>
-                    <button className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors">
-                        Enable On-Demand Usage
-                    </button>
-                </div>
-            </div>
-
-            {/* Usage Events */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-lg font-semibold text-gray-800">All Events</h2>
-                    <div className="flex items-center space-x-4">
-                        <select 
-                            value={selectedDateRange}
-                            onChange={(e) => setSelectedDateRange(e.target.value)}
-                            className="border border-gray-300 rounded-md px-3 py-1 text-sm"
-                        >
-                            <option value="Oct 15 - Oct 23">Oct 15 - Oct 23</option>
-                            <option value="Oct 8 - Oct 15">Oct 8 - Oct 15</option>
-                            <option value="Oct 1 - Oct 8">Oct 1 - Oct 8</option>
-                        </select>
+                    <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-lg font-semibold text-gray-800">Usage Trends</h3>
                         <div className="flex space-x-1">
                             {['1d', '7d', '30d'].map((period) => (
                                 <button
@@ -106,45 +144,93 @@ const UsageAnalytics: React.FC = () => {
                                 </button>
                             ))}
                         </div>
-                        <button className="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-800">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                            Export CSV
-                        </button>
+                    </div>
+                    
+                    {/* Area Chart Visualization */}
+                    <AreaChartComponent 
+                        data={analyticsData.chart_data.labels.map((label, index) => ({
+                            name: label,
+                            value: analyticsData.chart_data.datasets[0].data[index]
+                        }))}
+                        className="h-64"
+                    />
+                    
+                    <div className="mt-4 text-center">
+                        <p className="text-sm text-gray-600">
+                            Requests made over the last {selectedPeriod === '1d' ? 'day' : selectedPeriod === '7d' ? 'week' : 'month'}
+                        </p>
                     </div>
                 </div>
+            )}
 
-                <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead>
-                            <tr className="border-b border-gray-200">
-                                <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Date</th>
-                                <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Model</th>
-                                <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Kind</th>
-                                <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Tokens</th>
-                                <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Cost</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {usageEvents.map((event, index) => (
-                                <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
-                                    <td className="py-3 px-4 text-sm text-gray-800">{event.date}</td>
-                                    <td className="py-3 px-4 text-sm text-gray-600">{event.model}</td>
-                                    <td className="py-3 px-4 text-sm text-gray-600">{event.kind}</td>
-                                    <td className="py-3 px-4 text-sm text-gray-600 flex items-center">
-                                        {event.tokens}
-                                        <svg className="w-3 h-3 ml-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                    </td>
-                                    <td className="py-3 px-4 text-sm text-gray-600">{event.cost}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+            {/* Analytics Summary */}
+            {analyticsData && (
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-lg font-semibold text-gray-800">Analytics Summary</h2>
+                        <div className="flex items-center space-x-2 text-sm text-gray-600">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
+                            <span>Last {selectedPeriod === '1d' ? '24 hours' : selectedPeriod === '7d' ? '7 days' : '30 days'}</span>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                                <div>
+                                    <p className="text-sm font-medium text-gray-600">Total Requests</p>
+                                    <p className="text-2xl font-bold text-gray-900">{analyticsData.requests_made}</p>
+                                </div>
+                                <div className="text-blue-600">
+                                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                                <div>
+                                    <p className="text-sm font-medium text-gray-600">AI Interactions</p>
+                                    <p className="text-2xl font-bold text-gray-900">{analyticsData.ai_interactions}</p>
+                                </div>
+                                <div className="text-purple-600">
+                                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                                <div>
+                                    <p className="text-sm font-medium text-gray-600">Code Lines Edited</p>
+                                    <p className="text-2xl font-bold text-gray-900">{analyticsData.lines_of_agent_edits}</p>
+                                </div>
+                                <div className="text-green-600">
+                                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                                    </svg>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                                <div>
+                                    <p className="text-sm font-medium text-gray-600">Tasks Completed</p>
+                                    <p className="text-2xl font-bold text-gray-900">{analyticsData.tasks_completed}</p>
+                                </div>
+                                <div className="text-orange-600">
+                                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 };
