@@ -105,9 +105,176 @@ pub fn get_user_analytics(
     })
 }
 
+/// Get combined user analytics for a principal (includes both platform-specific and principal-based activity)
+pub fn get_combined_user_analytics(
+    principal_id: &str,
+    platform_user_id: Option<&str>,
+    days: u32,
+) -> Result<UserAnalytics, String> {
+    let current_day = get_current_day_timestamp();
+    let start_day = current_day.saturating_sub(days as u64);
+    
+    let mut daily_data_map: std::collections::HashMap<String, AnalyticsDataPoint> = std::collections::HashMap::new();
+    let mut total_requests = 0;
+    let mut total_lines_edited = 0;
+    let mut total_ai_interactions = 0;
+    let mut total_tasks_completed = 0;
+
+    // Get analytics data for the principal ID
+    USER_ANALYTICS.with(|analytics| {
+        let map = analytics.borrow();
+        for day in start_day..=current_day {
+            let key = (StableString::from(principal_id.to_string()), day);
+            if let Some(data_point) = map.get(&key) {
+                let date = data_point.date.clone();
+                if let Some(existing) = daily_data_map.get_mut(&date) {
+                    // Combine with existing data for this date
+                    existing.requests_made += data_point.requests_made;
+                    existing.lines_of_code_edited += data_point.lines_of_code_edited;
+                    existing.ai_interactions += data_point.ai_interactions;
+                    existing.tasks_completed += data_point.tasks_completed;
+                } else {
+                    daily_data_map.insert(date, data_point.clone());
+                }
+            }
+        }
+    });
+
+    // Get analytics data for the platform user ID (if exists)
+    if let Some(platform_id) = platform_user_id {
+        USER_ANALYTICS.with(|analytics| {
+            let map = analytics.borrow();
+            for day in start_day..=current_day {
+                let key = (StableString::from(platform_id.to_string()), day);
+                if let Some(data_point) = map.get(&key) {
+                    let date = data_point.date.clone();
+                    if let Some(existing) = daily_data_map.get_mut(&date) {
+                        // Combine with existing data for this date
+                        existing.requests_made += data_point.requests_made;
+                        existing.lines_of_code_edited += data_point.lines_of_code_edited;
+                        existing.ai_interactions += data_point.ai_interactions;
+                        existing.tasks_completed += data_point.tasks_completed;
+                    } else {
+                        daily_data_map.insert(date, data_point.clone());
+                    }
+                }
+            }
+        });
+    }
+
+    // Convert map to sorted vector and calculate totals
+    let mut daily_data: Vec<AnalyticsDataPoint> = daily_data_map.into_values().collect();
+    daily_data.sort_by(|a, b| a.date.cmp(&b.date));
+
+    for data_point in &daily_data {
+        total_requests += data_point.requests_made;
+        total_lines_edited += data_point.lines_of_code_edited;
+        total_ai_interactions += data_point.ai_interactions;
+        total_tasks_completed += data_point.tasks_completed;
+    }
+
+    let period_start = day_bucket_to_date_string(start_day);
+    let period_end = day_bucket_to_date_string(current_day);
+
+    Ok(UserAnalytics {
+        user_id: principal_id.to_string(),
+        total_requests,
+        total_lines_edited,
+        total_ai_interactions,
+        total_tasks_completed,
+        daily_data,
+        period_start,
+        period_end,
+    })
+}
+
 /// Get analytics summary for dashboard
 pub fn get_analytics_summary(user_id: &str, days: u32) -> Result<AnalyticsSummary, String> {
     let analytics = get_user_analytics(user_id, days)?;
+    
+    // Generate chart data based on period
+    let (labels, requests_data) = match days {
+        1 => {
+            // 1 day - show today's data only (most recent day)
+            if let Some(latest_day) = analytics.daily_data.last() {
+                (vec![latest_day.date.clone()], vec![latest_day.requests_made])
+            } else {
+                (vec!["Today".to_string()], vec![0])
+            }
+        },
+        7 => {
+            // 7 days - daily data
+            let labels: Vec<String> = analytics.daily_data.iter()
+                .map(|d| d.date.clone())
+                .collect();
+            let requests_data: Vec<u32> = analytics.daily_data.iter()
+                .map(|d| d.requests_made)
+                .collect();
+            (labels, requests_data)
+        },
+        30 => {
+            // 30 days - weekly data (group daily data into weeks)
+            let mut weekly_data: std::collections::HashMap<String, u32> = std::collections::HashMap::new();
+            let mut week_labels = Vec::new();
+            
+            // Group data into weeks
+            for (index, data_point) in analytics.daily_data.iter().enumerate() {
+                let week_num = (index / 7) + 1;
+                let week_label = format!("Week {}", week_num);
+                *weekly_data.entry(week_label.clone()).or_insert(0) += data_point.requests_made;
+                if !week_labels.contains(&week_label) {
+                    week_labels.push(week_label);
+                }
+            }
+            
+            let labels = week_labels;
+            let requests_data: Vec<u32> = labels.iter()
+                .map(|label| weekly_data.get(label).copied().unwrap_or(0))
+                .collect();
+            (labels, requests_data)
+        },
+        _ => {
+            // Default to daily data
+            let labels: Vec<String> = analytics.daily_data.iter()
+                .map(|d| d.date.clone())
+                .collect();
+            let requests_data: Vec<u32> = analytics.daily_data.iter()
+                .map(|d| d.requests_made)
+                .collect();
+            (labels, requests_data)
+        }
+    };
+
+    let datasets = vec![
+        ChartDataset {
+            label: "Requests Made".to_string(),
+            data: requests_data,
+            border_color: "#3B82F6".to_string(), // Blue
+            background_color: "rgba(59, 130, 246, 0.1)".to_string(),
+        },
+    ];
+
+    let chart_data = AnalyticsChartData {
+        labels,
+        datasets,
+    };
+
+    Ok(AnalyticsSummary {
+        requests_made: analytics.total_requests,
+        lines_of_agent_edits: analytics.total_lines_edited,
+        ai_interactions: analytics.total_ai_interactions,
+        tasks_completed: analytics.total_tasks_completed,
+        chart_data,
+    })
+}
+
+/// Get combined analytics summary for dashboard (includes both platform-specific and principal-based activity)
+pub fn get_combined_analytics_summary(
+    principal_id: &str,
+    platform_user_id: Option<&str>,
+    days: u32,
+) -> Result<AnalyticsSummary, String> {
+    let analytics = get_combined_user_analytics(principal_id, platform_user_id, days)?;
     
     // Generate chart data based on period
     let (labels, requests_data) = match days {

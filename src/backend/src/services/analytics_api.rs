@@ -3,13 +3,33 @@ use crate::models::api_message::ApiMessage;
 use ic_cdk::caller;
 use candid::Principal;
 use crate::services::analytics_service::{
-    get_analytics_summary as analytics_get_summary,
-    get_user_analytics as analytics_get_user_data,
     update_user_analytics as analytics_update_user,
     record_analytics_data as analytics_record_data
 };
 use crate::services::api_service::{get_recent_api_messages, get_api_messages_by_bot, UserIdentifier};
 use crate::storage::memory::{OPENCHAT_USERS, SLACK_USERS, DISCORD_USERS, MAIN_SITE_USERS};
+
+// ============================
+// Wrapper functions for analytics service
+// ============================
+
+/// Wrapper for combined analytics summary
+pub fn analytics_get_combined_summary(
+    principal_id: &str,
+    platform_user_id: Option<&str>,
+    days: u32,
+) -> Result<AnalyticsSummary, String> {
+    crate::services::analytics_service::get_combined_analytics_summary(principal_id, platform_user_id, days)
+}
+
+/// Wrapper for combined user analytics
+pub fn analytics_get_combined_user_data(
+    principal_id: &str,
+    platform_user_id: Option<&str>,
+    days: u32,
+) -> Result<UserAnalytics, String> {
+    crate::services::analytics_service::get_combined_user_analytics(principal_id, platform_user_id, days)
+}
 
 // ============================
 // ANALYTICS API ENDPOINTS
@@ -64,31 +84,32 @@ fn get_platform_user_id_for_principal(principal: Principal) -> Option<String> {
 #[ic_cdk::query]
 pub fn get_user_analytics_summary(days: u32) -> Result<AnalyticsSummary, String> {
     let caller_principal = caller();
+    let principal_id = caller_principal.to_string();
 
-    ic_cdk::println!("Getting analytics summary for principal: {:?}", caller_principal.to_string());
+    ic_cdk::println!("Getting analytics summary for principal: {:?}", principal_id);
     
-    // Get the platform user ID for this principal
-    let platform_user_id = get_platform_user_id_for_principal(caller_principal)
-        .ok_or_else(|| "User not linked to any platform account".to_string())?;
+    // Get the platform user ID for this principal (if exists)
+    let platform_user_id = get_platform_user_id_for_principal(caller_principal);
     ic_cdk::println!("Platform user ID: {:?}", platform_user_id);
     
-    analytics_get_summary(&platform_user_id, days)
+    // Use combined analytics that includes both principal-based and platform-specific activity
+    analytics_get_combined_summary(&principal_id, platform_user_id.as_deref(), days)
 }
 
 /// Get detailed analytics for a user
 #[ic_cdk::query]
 pub fn get_user_analytics(days: u32) -> Result<UserAnalytics, String> {
     let caller_principal = caller();
+    let principal_id = caller_principal.to_string();
 
-    ic_cdk::println!("Getting analytics summary for principal: {:?}", caller_principal.to_string());
+    ic_cdk::println!("Getting detailed analytics for principal: {:?}", principal_id);
     
-    // Get the platform user ID for this principal
-    let platform_user_id = get_platform_user_id_for_principal(caller_principal)
-        .ok_or_else(|| "User not linked to any platform account".to_string())?;
-
+    // Get the platform user ID for this principal (if exists)
+    let platform_user_id = get_platform_user_id_for_principal(caller_principal);
     ic_cdk::println!("Platform user ID: {:?}", platform_user_id);
     
-    analytics_get_user_data(&platform_user_id, days)
+    // Use combined analytics that includes both principal-based and platform-specific activity
+    analytics_get_combined_user_data(&principal_id, platform_user_id.as_deref(), days)
 }
 
 /// Update analytics data for a user (call this when user makes requests)
