@@ -9,7 +9,7 @@ use crate::services::analytics_service::{
     record_analytics_data as analytics_record_data
 };
 use crate::services::api_service::{get_recent_api_messages, get_api_messages_by_bot, UserIdentifier};
-use crate::storage::memory::{OPENCHAT_USERS, SLACK_USERS, DISCORD_USERS};
+use crate::storage::memory::{OPENCHAT_USERS, SLACK_USERS, DISCORD_USERS, MAIN_SITE_USERS};
 
 // ============================
 // ANALYTICS API ENDPOINTS
@@ -46,6 +46,16 @@ fn get_platform_user_id_for_principal(principal: Principal) -> Option<String> {
                 .iter()
                 .find(|(_, user)| user.site_principal.as_ref().map(|p| p.get()) == Some(principal))
                 .map(|(_, user)| user.discord_id.clone())
+        })
+    })
+    .or_else(|| {
+        // Check MainSite users
+        MAIN_SITE_USERS.with(|users| {
+            users
+                .borrow()
+                .iter()
+                .find(|(_, user)| user.site_principal.as_ref().map(|p| p.get()) == Some(principal))
+                .map(|(_, user)| user.main_site_id.clone())
         })
     })
 }
@@ -138,6 +148,10 @@ pub fn get_user_recent_messages(limit: u32) -> Result<Vec<ApiMessage>, String> {
         users.borrow().iter().any(|(_, user)| user.discord_id == platform_user_id)
     }) {
         UserIdentifier::DiscordId(platform_user_id)
+    } else if MAIN_SITE_USERS.with(|users| {
+        users.borrow().iter().any(|(_, user)| user.main_site_id == platform_user_id)
+    }) {
+        UserIdentifier::MainSiteId(platform_user_id)
     } else {
         return Err("User not found in any platform".to_string());
     };
@@ -169,6 +183,10 @@ pub fn get_user_messages_by_bot(bot_name: String) -> Result<Vec<ApiMessage>, Str
         users.borrow().iter().any(|(_, user)| user.discord_id == platform_user_id)
     }) {
         UserIdentifier::DiscordId(platform_user_id)
+    } else if MAIN_SITE_USERS.with(|users| {
+        users.borrow().iter().any(|(_, user)| user.main_site_id == platform_user_id)
+    }) {
+        UserIdentifier::MainSiteId(platform_user_id)
     } else {
         return Err("User not found in any platform".to_string());
     };
