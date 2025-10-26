@@ -44,7 +44,7 @@ const Chat: React.FC<ChatProps> = ({ actor }) => {
         { name: 'InFoundr AI Co-founder', icon: '', color: 'purple' },
         { name: 'GitHub Assistant', icon: '', color: 'blue' },
         { name: 'Gmail Agent', icon: '', color: 'green' },
-        { name: 'Calendar Manager', icon: '', color: 'orange' },
+        { name: 'Calendar Agent', icon: '', color: 'orange' },
         { name: 'Task Automation', icon: '', color: 'indigo' }
     ];
 
@@ -95,7 +95,23 @@ const Chat: React.FC<ChatProps> = ({ actor }) => {
             // Fetch recent messages for the current user using the actor's principal
             const result = await actor.get_user_recent_messages(50);
             
+            console.log('Frontend - Raw result from get_user_recent_messages:', result);
+            
             if ('Ok' in result) {
+                console.log('Frontend - Successfully fetched messages:', result.Ok);
+                console.log('Frontend - Number of messages received:', result.Ok.length);
+                console.log('Frontend - Messages details:', result.Ok.map(msg => ({
+                    id: msg.id,
+                    bot_name: msg.bot_name,
+                    message: msg.message.substring(0, 50) + '...',
+                    timestamp: msg.timestamp.toString()
+                })));
+                
+                // Log unique bot names found in messages
+                const uniqueBotNames = [...new Set(result.Ok.map(msg => msg.bot_name))];
+                console.log('Frontend - Unique bot names in messages:', uniqueBotNames);
+                console.log('Frontend - Expected bot names in segments:', botSegments.map(bot => bot.name));
+                
                 setUserMessages(result.Ok);
             } else {
                 console.error('Error fetching user messages:', result.Err);
@@ -112,7 +128,18 @@ const Chat: React.FC<ChatProps> = ({ actor }) => {
     };
 
     const getBotMessages = (botName: string) => {
-        return userMessages.filter(msg => msg.bot_name === botName);
+        const filteredMessages = userMessages.filter(msg => msg.bot_name === botName);
+        console.log(`Frontend - getBotMessages for "${botName}":`, {
+            totalUserMessages: userMessages.length,
+            filteredMessages: filteredMessages.length,
+            messages: filteredMessages.map(msg => ({
+                id: msg.id,
+                bot_name: msg.bot_name,
+                message: msg.message.substring(0, 50) + '...',
+                timestamp: msg.timestamp.toString()
+            }))
+        });
+        return filteredMessages;
     };
 
     const formatDate = (timestamp: bigint) => {
@@ -181,6 +208,10 @@ const Chat: React.FC<ChatProps> = ({ actor }) => {
     };
 
     const handleBotClick = (botName: string) => {
+        console.log(`Frontend - handleBotClick for "${botName}"`);
+        console.log('Frontend - Current userMessages:', userMessages.length);
+        console.log('Frontend - Messages for this bot:', getBotMessages(botName).length);
+        
         setActiveBot(botName);
         // Scroll to conversation history section
         setTimeout(() => {
@@ -242,7 +273,7 @@ const Chat: React.FC<ChatProps> = ({ actor }) => {
             setCurrentResponse(data.text || 'No response received');
             
             // Store the message using the backend's store_api_message function
-            await storeMessageInBackend(message, data.text || 'No response received', data.bot_name || 'InFoundr AI', principal);
+            // await storeMessageInBackend(message, data.text || 'No response received', data.bot_name || 'InFoundr AI', principal);
             
             // Refresh messages
             await fetchUserMessages();
@@ -255,28 +286,28 @@ const Chat: React.FC<ChatProps> = ({ actor }) => {
         }
     };
 
-    const storeMessageInBackend = async (message: string, response: string, botName: string, principal: any) => {
-        if (!actor) return;
+    // const storeMessageInBackend = async (message: string, response: string, botName: string, principal: any) => {
+    //     if (!actor) return;
 
-        try {
-            // Store the message using the backend's store_api_message function with Principal identifier
-            const result = await actor.store_api_message(
-                { Principal: principal }, // Use Principal identifier
-                message,
-                response,
-                botName,
-                [] // metadata as empty array
-            );
+    //     try {
+    //         // Store the message using the backend's store_api_message function with Principal identifier
+    //         const result = await actor.store_api_message(
+    //             { Principal: principal }, // Use Principal identifier
+    //             message,
+    //             response,
+    //             botName,
+    //             [] // metadata as empty array
+    //         );
 
-            if ('Ok' in result) {
-                console.log('Message stored successfully:', result.Ok);
-            } else {
-                console.error('Failed to store message:', result.Err);
-            }
-        } catch (error) {
-            console.error('Error storing message:', error);
-        }
-    };
+    //         if ('Ok' in result) {
+    //             console.log('Message stored successfully:', result.Ok);
+    //         } else {
+    //             console.error('Failed to store message:', result.Err);
+    //         }
+    //     } catch (error) {
+    //         console.error('Error storing message:', error);
+    //     }
+    // };
 
 
     return (
@@ -380,6 +411,7 @@ const Chat: React.FC<ChatProps> = ({ actor }) => {
                         <div className="flex flex-wrap gap-3 justify-center">
                             {botSegments.map((bot) => {
                                 const botMessages = getBotMessages(bot.name);
+                                console.log(`Frontend - Rendering bot segment "${bot.name}" with ${botMessages.length} messages`);
                                 return (
                                     <button
                                         key={bot.name}

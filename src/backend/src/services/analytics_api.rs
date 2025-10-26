@@ -151,35 +151,67 @@ pub fn record_analytics_data(
 #[ic_cdk::query]
 pub fn get_user_recent_messages(limit: u32) -> Result<Vec<ApiMessage>, String> {
     let caller_principal = caller();
+    // let principal_id = caller_principal.to_string();
     
-    // Get the platform user ID for this principal
-    let platform_user_id = get_platform_user_id_for_principal(caller_principal)
-        .ok_or_else(|| "User not linked to any platform account".to_string())?;
-    
-    // We need to determine which platform this user belongs to
-    let user_identifier = if OPENCHAT_USERS.with(|users| {
-        users.borrow().iter().any(|(_, user)| user.openchat_id == platform_user_id)
-    }) {
-        UserIdentifier::OpenChatId(platform_user_id)
-    } else if SLACK_USERS.with(|users| {
-        users.borrow().iter().any(|(_, user)| user.slack_id == platform_user_id)
-    }) {
-        UserIdentifier::SlackId(platform_user_id)
-    } else if DISCORD_USERS.with(|users| {
-        users.borrow().iter().any(|(_, user)| user.discord_id == platform_user_id)
-    }) {
-        UserIdentifier::DiscordId(platform_user_id)
-    } else if MAIN_SITE_USERS.with(|users| {
-        users.borrow().iter().any(|(_, user)| user.main_site_id == platform_user_id)
-    }) {
-        UserIdentifier::MainSiteId(platform_user_id)
+    // First try to get messages from platform-specific accounts
+    if let Some(platform_user_id) = get_platform_user_id_for_principal(caller_principal) {
+        // We need to determine which platform this user belongs to
+        let user_identifier = if OPENCHAT_USERS.with(|users| {
+            users.borrow().iter().any(|(_, user)| user.openchat_id == platform_user_id)
+        }) {
+            UserIdentifier::OpenChatId(platform_user_id)
+        } else if SLACK_USERS.with(|users| {
+            users.borrow().iter().any(|(_, user)| user.slack_id == platform_user_id)
+        }) {
+            UserIdentifier::SlackId(platform_user_id)
+        } else if DISCORD_USERS.with(|users| {
+            users.borrow().iter().any(|(_, user)| user.discord_id == platform_user_id)
+        }) {
+            UserIdentifier::DiscordId(platform_user_id)
+        } else if MAIN_SITE_USERS.with(|users| {
+            users.borrow().iter().any(|(_, user)| user.main_site_id == platform_user_id)
+        }) {
+            UserIdentifier::MainSiteId(platform_user_id)
+        } else {
+            return Err("User not found in any platform".to_string());
+        };
+        ic_cdk::println!("User identifier: {:?}", user_identifier.clone());
+
+        // Get recent messages for this platform user
+        let platform_messages = get_recent_api_messages(user_identifier, limit);
+        // ic_cdk::println!("Platform messages: {:?}", platform_messages.clone());
+
+        // Also get messages stored under the principal ID (frontend usage)
+        let principal_identifier = UserIdentifier::Principal(caller_principal);
+        let principal_messages = get_recent_api_messages(principal_identifier, limit);
+        // ic_cdk::println!("Principal messages: {:?}", principal_messages.clone());
+        
+        // Combine and deduplicate messages
+        let mut all_messages = Vec::new();
+        all_messages.extend(platform_messages);
+        all_messages.extend(principal_messages);
+        ic_cdk::println!("All messages: {:?}", all_messages.clone());
+
+        // Remove duplicates based on message content and timestamp
+        all_messages.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+        ic_cdk::println!("All messages before deduplication: {:?}", all_messages.len());
+        all_messages.dedup_by(|a, b| a.message == b.message && a.timestamp == b.timestamp);
+        ic_cdk::println!("All messages after deduplication: {:?}", all_messages.len());
+        
+        // Limit to requested number
+        all_messages.truncate(limit as usize);
+        ic_cdk::println!("All messages after truncation: {:?}", all_messages.len());
+        
+        Ok(all_messages)
     } else {
-        return Err("User not found in any platform".to_string());
-    };
-    
-    // Get recent messages for this user
-    let messages = get_recent_api_messages(user_identifier, limit);
-    Ok(messages)
+        ic_cdk::println!("User has no platform account, only getting principal-based messages");
+        // User has no platform account, only get principal-based messages
+        let principal_identifier = UserIdentifier::Principal(caller_principal);
+        let messages = get_recent_api_messages(principal_identifier, limit);
+        ic_cdk::println!("Principal messages: {:?}", messages.clone());
+        ic_cdk::println!("Principal messages count: {:?}", messages.len());
+        Ok(messages)
+    }
 }
 
 /// Get messages for the current user by bot
@@ -187,32 +219,50 @@ pub fn get_user_recent_messages(limit: u32) -> Result<Vec<ApiMessage>, String> {
 pub fn get_user_messages_by_bot(bot_name: String) -> Result<Vec<ApiMessage>, String> {
     let caller_principal = caller();
     
-    // Get the platform user ID for this principal
-    let platform_user_id = get_platform_user_id_for_principal(caller_principal)
-        .ok_or_else(|| "User not linked to any platform account".to_string())?;
-    
-    // We need to determine which platform this user belongs to
-    let user_identifier = if OPENCHAT_USERS.with(|users| {
-        users.borrow().iter().any(|(_, user)| user.openchat_id == platform_user_id)
-    }) {
-        UserIdentifier::OpenChatId(platform_user_id)
-    } else if SLACK_USERS.with(|users| {
-        users.borrow().iter().any(|(_, user)| user.slack_id == platform_user_id)
-    }) {
-        UserIdentifier::SlackId(platform_user_id)
-    } else if DISCORD_USERS.with(|users| {
-        users.borrow().iter().any(|(_, user)| user.discord_id == platform_user_id)
-    }) {
-        UserIdentifier::DiscordId(platform_user_id)
-    } else if MAIN_SITE_USERS.with(|users| {
-        users.borrow().iter().any(|(_, user)| user.main_site_id == platform_user_id)
-    }) {
-        UserIdentifier::MainSiteId(platform_user_id)
+    // First try to get messages from platform-specific accounts
+    if let Some(platform_user_id) = get_platform_user_id_for_principal(caller_principal) {
+        // We need to determine which platform this user belongs to
+        let user_identifier = if OPENCHAT_USERS.with(|users| {
+            users.borrow().iter().any(|(_, user)| user.openchat_id == platform_user_id)
+        }) {
+            UserIdentifier::OpenChatId(platform_user_id)
+        } else if SLACK_USERS.with(|users| {
+            users.borrow().iter().any(|(_, user)| user.slack_id == platform_user_id)
+        }) {
+            UserIdentifier::SlackId(platform_user_id)
+        } else if DISCORD_USERS.with(|users| {
+            users.borrow().iter().any(|(_, user)| user.discord_id == platform_user_id)
+        }) {
+            UserIdentifier::DiscordId(platform_user_id)
+        } else if MAIN_SITE_USERS.with(|users| {
+            users.borrow().iter().any(|(_, user)| user.main_site_id == platform_user_id)
+        }) {
+            UserIdentifier::MainSiteId(platform_user_id)
+        } else {
+            return Err("User not found in any platform".to_string());
+        };
+        
+        // Get messages for this platform user by bot
+        let platform_messages = get_api_messages_by_bot(user_identifier, bot_name.clone());
+        
+        // Also get messages stored under the principal ID (frontend usage)
+        let principal_identifier = UserIdentifier::Principal(caller_principal);
+        let principal_messages = get_api_messages_by_bot(principal_identifier, bot_name);
+        
+        // Combine and deduplicate messages
+        let mut all_messages = Vec::new();
+        all_messages.extend(platform_messages);
+        all_messages.extend(principal_messages);
+        
+        // Remove duplicates based on message content and timestamp
+        all_messages.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+        all_messages.dedup_by(|a, b| a.message == b.message && a.timestamp == b.timestamp);
+        
+        Ok(all_messages)
     } else {
-        return Err("User not found in any platform".to_string());
-    };
-    
-    // Get messages for this user by bot
-    let messages = get_api_messages_by_bot(user_identifier, bot_name);
-    Ok(messages)
+        // User has no platform account, only get principal-based messages
+        let principal_identifier = UserIdentifier::Principal(caller_principal);
+        let messages = get_api_messages_by_bot(principal_identifier, bot_name);
+        Ok(messages)
+    }
 }
