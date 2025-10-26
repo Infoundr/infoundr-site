@@ -149,9 +149,6 @@ const Chat: React.FC<ChatProps> = ({ actor }) => {
 
     const handleExampleClick = (example: any) => {
         setSearchTerm(example.title);
-        // Send the message immediately
-        handleSendMessage(example.title);
-        setSearchTerm('');
         // Hide conversation history and scroll back to top
         setActiveBot(null);
         setTimeout(() => {
@@ -290,11 +287,11 @@ const Chat: React.FC<ChatProps> = ({ actor }) => {
                     {/* Main Input Area */}
                     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
                         <div className="flex items-center space-x-4">
-                            <div className="flex-1">
+                            <div className="flex-1 flex items-center space-x-3">
                                 <input
                                     type="text"
                                     placeholder="Ask InFoundr to build, fix bugs, explore"
-                                    className="w-full px-4 py-3 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+                                    className="flex-1 px-4 py-3 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
                                     value={searchTerm}
                                     onChange={(e) => {
                                         setSearchTerm(e.target.value);
@@ -311,8 +308,33 @@ const Chat: React.FC<ChatProps> = ({ actor }) => {
                                     }}
                                     disabled={isLoading}
                                 />
+                                <button
+                                    onClick={() => {
+                                        if (searchTerm.trim()) {
+                                            handleSendMessage(searchTerm);
+                                            setSearchTerm('');
+                                            setIsTyping(false);
+                                        }
+                                    }}
+                                    disabled={isLoading || !searchTerm.trim()}
+                                    className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200 flex items-center space-x-2"
+                                >
+                                    {isLoading ? (
+                                        <>
+                                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                            <span>Sending...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                                            </svg>
+                                            <span>Send</span>
+                                        </>
+                                    )}
+                                </button>
                             </div>
-                            <div className="flex items-center space-x-2">
+                            {/* <div className="flex items-center space-x-2">
                                 <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -323,7 +345,7 @@ const Chat: React.FC<ChatProps> = ({ actor }) => {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                                     </svg>
                                 </button>
-                            </div>
+                            </div> */}
                         </div>
                     </div>
 
@@ -488,19 +510,23 @@ const Chat: React.FC<ChatProps> = ({ actor }) => {
                                             {currentResponse}
                                         </ReactMarkdown>
                                     </div>
-                                    <div className="mt-4 pt-3 border-t border-gray-100">
-                                        <button
-                                            onClick={handleShowPreviousMessages}
-                                            className="text-sm text-purple-600 hover:text-purple-800 font-medium transition-colors flex items-center space-x-1"
-                                        >
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                                            </svg>
-                                            <span>Check previous messages</span>
-                                        </button>
-                                    </div>
                                 </div>
                             </div>
+                        </div>
+                    )}
+
+                    {/* Check Previous Messages Link - Independent */}
+                    {currentResponse && (
+                        <div className="text-center mb-8">
+                            <button
+                                onClick={handleShowPreviousMessages}
+                                className="inline-flex items-center space-x-2 px-6 py-3 bg-white border border-gray-200 rounded-full text-sm text-gray-700 hover:bg-gray-50 hover:border-purple-300 transition-all duration-200 shadow-sm hover:shadow-md"
+                            >
+                                <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                </svg>
+                                <span className="font-medium">Check previous messages</span>
+                            </button>
                         </div>
                     )}
 
