@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { getLinkedWorkspaceAccounts } from '../../../services/workspace-connection';
+import { createSettingsService, SettingsUserData } from '../../../services/settings';
+import { mockActor, useMockData } from '../../../mocks/mockData';
+import LoadingSpinner from '../../../components/LoadingSpinner';
 
 const Settings: React.FC = () => {
-    const [displayName, setDisplayName] = useState('Steve Kimoi');
+    const [displayName, setDisplayName] = useState('');
     const [isEditingName, setIsEditingName] = useState(false);
-    const [tempDisplayName, setTempDisplayName] = useState(displayName);
+    const [tempDisplayName, setTempDisplayName] = useState('');
     const [onDemandUsage, setOnDemandUsage] = useState(false);
     const [shareData, setShareData] = useState(true);
     const [linkedWorkspaces, setLinkedWorkspaces] = useState([
@@ -13,6 +16,51 @@ const Settings: React.FC = () => {
         { id: 3, name: 'OpenChat Group', platform: 'OpenChat', connected: 'Connected 3 weeks ago', icon: '💬', status: 'Active' },
     ]);
     const [isLoadingWorkspaces, setIsLoadingWorkspaces] = useState(true);
+    const [user, setUser] = useState<SettingsUserData | null>(null);
+    const [isLoadingUser, setIsLoadingUser] = useState(true);
+    const [settingsService] = useState(() => createSettingsService());
+
+    // Fetch user data using the user service
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                setIsLoadingUser(true);
+                
+                if (useMockData) {
+                    // Set mock user data
+                    const mockUserData: SettingsUserData = {
+                        name: "John Doe",
+                        email: "john@example.com",
+                        plan: "Free Plan"
+                    };
+                    setUser(mockUserData);
+                    setDisplayName(mockUserData.name);
+                    setTempDisplayName(mockUserData.name);
+                } else {
+                    // Fetch real user data using the service
+                    const userData = await settingsService.getCurrentUserData();
+                    setUser(userData);
+                    setDisplayName(userData.name);
+                    setTempDisplayName(userData.name);
+                }
+            } catch (error) {
+                console.error("Failed to fetch user data:", error);
+                // Set fallback data
+                const fallbackUserData: SettingsUserData = {
+                    name: "User",
+                    email: "user@example.com",
+                    plan: "Free Plan"
+                };
+                setUser(fallbackUserData);
+                setDisplayName(fallbackUserData.name);
+                setTempDisplayName(fallbackUserData.name);
+            } finally {
+                setIsLoadingUser(false);
+            }
+        };
+
+        fetchUserData();
+    }, [settingsService]);
 
     // Fetch linked workspace accounts on component load
     useEffect(() => {
@@ -43,11 +91,21 @@ const Settings: React.FC = () => {
         setTempDisplayName(displayName);
     };
 
-    const handleSaveName = () => {
-        setDisplayName(tempDisplayName);
-        setIsEditingName(false);
-        // TODO: Save to backend
-        console.log('Saving display name:', tempDisplayName);
+    const handleSaveName = async () => {
+        try {
+            // Update local state first
+            setDisplayName(tempDisplayName);
+            setIsEditingName(false);
+            
+            // Update via service (when backend supports it)
+            await settingsService.updateDisplayName(tempDisplayName);
+            
+            console.log('Display name saved:', tempDisplayName);
+        } catch (error) {
+            console.error('Error saving display name:', error);
+            // Revert local state on error
+            setTempDisplayName(displayName);
+        }
     };
 
     const handleCancelEdit = () => {
@@ -65,6 +123,15 @@ const Settings: React.FC = () => {
         console.log('Delete account requested');
     };
 
+    // Show loading spinner while fetching user data
+    if (isLoadingUser) {
+        return (
+            <div className="flex items-center justify-center h-screen">
+                <LoadingSpinner size="lg" />
+            </div>
+        );
+    }
+
     return (
         <div className="p-6 space-y-6">
             {/* Header */}
@@ -78,6 +145,24 @@ const Settings: React.FC = () => {
                 <h3 className="text-lg font-semibold text-gray-800 mb-6">Profile</h3>
                 
                 <div className="space-y-4">
+                    {/* User Info Display */}
+                    {user && (
+                        <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg mb-4">
+                            <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center">
+                                <span className="text-white text-lg font-medium">
+                                    {user.name.split(' ').map((n: string) => n[0]).join('')}
+                                </span>
+                            </div>
+                            <div className="flex-1">
+                                <h4 className="font-medium text-gray-800">{user.name}</h4>
+                                <p className="text-sm text-gray-600">{user.email}</p>
+                                <span className="inline-block mt-1 text-xs font-medium px-2 py-1 rounded-full bg-purple-100 text-purple-800">
+                                    {user.plan}
+                                </span>
+                            </div>
+                        </div>
+                    )}
+
                     <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                         <div className="flex-1">
                             <h4 className="font-medium text-gray-800 mb-2">Display Name</h4>

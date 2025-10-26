@@ -175,41 +175,31 @@ pub fn get_user_recent_messages(limit: u32) -> Result<Vec<ApiMessage>, String> {
         } else {
             return Err("User not found in any platform".to_string());
         };
-        ic_cdk::println!("User identifier: {:?}", user_identifier.clone());
 
         // Get recent messages for this platform user
         let platform_messages = get_recent_api_messages(user_identifier, limit);
-        // ic_cdk::println!("Platform messages: {:?}", platform_messages.clone());
 
         // Also get messages stored under the principal ID (frontend usage)
         let principal_identifier = UserIdentifier::Principal(caller_principal);
         let principal_messages = get_recent_api_messages(principal_identifier, limit);
-        // ic_cdk::println!("Principal messages: {:?}", principal_messages.clone());
         
         // Combine and deduplicate messages
         let mut all_messages = Vec::new();
         all_messages.extend(platform_messages);
         all_messages.extend(principal_messages);
-        ic_cdk::println!("All messages: {:?}", all_messages.clone());
 
         // Remove duplicates based on message content and timestamp
         all_messages.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
-        ic_cdk::println!("All messages before deduplication: {:?}", all_messages.len());
         all_messages.dedup_by(|a, b| a.message == b.message && a.timestamp == b.timestamp);
-        ic_cdk::println!("All messages after deduplication: {:?}", all_messages.len());
         
         // Limit to requested number
         all_messages.truncate(limit as usize);
-        ic_cdk::println!("All messages after truncation: {:?}", all_messages.len());
         
         Ok(all_messages)
     } else {
-        ic_cdk::println!("User has no platform account, only getting principal-based messages");
         // User has no platform account, only get principal-based messages
         let principal_identifier = UserIdentifier::Principal(caller_principal);
         let messages = get_recent_api_messages(principal_identifier, limit);
-        ic_cdk::println!("Principal messages: {:?}", messages.clone());
-        ic_cdk::println!("Principal messages count: {:?}", messages.len());
         Ok(messages)
     }
 }
