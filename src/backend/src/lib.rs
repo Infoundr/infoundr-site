@@ -50,6 +50,7 @@ use crate::services::accelerator_service::TeamInvite;
 use crate::services::accelerator_service::{GenerateStartupInviteInput, StartupRegistrationInput};
 pub use crate::models::usage_service::{UsageStats, UserTier, UserSubscription};
 pub use crate::services::admin::{UserActivityReport, PaymentStats};
+pub use crate::services::settings_service::{update_display_name, get_display_name, get_user_profile, update_email};
 pub use crate::models::analytics::{AnalyticsSummary, UserAnalytics, AnalyticsChartData};
 use crate::models::admin::PlaygroundStats;
 use crate::migrations::{CurrentStableState, migrate_from_bytes};

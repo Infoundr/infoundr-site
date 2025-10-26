@@ -66,23 +66,78 @@ export class SettingsService {
 
     /**
      * Update user display name
-     * TODO: Implement backend API call when backend supports it
      */
     async updateDisplayName(newName: string): Promise<void> {
         try {
             const actor = await this.ensureActor();
             
-            // TODO: Implement backend API call to update display name
-            // For now, just log the action
-            console.log('Updating display name to:', newName);
+            const result = await actor.update_display_name(newName);
             
-            // When backend supports it, uncomment this:
-            // const result = await actor.update_display_name(newName);
-            // if ('Err' in result) {
-            //     throw new Error(result.Err);
-            // }
+            if ('Err' in result) {
+                throw new Error(result.Err);
+            }
+            
+            console.log('Display name updated successfully:', newName);
         } catch (error) {
             console.error('Error updating display name:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get current user's display name
+     */
+    async getDisplayName(): Promise<string> {
+        try {
+            const actor = await this.ensureActor();
+            const result = await actor.get_display_name();
+            
+            if ('Ok' in result) {
+                return result.Ok;
+            } else {
+                throw new Error(result.Err);
+            }
+        } catch (error) {
+            console.error('Error fetching display name:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get current user's profile information
+     */
+    async getUserProfile(): Promise<any> {
+        try {
+            const actor = await this.ensureActor();
+            const result = await actor.get_user_profile();
+            
+            if ('Ok' in result) {
+                return result.Ok;
+            } else {
+                throw new Error(result.Err);
+            }
+        } catch (error) {
+            console.error('Error fetching user profile:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Update user email
+     */
+    async updateEmail(newEmail: string): Promise<void> {
+        try {
+            const actor = await this.ensureActor();
+            
+            const result = await actor.update_email(newEmail);
+            
+            if ('Err' in result) {
+                throw new Error(result.Err);
+            }
+            
+            console.log('Email updated successfully:', newEmail);
+        } catch (error) {
+            console.error('Error updating email:', error);
             throw error;
         }
     }

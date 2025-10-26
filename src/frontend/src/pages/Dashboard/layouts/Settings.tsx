@@ -19,6 +19,10 @@ const Settings: React.FC = () => {
     const [user, setUser] = useState<SettingsUserData | null>(null);
     const [isLoadingUser, setIsLoadingUser] = useState(true);
     const [settingsService] = useState(() => createSettingsService());
+    const [isSavingName, setIsSavingName] = useState(false);
+    const [showModal, setShowModal] = useState(false);
+    const [modalMessage, setModalMessage] = useState('');
+    const [modalType, setModalType] = useState<'success' | 'error'>('success');
 
     // Fetch user data using the user service
     useEffect(() => {
@@ -93,18 +97,33 @@ const Settings: React.FC = () => {
 
     const handleSaveName = async () => {
         try {
-            // Update local state first
+            setIsSavingName(true);
+            
+            // Update via service first
+            await settingsService.updateDisplayName(tempDisplayName);
+            
+            // Update local state only after successful backend update
             setDisplayName(tempDisplayName);
             setIsEditingName(false);
             
-            // Update via service (when backend supports it)
-            await settingsService.updateDisplayName(tempDisplayName);
+            // Show success modal
+            setModalMessage('Display name updated successfully!');
+            setModalType('success');
+            setShowModal(true);
             
-            console.log('Display name saved:', tempDisplayName);
+            console.log('Display name saved successfully:', tempDisplayName);
         } catch (error) {
             console.error('Error saving display name:', error);
-            // Revert local state on error
+            // Revert temp name on error
             setTempDisplayName(displayName);
+            
+            // Show error modal
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+            setModalMessage(`Failed to update display name: ${errorMessage}`);
+            setModalType('error');
+            setShowModal(true);
+        } finally {
+            setIsSavingName(false);
         }
     };
 
@@ -175,19 +194,29 @@ const Settings: React.FC = () => {
                                         type="text"
                                         value={tempDisplayName}
                                         onChange={(e) => setTempDisplayName(e.target.value)}
-                                        className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                                         placeholder="Enter your display name"
                                         autoFocus
+                                        disabled={isSavingName}
                                     />
                                     <button
                                         onClick={handleSaveName}
-                                        className="bg-purple-500 text-white py-2 px-3 rounded-md hover:bg-purple-600 transition-colors text-sm"
+                                        disabled={isSavingName}
+                                        className="bg-purple-500 text-white py-2 px-3 rounded-md hover:bg-purple-600 disabled:bg-purple-300 disabled:cursor-not-allowed transition-colors text-sm flex items-center space-x-2"
                                     >
-                                        Save
+                                        {isSavingName ? (
+                                            <>
+                                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                                <span>Saving...</span>
+                                            </>
+                                        ) : (
+                                            <span>Save</span>
+                                        )}
                                     </button>
                                     <button
                                         onClick={handleCancelEdit}
-                                        className="bg-gray-100 text-gray-700 py-2 px-3 rounded-md hover:bg-gray-200 transition-colors text-sm"
+                                        disabled={isSavingName}
+                                        className="bg-gray-100 text-gray-700 py-2 px-3 rounded-md hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors text-sm"
                                     >
                                         Cancel
                                     </button>
@@ -303,6 +332,53 @@ const Settings: React.FC = () => {
                     </button>
                 </div>
             </div> */}
+
+            {/* Success/Error Modal */}
+            {showModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                    <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+                        <div className="flex items-center space-x-4">
+                            {modalType === 'success' ? (
+                                <div className="flex-shrink-0">
+                                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                                        <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="flex-shrink-0">
+                                    <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                                        <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </div>
+                                </div>
+                            )}
+                            <div className="flex-1">
+                                <h3 className={`text-lg font-medium ${modalType === 'success' ? 'text-green-900' : 'text-red-900'}`}>
+                                    {modalType === 'success' ? 'Success!' : 'Error'}
+                                </h3>
+                                <p className={`mt-1 text-sm ${modalType === 'success' ? 'text-green-700' : 'text-red-700'}`}>
+                                    {modalMessage}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="mt-6 flex justify-end">
+                            <button
+                                onClick={() => setShowModal(false)}
+                                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                                    modalType === 'success'
+                                        ? 'bg-green-600 text-white hover:bg-green-700'
+                                        : 'bg-red-600 text-white hover:bg-red-700'
+                                }`}
+                            >
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

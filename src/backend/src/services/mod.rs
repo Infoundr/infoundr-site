@@ -17,3 +17,4 @@ pub mod analytics_service;
 pub mod analytics_api;
 pub mod main_site_service;
 pub mod workspace_connection_service;
+pub mod settings_service;
