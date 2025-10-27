@@ -18,6 +18,7 @@
     "deploy:playground": "./scripts/deploy-playground.sh",
     "dev:local:frontend": "npm run setup-local && cd src/frontend && npm run dev",
     "dev:local:all": "./scripts/setup-local-all.sh",
+    "dev:local:all:skip-ii": "./scripts/setup-local-all.sh --skip-ii",
     "dev:playground": "./scripts/deploy-playground.sh",
     "deploy:mainnet": "./scripts/deploy-mainnet.sh"
   },

@@ -8,6 +8,25 @@ GREEN=$(printf '\033[32m')
 RED=$(printf '\033[31m')
 NC=$(printf '\033[0m')
 
+# Parse command line arguments
+SKIP_II=false
+for arg in "$@"; do
+    case $arg in
+        --skip-ii)
+        SKIP_II=true
+        shift
+        ;;
+        -h|--help)
+        echo "Usage: $0 [--skip-ii]"
+        echo "  --skip-ii    Skip Internet Identity setup (useful for continuous development)"
+        exit 0
+        ;;
+        *)
+        # Unknown option
+        ;;
+    esac
+done
+
 # Function to handle errors
 handle_error() {
     printf "\n${RED}Error: Setup failed${NC}\n"
@@ -28,11 +47,15 @@ cargo build --target wasm32-unknown-unknown
 cd ../../
 generate-did backend
 
-# Pull and setup Internet Identity
-printf "\n${GREEN}Setting up Internet Identity...${NC}\n"
-dfx deps pull
-dfx deps init
-dfx deps deploy
+# Pull and setup Internet Identity (unless skipped)
+if [ "$SKIP_II" = false ]; then
+    printf "\n${GREEN}Setting up Internet Identity...${NC}\n"
+    dfx deps pull
+    dfx deps init
+    dfx deps deploy
+else
+    printf "\n${GREEN}Skipping Internet Identity setup (--skip-ii flag used)${NC}\n"
+fi
 
 # Deploy canisters
 printf "\n${GREEN}Deploying canisters...${NC}\n"

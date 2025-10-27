@@ -17,3 +17,5 @@ pub mod startup_invite;
 pub mod startup;
 pub mod usage_service;
 pub mod payment;
+pub mod analytics;
+pub mod main_site_user;

@@ -7,7 +7,7 @@ use crate::models::{
     task::Task, github::Issue, openchat_user::OpenChatUser, slack_user::SlackUser,
     discord_user::DiscordUser, dashboard_token::DashboardToken, accelerator::Accelerator,
     startup_invite::StartupInvite, startup::Startup, admin::Admin, usage_service::UserSubscription,
-    payment::{PaymentRecord, Invoice}
+    payment::{PaymentRecord, Invoice}, analytics::AnalyticsDataPoint
 };
 use crate::models::{
     stable_principal::StablePrincipal, stable_string::StableString, waitlist::WaitlistEntry
@@ -90,8 +90,37 @@ pub struct StableStateV3 {
     pub invoices: Vec<(StableString, Invoice)>,
 }
 
+// V4: Added analytics system
+#[derive(Serialize, Deserialize)]
+pub struct StableStateV4 {
+    pub users: Vec<(StablePrincipal, User)>,
+    pub waitlist: Vec<(StableString, WaitlistEntry)>,
+    pub chat_history: Vec<((StablePrincipal, u64), ChatMessage)>,
+    pub api_messages: Vec<((StableString, u64), ApiMessage)>,
+    pub connected_accounts: Vec<(StablePrincipal, ConnectedAccounts)>,
+    pub tasks: Vec<((StablePrincipal, StableString), Task)>,
+    pub github_issues: Vec<((StablePrincipal, StableString), Issue)>,
+    pub openchat_users: Vec<(StableString, OpenChatUser)>,
+    pub slack_users: Vec<(StableString, SlackUser)>,
+    pub discord_users: Vec<(StableString, DiscordUser)>,
+    pub dashboard_tokens: Vec<(StableString, DashboardToken)>,
+    pub accelerators: Vec<(StablePrincipal, Accelerator)>,
+    pub startup_invites: Vec<(StableString, StartupInvite)>,
+    pub startups: Vec<(StableString, Startup)>,
+    pub startup_statuses: Vec<(StableString, StartupStatus)>,
+    pub startup_cohorts: Vec<(StableString, StartupCohort)>,
+    pub startup_activities: Vec<((StableString, u64), StartupActivity)>,
+    pub admins: Vec<(StablePrincipal, Admin)>,
+    pub user_subscriptions: Vec<(StableString, UserSubscription)>,
+    pub user_daily_usage: Vec<((StableString, u64), u32)>,
+    pub payment_records: Vec<(StableString, PaymentRecord)>,
+    pub invoices: Vec<(StableString, Invoice)>,
+    // NEW FIELDS IN V4:
+    pub user_analytics: Vec<((StableString, u64), AnalyticsDataPoint)>,
+}
+
 // Current stable state (latest version)
-pub type CurrentStableState = StableStateV3;
+pub type CurrentStableState = StableStateV4;
 
 // Migration implementations
 impl From<StableStateV1> for StableStateV2 {
@@ -152,6 +181,37 @@ impl From<StableStateV2> for StableStateV3 {
     }
 }
 
+impl From<StableStateV3> for StableStateV4 {
+    fn from(v3: StableStateV3) -> Self {
+        StableStateV4 {
+            users: v3.users,
+            waitlist: v3.waitlist,
+            chat_history: v3.chat_history,
+            api_messages: v3.api_messages,
+            connected_accounts: v3.connected_accounts,
+            tasks: v3.tasks,
+            github_issues: v3.github_issues,
+            openchat_users: v3.openchat_users,
+            slack_users: v3.slack_users,
+            discord_users: v3.discord_users,
+            dashboard_tokens: v3.dashboard_tokens,
+            accelerators: v3.accelerators,
+            startup_invites: v3.startup_invites,
+            startups: v3.startups,
+            startup_statuses: v3.startup_statuses,
+            startup_cohorts: v3.startup_cohorts,
+            startup_activities: v3.startup_activities,
+            admins: v3.admins,
+            user_subscriptions: v3.user_subscriptions,
+            user_daily_usage: v3.user_daily_usage,
+            payment_records: v3.payment_records,
+            invoices: v3.invoices,
+            // NEW V4 FIELDS - Default empty for migration
+            user_analytics: vec![],
+        }
+    }
+}
+
 // Chain migration from V1 to V3
 impl From<StableStateV1> for StableStateV3 {
     fn from(v1: StableStateV1) -> Self {
@@ -182,14 +242,14 @@ pub fn migrate_from_bytes(bytes: &[u8]) -> Result<CurrentStableState, String> {
             match bincode::deserialize::<StableStateV2>(bytes) {
                 Ok(v2_state) => {
                     println!("Migrating from V2 to V3");
-                    Ok(migrate_from_v2_to_v3(v2_state))
+                    Ok(migrate_from_v2_to_v3(v2_state).into())
                 }
                 Err(_) => {
                     // Try V1 and migrate to V3
                     match bincode::deserialize::<StableStateV1>(bytes) {
                         Ok(v1_state) => {
                             println!("Migrating from V1 to V3");
-                            Ok(migrate_from_v1_to_v3(v1_state))
+                            Ok(migrate_from_v1_to_v3(v1_state).into())
                         }
                         Err(e) => Err(format!("Failed to deserialize state: {:?}", e))
                     }

@@ -254,6 +254,39 @@ pub fn get_user_invoices(user_id: String) -> Vec<Invoice> {
     })
 }
 
+/// Get current user's subscription status
+pub fn get_current_user_subscription_status() -> Option<UserSubscription> {
+    let caller = ic_cdk::caller();
+    let user_id = caller.to_string();
+    
+    USER_SUBSCRIPTIONS.with(|subs| {
+        let map = subs.borrow();
+        let key = StableString::from(user_id);
+        map.get(&key)
+    })
+}
+
+/// Check if current user has an active Pro subscription
+pub fn is_current_user_pro() -> bool {
+    if let Some(subscription) = get_current_user_subscription_status() {
+        subscription.tier == UserTier::Pro && subscription.is_active
+    } else {
+        false
+    }
+}
+
+/// Check if current user has Pro subscription
+#[ic_cdk::query]
+pub fn is_user_pro() -> bool {
+    is_current_user_pro()
+}
+
+/// Get current user's subscription details
+#[ic_cdk::query]
+pub fn get_current_user_subscription() -> Option<UserSubscription> {
+    get_current_user_subscription_status()
+}
+
 // ============= HELPER FUNCTIONS =============
 
 /// Calculate amount based on tier, billing period, and currency

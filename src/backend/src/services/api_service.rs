@@ -3,12 +3,15 @@ use crate::models::stable_string::StableString;
 use crate::services::openchat_service::ensure_openchat_user;
 use crate::services::slack_service::ensure_slack_user;
 use crate::services::discord_service::ensure_discord_user;
-use crate::storage::memory::{API_MESSAGES, OPENCHAT_USERS, SLACK_USERS, DISCORD_USERS};
+use crate::services::main_site_service::ensure_main_site_user;
+use crate::storage::memory::{API_MESSAGES, OPENCHAT_USERS, SLACK_USERS, DISCORD_USERS, MAIN_SITE_USERS};
 use candid::Principal;
 use ic_cdk::{query, update};
 use crate::services::pricing_services::{
     get_usage_stats, get_user_tier, can_make_request, increment_user_requests, upgrade_user_tier, get_user_subscription,
 };
+use crate::services::analytics_service::update_user_analytics;
+use crate::services::token_service::generate_dashboard_token;
 use crate::models::usage_service::{UsageStats,UserTier,UserSubscription};
 
 
@@ -93,6 +96,28 @@ pub fn store_api_message(
             bytes[1..1+len].copy_from_slice(&playground_bytes[..len]);
             Principal::from_slice(&bytes)
         }
+        UserIdentifier::MainSiteId(main_site_id) => {
+            ensure_main_site_user(main_site_id.clone());
+
+            // Try to get linked principal, otherwise use a special MainSite principal
+            MAIN_SITE_USERS.with(|users| {
+                users
+                    .borrow()
+                    .get(&StableString::from(main_site_id.clone()))
+                    .and_then(|user| user.site_principal.map(|p| p.get()))
+                    .unwrap_or_else(|| {
+                        // Create a special principal for MainSite messages
+                        // This is a deterministic way to create a principal from a MainSite ID
+                        let mut bytes = [0u8; 29];
+                        bytes[0] = 8; // Special type for MainSite
+                        // Use the first 28 bytes of the MainSite ID
+                        let main_site_bytes = main_site_id.as_bytes();
+                        let len = std::cmp::min(main_site_bytes.len(), 28);
+                        bytes[1..1+len].copy_from_slice(&main_site_bytes[..len]);
+                        Principal::from_slice(&bytes)
+                    })
+            })
+        }
     };
 
     let timestamp = ic_cdk::api::time();
@@ -102,10 +127,11 @@ pub fn store_api_message(
         UserIdentifier::SlackId(slack_id) => slack_id.clone(),
         UserIdentifier::DiscordId(discord_id) => discord_id.clone(),
         UserIdentifier::PlaygroundId(playground_id) => playground_id.clone(),
+        UserIdentifier::MainSiteId(main_site_id) => main_site_id.clone(),
     };
     
     
-        // ✅ Usage validation before storing the request
+    // ✅ Usage validation before storing the request
     if !can_make_request(&user_id) {
         return Err(format!(
             "Daily limit reached. Upgrade to Pro for unlimited access. \
@@ -116,6 +142,12 @@ pub fn store_api_message(
 
     if let Err(err) = increment_user_requests(&user_id) {
         return Err(err);
+    }
+
+    // Update analytics data for dashboard tracking
+    if let Err(err) = update_user_analytics(&user_id) {
+        // Log error but don't fail the request - analytics is not critical
+        ic_cdk::println!("Failed to update analytics for user {}: {}", user_id, err);
     }
 
 
@@ -288,6 +320,29 @@ pub fn get_api_message_history(identifier: UserIdentifier) -> Vec<ApiMessage> {
 
             principals
         }
+        UserIdentifier::MainSiteId(main_site_id) => {
+            let mut principals = vec![];
+
+            // Try to get linked principal
+            MAIN_SITE_USERS.with(|users| {
+                let users = users.borrow();
+                if let Some(user) = users.get(&StableString::from(main_site_id.clone())) {
+                    if let Some(p) = &user.site_principal {
+                        principals.push(p.get());
+                    }
+                }
+            });
+
+            // Also include special MainSite principal
+            let mut bytes = [0u8; 29];
+            bytes[0] = 8; // Special type for MainSite
+            let main_site_bytes = main_site_id.as_bytes();
+            let len = std::cmp::min(main_site_bytes.len(), 28);
+            bytes[1..1+len].copy_from_slice(&main_site_bytes[..len]);
+            principals.push(Principal::from_slice(&bytes));
+
+            principals
+        }
     };
 
     // Collect all API messages across all relevant principals
@@ -316,6 +371,7 @@ pub fn get_api_message_history(identifier: UserIdentifier) -> Vec<ApiMessage> {
         UserIdentifier::SlackId(slack_id) => slack_id.clone(),
         UserIdentifier::DiscordId(discord_id) => discord_id.clone(),
         UserIdentifier::PlaygroundId(playground_id) => playground_id.clone(),
+        UserIdentifier::MainSiteId(main_site_id) => main_site_id.clone(),
     };
 
     API_MESSAGES.with(|messages| {
@@ -373,6 +429,7 @@ pub enum UserIdentifier {
     SlackId(String),
     DiscordId(String),
     PlaygroundId(String),
+    MainSiteId(String),
 } 
 
 // -------------------- USAGE & PRICING API --------------------
@@ -398,7 +455,15 @@ pub fn api_can_make_request(user_id: String) -> bool {
 // Increment requests counter for a user
 #[update]
 pub fn api_increment_user_requests(user_id: String) -> Result<(), String> {
-    increment_user_requests(&user_id)
+    increment_user_requests(&user_id)?;
+    
+    // Update analytics data for dashboard tracking
+    if let Err(err) = update_user_analytics(&user_id) {
+        // Log error but don't fail the request - analytics is not critical
+        ic_cdk::println!("Failed to update analytics for user {}: {}", user_id, err);
+    }
+    
+    Ok(())
 }
 
 // Upgrade user tier (Free -> Pro)
@@ -411,4 +476,106 @@ pub fn api_upgrade_user_tier(user_id: String, tier: UserTier, expires_at_ns: Opt
 #[query]
 pub fn api_get_user_subscription(user_id: String) -> Option<UserSubscription> {
     get_user_subscription(&user_id)
+}
+
+// -------------------- WORKSPACE LINKING LOGIC --------------------
+
+// Check if a specific platform ID is linked to any principal
+#[update]
+pub async fn api_is_platform_id_linked(platform: String, platform_id: String) -> Result<bool, String> {
+    if has_platform_id_linked(&platform, &platform_id) {
+        Ok(true)
+    } else {
+        // Generate auth token for workspace linking
+        let auth_token = generate_dashboard_token(platform_id).await;
+        Err(auth_token)
+    }
+}
+
+
+// Independent function to check if a user identifier has linked workspace
+// pub async fn check_workspace_linking(identifier: &UserIdentifier) -> Result<(), String> {
+//     let platform_linked = match identifier {
+//         UserIdentifier::Principal(_) => {
+//             // For principal-based requests, we don't require workspace linking
+//             // as the principal itself is the authentication
+//             true
+//         }
+//         UserIdentifier::SlackId(slack_id) => {
+//             has_platform_id_linked("slack", slack_id)
+//         }
+//         UserIdentifier::DiscordId(discord_id) => {
+//             has_platform_id_linked("discord", discord_id)
+//         }
+//         UserIdentifier::OpenChatId(openchat_id) => {
+//             has_platform_id_linked("openchat", openchat_id)
+//         }
+//         UserIdentifier::PlaygroundId(_) => {
+//             // Playground requests don't require workspace linking
+//             true
+//         }
+//     };
+    
+//     if !platform_linked {
+//         // Generate auth token for workspace linking
+//         let platform_id = match identifier {
+//             UserIdentifier::SlackId(id) => id.clone(),
+//             UserIdentifier::DiscordId(id) => id.clone(),
+//             UserIdentifier::OpenChatId(id) => id.clone(),
+//             _ => return Err("Invalid identifier for workspace linking".to_string()),
+//         };
+        
+//         let auth_token = generate_dashboard_token(platform_id).await;
+        
+//         return Err(auth_token);
+//     }
+    
+//     Ok(())
+// }
+
+/// Check if a specific platform ID has been linked to any principal
+pub fn has_platform_id_linked(platform: &str, platform_id: &str) -> bool {
+    match platform {
+        "slack" => {
+            SLACK_USERS.with(|users| {
+                let users = users.borrow();
+                if let Some(user) = users.get(&StableString::from(platform_id.to_string())) {
+                    user.site_principal.is_some()
+                } else {
+                    false
+                }
+            })
+        }
+        "discord" => {
+            DISCORD_USERS.with(|users| {
+                let users = users.borrow();
+                if let Some(user) = users.get(&StableString::from(platform_id.to_string())) {
+                    user.site_principal.is_some()
+                } else {
+                    false
+                }
+            })
+        }
+        "openchat" => {
+            OPENCHAT_USERS.with(|users| {
+                let users = users.borrow();
+                if let Some(user) = users.get(&StableString::from(platform_id.to_string())) {
+                    user.site_principal.is_some()
+                } else {
+                    false
+                }
+            })
+        }
+        "mainsite" => {
+            MAIN_SITE_USERS.with(|users| {
+                let users = users.borrow();
+                if let Some(user) = users.get(&StableString::from(platform_id.to_string())) {
+                    user.site_principal.is_some()
+                } else {
+                    false
+                }
+            })
+        }
+        _ => false,
+    }
 }
