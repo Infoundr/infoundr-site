@@ -11,6 +11,7 @@ import {
   TooltipItem,
 } from 'chart.js';
 import { Bell, Settings, MoreHorizontal, PlusCircle, MessageSquare, Clock, Mail, Calendar, PieChart, Slack, Mail as MailIcon, Github } from 'lucide-react';
+import VoiceMarketingPlanner from '../components/VoiceMarketingPlanner';
 
 // Register Chart.js components
 ChartJS.register(
@@ -309,6 +310,11 @@ const Dashboard = () => {
               <Settings size={20} />
             </button>
           </div>
+        </div>
+
+        
+        <div className="mb-8">
+          <VoiceMarketingPlanner />
         </div>
 
         {/* AI Assistants */}
