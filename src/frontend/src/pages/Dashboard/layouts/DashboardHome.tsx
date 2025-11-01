@@ -7,6 +7,7 @@ import { createAnalyticsService } from '../../../services/analytics';
 import { getCurrentUser } from '../../../services/auth';
 import { createSubscriptionService } from '../../../services/subscription';
 import { AreaChartComponent } from '../../../components/charts/AreaChart';
+import VoiceMarketingPlanner from '../../../components/VoiceMarketingPlanner';
 
 interface Props {
     actor: _SERVICE;
@@ -333,6 +334,9 @@ const DashboardHome: React.FC<Props> = ({ actor, useMockData = true }) => {
                     </div>
                 )}
             </div>
+
+            
+            <VoiceMarketingPlanner className="bg-white" />
 
             {/* Subscription Plans Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

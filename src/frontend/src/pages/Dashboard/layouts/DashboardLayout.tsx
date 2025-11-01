@@ -23,6 +23,7 @@ import Settings from './Settings';
 import BillingInvoices from './BillingInvoices';
 import ContactUs from './ContactUs';
 import Chat from './Chat';
+import VoiceMarketingDemo from '../../VoiceMarketingDemo';
 
 const DashboardLayout: React.FC = () => {
     const navigate = useNavigate();
@@ -139,6 +140,10 @@ const DashboardLayout: React.FC = () => {
             return <BillingInvoices />;
         }
 
+        if (path === '/dashboard/voice-marketing') {
+            return <VoiceMarketingDemo />;
+        }
+
         return null;
     };
 
@@ -220,6 +225,18 @@ const DashboardLayout: React.FC = () => {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                         </svg>
                         <span className="text-sm font-medium">Connections to Workspaces</span>
+                    </Link>
+
+                    <Link 
+                        to="/dashboard/voice-marketing" 
+                        className={`flex items-center px-4 py-3 text-gray-300 hover:bg-purple-800 hover:text-white transition-colors ${isActive('/dashboard/voice-marketing') ? 'bg-purple-700 text-white border-r-2 border-purple-300' : ''}`}
+                        onClick={() => setSidebarOpen(false)}
+                    >
+                        <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                        </svg>
+                        <span className="text-sm font-medium">Voice Marketing</span>
+                        <span className="ml-2 px-2 py-1 text-xs bg-green-500 text-white rounded-full">NEW</span>
                     </Link>
 
                     {/* <Link 
