@@ -83,6 +83,14 @@ const NavBar: React.FC<NavBarProps> = ({ onGetStartedClick, isAuthenticated: isU
           >
             Documentation
           </a>
+          {isUserAuthenticated && (
+            <a 
+              href="/business/zoho"
+              className="text-gray-600 hover:text-gray-900 transition-colors duration-200"
+            >
+              Business Hub
+            </a>
+          )}
           <a 
             href="#slack-integration" 
             onClick={(e) => handleNavClick(e, 'slack-integration')}
@@ -174,6 +182,14 @@ const NavBar: React.FC<NavBarProps> = ({ onGetStartedClick, isAuthenticated: isU
           >
             Documentation
           </a>
+          {isUserAuthenticated && (
+            <a 
+              href="/business/zoho"
+              className="block text-gray-600 hover:text-gray-900 transition-colors duration-200"
+            >
+              Business Hub
+            </a>
+          )}
           <a 
             href="#slack-integration" 
             onClick={(e) => handleNavClick(e, 'slack-integration')}

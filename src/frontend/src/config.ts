@@ -42,6 +42,14 @@ if (typeof window !== 'undefined') {
   }
 }
 
+// Zoho Configuration
+export const ZOHO_CONFIG = {
+  clientId: import.meta.env.VITE_ZOHO_CLIENT_ID,
+  clientSecret: import.meta.env.VITE_ZOHO_CLIENT_SECRET,
+  redirectUri: import.meta.env.VITE_ZOHO_REDIRECT_URI || `${window.location.origin}/zoho/callback`,
+  enabled: !!(import.meta.env.VITE_ZOHO_CLIENT_ID && import.meta.env.VITE_ZOHO_CLIENT_SECRET),
+};
+
 // Mock user for development
 export const MOCK_USER = {
   principal: "mock-principal",

@@ -295,6 +295,19 @@ const DashboardLayout: React.FC = () => {
                         <span className="text-sm font-medium">Usage</span>
                     </Link>
 
+                    {/* Zoho Business Hub */}
+                    <Link 
+                        to="/business/zoho" 
+                        className={`flex items-center px-4 py-3 text-gray-300 hover:bg-purple-800 hover:text-white transition-colors ${location.pathname.startsWith('/business/zoho') ? 'bg-purple-700 text-white border-r-2 border-purple-300' : ''}`}
+                        onClick={() => setSidebarOpen(false)}
+                    >
+                        <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7h18M3 12h18M3 17h18" />
+                        </svg>
+                        <span className="text-sm font-medium">Zoho Business Hub</span>
+                        <span className="ml-2 px-2 py-1 text-xs bg-green-500 text-white rounded-full">NEW</span>
+                    </Link>
+
                     <div className="border-t border-purple-500 my-4"></div>
 
                     {/* <Link 

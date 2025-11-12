@@ -40,6 +40,8 @@ import StartupDetails from './pages/Accelerator/Startups/StartupDetails';
 import SendInvites from './pages/Accelerator/Invites/SendInvites';
 import RolesPermissions from './pages/Accelerator/Roles/RolesPermissions';
 import TeamInviteAccept from "./pages/Accelerator/Roles/TeamInviteAccept";
+import ZohoBusinessPage from './pages/Business/ZohoBusinessPage';
+import { ZohoCallback } from './components/ZohoCallback';
 
 import Settings from './pages/Accelerator/Settings/Settings';
 import Analytics from './pages/Accelerator/Analytics/Analytics';
@@ -229,6 +231,14 @@ const App: React.FC = () => {
             <Route path="email" element={<EmailAgent />} />
           </Route>
           <Route path="/documentation/openchat" element={<OpenChatDoc />} />
+
+          {/* Zoho Business Routes */}
+          <Route path="/business/zoho" element={
+            <ProtectedRoute>
+              <ZohoBusinessPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/zoho/callback" element={<ZohoCallback />} />
            </Routes>
         <WaitlistModal 
           isOpen={isWaitlistModalOpen}
