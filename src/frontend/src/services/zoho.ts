@@ -129,6 +129,11 @@ class ZohoService {
 
   // Authentication Methods
   getAuthUrl(): string {
+    // In mock mode, return a dummy URL to prevent actual OAuth flow
+    if (import.meta.env.VITE_USE_MOCK_DATA === 'true') {
+      return '#mock-auth';
+    }
+
     const params = new URLSearchParams({
       response_type: 'code',
       client_id: this.config.clientId,
@@ -568,6 +573,10 @@ Procurement Team
 
   // Utility Methods
   isAuthenticated(): boolean {
+    // In mock mode, always return true to bypass authentication
+    if (import.meta.env.VITE_USE_MOCK_DATA === 'true') {
+      return true;
+    }
     return !!this.config.accessToken;
   }
 

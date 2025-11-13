@@ -21,7 +21,14 @@ export const ZohoBusinessHub: React.FC<ZohoBusinessHubProps> = ({ className = ''
   const [userInfo, setUserInfo] = useState<any>(null);
 
   useEffect(() => {
-    setIsAuthenticated(zohoService.isAuthenticated());
+    // In mock mode, clear any existing tokens and set authenticated state
+    if (import.meta.env.VITE_USE_MOCK_DATA === 'true') {
+      localStorage.removeItem('zoho_access_token');
+      localStorage.removeItem('zoho_refresh_token');
+      setIsAuthenticated(true);
+    } else {
+      setIsAuthenticated(zohoService.isAuthenticated());
+    }
   }, []);
 
   const modules = [
@@ -58,6 +65,12 @@ export const ZohoBusinessHub: React.FC<ZohoBusinessHubProps> = ({ className = ''
   ];
 
   const handleAuthenticate = () => {
+    // In mock mode, simulate successful authentication
+    if (import.meta.env.VITE_USE_MOCK_DATA === 'true') {
+      setIsAuthenticated(true);
+      return;
+    }
+    
     const authUrl = zohoService.getAuthUrl();
     window.location.href = authUrl;
   };

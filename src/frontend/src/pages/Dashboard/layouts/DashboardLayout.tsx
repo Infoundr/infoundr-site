@@ -24,6 +24,7 @@ import BillingInvoices from './BillingInvoices';
 import ContactUs from './ContactUs';
 import Chat from './Chat';
 import VoiceMarketingDemo from '../../VoiceMarketingDemo';
+import { ZohoBusinessHub } from '../../../components/ZohoBusinessHub';
 
 const DashboardLayout: React.FC = () => {
     const navigate = useNavigate();
@@ -144,6 +145,10 @@ const DashboardLayout: React.FC = () => {
             return <VoiceMarketingDemo />;
         }
 
+        if (path === '/dashboard/zoho') {
+            return <ZohoBusinessHub />;
+        }
+
         return null;
     };
 
@@ -237,6 +242,18 @@ const DashboardLayout: React.FC = () => {
                         </svg>
                         <span className="text-sm font-medium">Voice Marketing</span>
                         <span className="ml-2 px-2 py-1 text-xs bg-green-500 text-white rounded-full">NEW</span>
+                    </Link>
+
+                    <Link 
+                        to="/dashboard/zoho" 
+                        className={`flex items-center px-4 py-3 text-gray-300 hover:bg-purple-800 hover:text-white transition-colors ${isActive('/dashboard/zoho') ? 'bg-purple-700 text-white border-r-2 border-purple-300' : ''}`}
+                        onClick={() => setSidebarOpen(false)}
+                    >
+                        <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                        <span className="text-sm font-medium">Zoho Business Hub</span>
+                        <span className="ml-2 px-2 py-1 text-xs bg-blue-500 text-white rounded-full">BETA</span>
                     </Link>
 
                     {/* <Link 
