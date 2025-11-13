@@ -25,6 +25,8 @@ dist/
 
 # environment variables
 .env
+.env.local
+
 .specstory
 # SpecStory explanation file
 .specstory/.what-is-this.md

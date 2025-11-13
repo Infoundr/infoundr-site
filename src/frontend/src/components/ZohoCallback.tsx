@@ -30,9 +30,9 @@ export const ZohoCallback: React.FC = () => {
         await zohoService.exchangeCodeForTokens(code);
         setStatus('success');
         
-       
+        // Redirect to the main app after successful authentication
         setTimeout(() => {
-          navigate('/business/zoho');
+          navigate('/supplier-negotiator');
         }, 2000);
       } catch (err) {
         setStatus('error');
